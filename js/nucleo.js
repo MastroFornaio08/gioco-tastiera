@@ -57,6 +57,7 @@ const S = {
   mio: null,
   suo: null,
   fantasma: null,
+  fantasmaDati: null,
   ultimoPong: 0,
   pingInterval: null
 };
@@ -285,6 +286,10 @@ const api = {
     $("hud-timer").textContent = S.mio.tempo.toFixed(1) + "s";
 
     if (S.ruolo === "solo") {
+      if (!S.suo && S.fantasmaDati) {
+        // Se il giocatore finisce prima, concludi istantaneamente il fantasma
+        S.suo = S.fantasmaDati;
+      }
       forseChiudiRound();
     } else {
       Rete.invia("fine", S.mio);
@@ -309,6 +314,7 @@ function avviaFantasma() {
   const sim = g.fantasma ? g.fantasma(S.partita[S.round]) : { punti: interoTra(300, 700), dettaglio: "—" };
   const durata = Math.min(sim.tempo || interoTra(6, 16), g.durata) * 1000;
   const inizio = performance.now();
+  S.fantasmaDati = { punti: sim.punti, dettaglio: sim.dettaglio, tempo: durata / 1000 };
 
   clearInterval(S.fantasma);
   S.fantasma = setInterval(() => {
@@ -317,7 +323,7 @@ function avviaFantasma() {
     if (p >= 1) {
       clearInterval(S.fantasma);
       S.fantasma = null;
-      S.suo = { punti: sim.punti, dettaglio: sim.dettaglio, tempo: durata / 1000 };
+      S.suo = S.fantasmaDati;
       forseChiudiRound();
     }
   }, 90);
