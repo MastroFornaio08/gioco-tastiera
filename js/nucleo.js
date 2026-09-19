@@ -111,19 +111,21 @@ function trovaGioco(id) { return GIOCHI.find(g => g.id === id); }
 
 function disegnaGriglia() {
   const soloAmmessi = S.ruolo === "solo";
-  $("griglia-giochi").innerHTML = GIOCHI.map(g => {
+  $("lista-giochi").innerHTML = GIOCHI.map(g => {
     const bloccato = soloAmmessi && !g.solo;
-    return "<button class='carta-gioco" + (bloccato ? " bloccata" : "") + "'" +
+    return "<div class='riga-gioco" + (bloccato ? " bloccata" : "") + "'" +
       " data-gioco='" + g.id + "'" + (bloccato ? " disabled" : "") + ">" +
-      "<span class='cg-icona'>" + g.icona + "</span>" +
-      "<span class='cg-nome'>" + fuggiHtml(g.nome) + "</span>" +
-      (bloccato ? "<span class='cg-tag'>solo in due</span>" : "") +
-      "</button>";
+      "<div class='rg-icona'>" + g.icona + "</div>" +
+      "<div class='rg-info'>" +
+        "<div class='rg-nome'>" + fuggiHtml(g.nome) + "</div>" +
+        (bloccato ? "<div class='rg-tag'>solo in due</div>" : "") +
+      "</div>" +
+      "</div>";
   }).join("");
 
-  $("griglia-giochi").querySelectorAll("[data-gioco]").forEach(b => {
+  $("lista-giochi").querySelectorAll("[data-gioco]").forEach(b => {
     b.onclick = () => {
-      if (S.ruolo === "ospite") return;
+      if (S.ruolo === "ospite" || b.classList.contains("disabled")) return;
       selezionaGioco(b.dataset.gioco);
       if (S.ruolo === "host") Rete.invia("scelta", { giocoId: b.dataset.gioco });
     };
@@ -136,7 +138,7 @@ function selezionaGioco(id) {
   S.giocoId = id;
   S.gioco = g;
 
-  $("griglia-giochi").querySelectorAll("[data-gioco]").forEach(b =>
+  $("lista-giochi").querySelectorAll("[data-gioco]").forEach(b =>
     b.classList.toggle("scelta", b.dataset.gioco === id));
 
   $("scheda-gioco").innerHTML =
