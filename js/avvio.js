@@ -81,6 +81,7 @@ function collegaInterfaccia() {
   };
 
   $("btn-quit").onclick = tornaAlMenu;
+  $("btn-quit-game").onclick = tornaAlMenu;
 }
 
 (function avvio() {
