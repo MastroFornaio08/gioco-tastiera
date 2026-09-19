@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Duello a Due — 11 sfide per due giocatori</title>
+<meta name="description" content="Undici giochi rapidi da sfidare in due, dallo stesso browser a distanza. 5 round, nessuna registrazione.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/giochi.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ MENU ============ -->
+  <section class="screen is-active" id="screen-menu">
+    <h1 class="logo">Duello<span>aDue</span></h1>
+    <p class="tagline">Undici sfide rapide. Tu, un amico, cinque round.</p>
+
+    <label class="field">
+      <span>Il tuo nome</span>
+      <input id="input-name" maxlength="14" placeholder="Es. Marco" autocomplete="nickname">
+    </label>
+
+    <div class="menu-actions">
+      <button class="btn btn-primary" id="btn-create">Crea una partita<small>sei tu l'host, scegli tu il gioco</small></button>
+      <button class="btn" id="btn-join-screen">Entra con codice<small>ti serve il codice dell'host</small></button>
+      <button class="btn btn-ghost" id="btn-solo">Allenamento<small>da solo, contro un fantasma</small></button>
+    </div>
+
+    <p class="hint">Serve solo il browser. Niente account, niente installazioni.</p>
+  </section>
+
+  <!-- ============ HOST / ATTESA ============ -->
+  <section class="screen" id="screen-host">
+    <h2>Sala d'attesa</h2>
+    <p class="muted">Manda questo codice al tuo avversario.</p>
+    <div class="code-box">
+      <div class="code" id="room-code">·····</div>
+      <button class="btn btn-small" id="btn-copy-code">Copia codice</button>
+      <button class="btn btn-small btn-ghost" id="btn-copy-link">Copia link d'invito</button>
+    </div>
+    <p class="status" id="host-status">Creazione della stanza…</p>
+    <button class="btn btn-ghost btn-small" data-back>Annulla</button>
+  </section>
+
+  <!-- ============ JOIN ============ -->
+  <section class="screen" id="screen-join">
+    <h2>Entra in partita</h2>
+    <label class="field">
+      <span>Codice della stanza</span>
+      <input id="input-code" maxlength="5" placeholder="ABCD" autocapitalize="characters" autocomplete="off" spellcheck="false">
+    </label>
+    <button class="btn btn-primary" id="btn-join">Connetti</button>
+    <p class="status" id="join-status"></p>
+    <button class="btn btn-ghost btn-small" data-back>Indietro</button>
+  </section>
+
+  <!-- ============ LOBBY / SCELTA GIOCO ============ -->
+  <section class="screen" id="screen-lobby">
+    <div class="versus">
+      <div class="player"><div class="avatar">1</div><div class="pname" id="lobby-p1">—</div></div>
+      <div class="vs">VS</div>
+      <div class="player"><div class="avatar">2</div><div class="pname" id="lobby-p2">—</div></div>
+    </div>
+
+    <h2 id="lobby-titolo">Scegli la sfida</h2>
+    <div class="griglia-giochi" id="griglia-giochi"></div>
+
+    <div class="scheda-gioco" id="scheda-gioco"></div>
+
+    <button class="btn btn-primary" id="btn-start">Inizia la sfida</button>
+    <p class="status" id="lobby-status"></p>
+    <button class="btn btn-ghost btn-small" data-back>Torna al menu</button>
+  </section>
+
+  <!-- ============ ROUND ============ -->
+  <section class="screen" id="screen-round">
+    <header class="hud">
+      <div class="hud-round">Round <span id="hud-round">1</span>/5</div>
+      <div class="hud-score"><span id="hud-me-name">Tu</span> <b id="hud-me-score">0</b></div>
+      <div class="hud-score"><span id="hud-op-name">Avv.</span> <b id="hud-op-score">0</b></div>
+      <div class="hud-timer" id="hud-timer">0.0s</div>
+    </header>
+
+    <div class="modifier" id="modifier-badge"></div>
+
+    <div class="bars" id="bars">
+      <div class="bar-row"><span class="bar-label" id="bar-me-label">Tu</span>
+        <div class="bar"><i id="bar-me"></i></div></div>
+      <div class="bar-row"><span class="bar-label" id="bar-op-label">Avversario</span>
+        <div class="bar"><i id="bar-op" class="op"></i></div></div>
+    </div>
+
+    <div class="arena-wrap">
+      <div class="arena" id="arena"></div>
+      <div class="countdown" id="countdown"></div>
+    </div>
+
+    <p class="typing-hint" id="typing-hint"></p>
+  </section>
+
+  <!-- ============ RISULTATO ROUND ============ -->
+  <section class="screen" id="screen-result">
+    <h2 id="result-title">Round concluso</h2>
+    <table class="scoreboard" id="result-table"></table>
+    <button class="btn btn-primary" id="btn-next">Prossimo round</button>
+    <p class="status" id="result-status"></p>
+  </section>
+
+  <!-- ============ FINALE ============ -->
+  <section class="screen" id="screen-final">
+    <h2 id="final-title">Fine partita</h2>
+    <div class="trophy" id="final-trophy">🏆</div>
+    <table class="scoreboard" id="final-table"></table>
+    <div class="final-stats" id="final-stats"></div>
+    <button class="btn btn-primary" id="btn-rematch">Rivincita</button>
+    <button class="btn btn-ghost btn-small" id="btn-change">Cambia gioco</button>
+    <button class="btn btn-ghost btn-small" id="btn-quit">Torna al menu</button>
+    <p class="status" id="final-status"></p>
+  </section>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+<!-- dati -->
+<script src="js/frasi.js"></script>
+<script src="js/parole.js"></script>
+
+<!-- rete e motore comune -->
+<script src="js/rete.js"></script>
+<script src="js/nucleo.js"></script>
+
+<!-- i giochi -->
+<script src="js/giochi/dattilo.js"></script>
+<script src="js/giochi/riflessi.js"></script>
+<script src="js/giochi/calcolo.js"></script>
+<script src="js/giochi/anagrammi.js"></script>
+<script src="js/giochi/sequenza.js"></script>
+<script src="js/giochi/bersagli.js"></script>
+<script src="js/giochi/intruso.js"></script>
+<script src="js/giochi/stroop.js"></script>
+<script src="js/giochi/ordine.js"></script>
+<script src="js/giochi/memory.js"></script>
+<script src="js/giochi/tris.js"></script>
+
+<script src="js/avvio.js"></script>
+</body>
+</html>

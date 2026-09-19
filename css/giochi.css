@@ -1,0 +1,393 @@
+/* Stile dell'arcade: griglia di scelta e i singoli giochi.
+   Mobile-first, playful aesthetic */
+
+/* ---------- scelta del gioco ---------- */
+.griglia-giochi {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.carta-gioco {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 10px;
+  font: inherit;
+  color: var(--testo);
+  background: var(--bg-soft);
+  border: 3px solid var(--linea);
+  border-radius: var(--raggio-sm);
+  cursor: pointer;
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.15s, box-shadow 0.1s, background 0.15s;
+  box-shadow: 0 6px 0 var(--linea);
+}
+.carta-gioco:hover:not(:disabled) { 
+  background: #f8fafc; 
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 var(--linea);
+}
+.carta-gioco:active:not(:disabled) { 
+  transform: translateY(6px); 
+  box-shadow: 0 0 0 var(--linea);
+}
+.carta-gioco.scelta {
+  border-color: var(--successo);
+  background: rgba(46, 213, 115, 0.1);
+  box-shadow: 0 6px 0 #21a559;
+}
+.carta-gioco.scelta:hover:not(:disabled) { box-shadow: 0 8px 0 #21a559; }
+.carta-gioco.scelta:active:not(:disabled) { box-shadow: 0 0 0 #21a559; }
+
+.carta-gioco.bloccata { opacity: 0.5; cursor: not-allowed; box-shadow: 0 2px 0 var(--linea); transform: translateY(4px); }
+
+.cg-icona { font-size: 2.2rem; line-height: 1; margin-bottom: 4px; }
+.cg-nome { font-size: 0.85rem; font-weight: 800; text-align: center; line-height: 1.2; }
+.cg-tag { font-size: 0.65rem; color: var(--muto); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; background: var(--bg-soft-2); padding: 2px 6px; border-radius: 4px; }
+
+.scheda-gioco {
+  padding: 20px;
+  margin-bottom: 24px;
+  background: var(--bg-soft);
+  border: 3px solid var(--linea);
+  border-radius: var(--raggio);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.03);
+  min-height: 80px;
+  animation: popIn 0.3s;
+}
+.sg-testa { font-size: 1.3rem; margin-bottom: 8px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+.sg-desc { color: var(--muto); margin: 0 0 14px; font-size: 1rem; font-weight: 600; line-height: 1.4; }
+.sg-regole {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--muto);
+  font-weight: 600;
+}
+.sg-regole li { padding-left: 20px; position: relative; margin-bottom: 6px; }
+.sg-regole li::before { content: "⭐"; position: absolute; left: 0; top: 1px; font-size: 0.8rem; }
+.sg-regole b { color: var(--testo); font-weight: 800; }
+
+/* ---------- arena comune ---------- */
+.arena-wrap { position: relative; }
+
+.arena {
+  min-height: 320px;
+  padding: 24px;
+  background: var(--bg-soft);
+  border: 3px solid var(--linea);
+  border-radius: var(--raggio);
+  box-shadow: 0 8px 0 var(--linea);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.ana-conta, .calc-conta, .mem-conta {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muto);
+  font-weight: 900;
+  background: var(--bg-soft-2);
+  padding: 6px 12px;
+  border-radius: 99px;
+}
+
+.calc-input {
+  width: 220px;
+  padding: 16px 20px;
+  font-family: var(--font-main);
+  font-weight: 900;
+  font-size: 1.8rem;
+  text-align: center;
+  color: var(--testo);
+  background: var(--bg-soft-2);
+  border: 3px solid var(--linea);
+  border-radius: var(--raggio-sm);
+  outline: none;
+  box-shadow: 0 6px 0 var(--linea);
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.calc-input:focus { border-color: var(--avversario); box-shadow: 0 6px 0 #146ebd; }
+.calc-input:active { transform: translateY(6px); box-shadow: 0 0 0 var(--linea); }
+
+.calc-esiti { display: flex; gap: 8px; min-height: 28px; font-size: 1.4rem; }
+.calc-esiti .giusto, .tris-esiti .giusto { color: var(--successo); animation: popIn 0.3s; }
+.calc-esiti .sbagliato, .tris-esiti .sbagliato { color: var(--errore); animation: popIn 0.3s; }
+.tris-esiti .pari { color: var(--muto); }
+.tris-esiti { display: flex; gap: 10px; font-size: 1.5rem; min-height: 30px; }
+
+/* ---------- dattilo ---------- */
+.arena-dattilo { align-items: stretch; justify-content: flex-start; }
+
+/* ---------- riflessi ---------- */
+.semaforo {
+  width: 100%;
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--raggio-sm);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  user-select: none;
+  border: 4px solid rgba(0,0,0,0.1);
+  box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+  -webkit-tap-highlight-color: transparent;
+}
+.semaforo:active { transform: translateY(8px); box-shadow: 0 0 0 rgba(0,0,0,0.1); }
+.semaforo.rosso { background: #ff4757; color: white; border-color: #c51b2a; box-shadow: 0 8px 0 #c51b2a; }
+.semaforo.verde { background: #2ed573; color: white; border-color: #1a9c52; box-shadow: 0 8px 0 #1a9c52; }
+.semaforo.falsa { background: #ffa502; color: white; border-color: #cc8400; box-shadow: 0 8px 0 #cc8400; }
+.sem-testo { font-size: 3rem; font-weight: 900; letter-spacing: 0.05em; text-shadow: 2px 2px 0 rgba(0,0,0,0.15); }
+
+/* ---------- calcolo ---------- */
+.calc-op {
+  font-family: var(--font-main);
+  font-size: 3.5rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: var(--testo);
+}
+
+/* ---------- anagrammi ---------- */
+.ana-lettere { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.ana-lettere.scossa { animation: scossa 0.4s; }
+@keyframes scossa {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+.ana-l {
+  display: grid;
+  place-items: center;
+  width: 54px; height: 64px;
+  font-family: var(--font-main);
+  font-size: 2rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  background: var(--bg-soft-2);
+  border: 3px solid var(--linea);
+  border-radius: 12px;
+  box-shadow: 0 4px 0 var(--linea);
+}
+
+/* ---------- sequenza ---------- */
+.seq-stato { font-size: 1.3rem; font-weight: 800; color: var(--muto); background: var(--bg-soft-2); padding: 8px 16px; border-radius: 99px; }
+.seq-stato.pronto { color: white; background: var(--successo); }
+.seq-griglia {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: 280px;
+}
+.seq-tasto {
+  aspect-ratio: 1;
+  border: 3px solid rgba(0,0,0,0.1);
+  border-radius: var(--raggio-sm);
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.1s, transform 0.1s, box-shadow 0.1s;
+  box-shadow: 0 6px 0 rgba(0,0,0,0.1);
+  -webkit-tap-highlight-color: transparent;
+}
+.seq-tasto:disabled { cursor: default; }
+.seq-tasto.acceso { opacity: 1; transform: scale(1.05) translateY(-4px); box-shadow: 0 10px 0 rgba(0,0,0,0.1); border-color: rgba(0,0,0,0.2); }
+.seq-tasto:not(:disabled):active { opacity: 1; transform: translateY(6px); box-shadow: 0 0 0 rgba(0,0,0,0.1); }
+.seq-verde  { background: #2ed573; }
+.seq-rosso  { background: #ff4757; }
+.seq-giallo { background: #ffa502; }
+.seq-blu    { background: #1e90ff; }
+
+/* ---------- bersagli e ordine ---------- */
+.campo {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  background: var(--bg-soft-2);
+  border-radius: var(--raggio-sm);
+  border: 3px solid var(--linea);
+  overflow: hidden;
+}
+
+.bersaglio {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 56px; height: 56px;
+  display: grid; place-items: center;
+  font-size: 1.8rem;
+  color: white;
+  background: var(--primario);
+  border: 3px solid var(--primario-scuro);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--primario-scuro);
+  animation: restringi var(--vita) linear forwards;
+  -webkit-tap-highlight-color: transparent;
+}
+.bersaglio.oro { background: var(--oro); border-color: #cc8400; box-shadow: 0 4px 0 #cc8400; }
+.bersaglio.colpito { animation: esplodi 0.2s forwards; }
+@keyframes esplodi {
+  to { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+}
+@keyframes restringi {
+  from { transform: translate(-50%, -50%) scale(1.1); }
+  to   { transform: translate(-50%, -50%) scale(0.3); opacity: 0.2; }
+}
+
+.ord-num {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  min-width: 48px; height: 48px;
+  font: inherit;
+  font-weight: 900;
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--testo);
+  background: var(--bg-soft);
+  border: 3px solid var(--linea);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--linea);
+  transition: transform 0.1s, box-shadow 0.1s, background 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.ord-num:hover:not(:disabled) { border-color: var(--avversario); }
+.ord-num:active:not(:disabled) { transform: translate(-50%, calc(-50% + 4px)); box-shadow: 0 0 0 var(--linea); }
+.ord-num.preso { opacity: 0; transform: translate(-50%, -50%) scale(1.5); pointer-events: none; }
+
+/* ---------- intruso ---------- */
+.int-griglia {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  max-width: 460px;
+}
+.int-cella {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-size: clamp(1rem, 4vw, 2rem);
+  background: var(--bg-soft-2);
+  border: 3px solid var(--linea);
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 4px 0 var(--linea);
+  transition: transform 0.1s, box-shadow 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.int-cella:active { transform: translateY(4px); box-shadow: 0 0 0 var(--linea); }
+
+.errata { animation: lampoRosso 0.4s; }
+@keyframes lampoRosso {
+  0%, 100% { background: var(--bg-soft-2); }
+  25%, 75% { background: var(--errore); border-color: var(--errore); color: white; }
+}
+
+/* ---------- stroop ---------- */
+.st-parola {
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  user-select: none;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+}
+.st-tasti { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.st-tasto {
+  padding: 16px 24px;
+  font-family: var(--font-main);
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--testo);
+  background: var(--bg-soft);
+  border: 3px solid var(--linea);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  box-shadow: 0 6px 0 var(--linea);
+  -webkit-tap-highlight-color: transparent;
+}
+.st-tasto:active { transform: translateY(6px); box-shadow: 0 0 0 var(--linea); }
+
+/* ---------- memory ---------- */
+.mem-testa, .tris-testa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.mem-turno { font-weight: 800; color: var(--muto); font-size: 1.1rem; background: var(--bg-soft-2); padding: 6px 16px; border-radius: 99px; }
+.mem-turno.attivo { color: white; background: var(--successo); }
+
+.mem-griglia, .tris-griglia { display: grid; gap: 12px; width: 100%; max-width: 440px; }
+.mem-griglia.non-mio, .tris-griglia.non-mio { opacity: 0.7; pointer-events: none; }
+
+.mem-carta {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border: 3px solid var(--linea);
+  border-radius: 12px;
+  background: var(--bg-soft-2);
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 6px 0 var(--linea);
+  transition: transform 0.1s, box-shadow 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.mem-carta:active:not(.su, .presa) { transform: translateY(6px); box-shadow: 0 0 0 var(--linea); }
+.mem-carta span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.mem-retro { font-size: 2rem; font-weight: 900; color: var(--muto); opacity: 1; }
+.mem-fronte { font-size: 2.2rem; opacity: 0; transform: scale(0.5); }
+.mem-carta.su .mem-retro { opacity: 0; transform: scale(1.5); }
+.mem-carta.su .mem-fronte { opacity: 1; transform: scale(1); }
+.mem-carta.su { background: var(--bg-soft); border-color: var(--avversario); box-shadow: 0 6px 0 #146ebd; }
+.mem-carta.presa { opacity: 0; pointer-events: none; }
+
+/* ---------- tris ---------- */
+.tris-griglia { grid-template-columns: repeat(3, 1fr); max-width: 340px; }
+.tris-cella {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: var(--testo);
+  background: var(--bg-soft-2);
+  border: 3px solid var(--linea);
+  border-radius: 16px;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 6px 0 var(--linea);
+  transition: transform 0.1s, box-shadow 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tris-cella:active:not(.piena) { transform: translateY(6px); box-shadow: 0 0 0 var(--linea); }
+.tris-cella.piena { cursor: default; }
+.tris-cella.linea { background: rgba(46, 213, 115, 0.2); border-color: var(--successo); box-shadow: 0 6px 0 #1a9c52; color: var(--successo); }
+
+@media (max-width: 560px) {
+  .arena { padding: 16px; min-height: 280px; gap: 12px; }
+  .st-parola { font-size: 3rem; }
+  .calc-op { font-size: 2.6rem; }
+  .campo { height: 320px; }
+  .seq-griglia { width: 240px; }
+  .griglia-giochi { grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 10px; }
+  .mem-retro { font-size: 1.5rem; }
+  .mem-fronte { font-size: 1.8rem; }
+  .tris-cella { font-size: 2.8rem; border-width: 2px; }
+  .st-tasto { padding: 12px 16px; font-size: 1rem; }
+}
