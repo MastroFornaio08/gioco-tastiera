@@ -104,16 +104,20 @@
   <!-- ============ RISULTATO ROUND ============ -->
   <section class="screen" id="screen-result">
     <h2 id="result-title">Round concluso</h2>
-    <table class="scoreboard" id="result-table"></table>
+    <div class="scoreboard-table-wrap">
+      <table class="scoreboard-table" id="result-table"></table>
+    </div>
+    <div class="status" id="result-status"></div>
     <button class="btn btn-primary" id="btn-next">Prossimo round</button>
-    <p class="status" id="result-status"></p>
   </section>
 
   <!-- ============ FINALE ============ -->
   <section class="screen" id="screen-final">
     <h2 id="final-title">Fine partita</h2>
     <div class="trophy" id="final-trophy">🏆</div>
-    <table class="scoreboard" id="final-table"></table>
+    <div class="scoreboard-table-wrap">
+      <table class="scoreboard-table" id="final-table"></table>
+    </div>
     <div class="final-stats" id="final-stats"></div>
     <button class="btn btn-primary" id="btn-rematch">Rivincita</button>
     <button class="btn btn-ghost btn-small" id="btn-change">Cambia gioco</button>
