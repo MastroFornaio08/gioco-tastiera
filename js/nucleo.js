@@ -29,7 +29,7 @@
 const GIOCHI = [];
 const $ = (id) => document.getElementById(id);
 
-const MAX_ROUND = 5;
+const MAX_ROUND = 3;
 const BONUS_PRIMO = 100;   // a chi finisce per primo, nei giochi di velocità
 
 /* ------------------------------------------------------------------ stato */

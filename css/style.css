@@ -522,4 +522,6 @@ kbd {
   .field input { padding: 14px 16px; font-size: 1.1rem; }
   .phrase { font-size: 1.25rem; padding: 16px; }
   .typer { font-size: 1.15rem; padding: 16px; }
+  .scoreboard { display: block; overflow-x: auto; white-space: nowrap; }
+  .scoreboard th, .scoreboard td { padding: 10px 8px; font-size: 0.9rem; }
 }
