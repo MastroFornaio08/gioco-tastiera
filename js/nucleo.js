@@ -159,6 +159,7 @@ function preparaRound() {
   S.mio = null;
   S.suo = null;
   S.attivo = false;
+  clearInterval(S.fantasma); S.fantasma = null;
   chiudiIstanza();
 
   $("hud-round").textContent = S.round + 1;
@@ -192,7 +193,7 @@ function fermaOrologi() {
   clearInterval(S.conto); S.conto = null;
   clearInterval(S.tick); S.tick = null;
   clearTimeout(S.scadenza); S.scadenza = null;
-  clearInterval(S.fantasma); S.fantasma = null;
+  // Non fermiamo S.fantasma qui, altrimenti in modalità solo l'avversario non finisce se noi vinciamo prima!
 }
 
 function azzeraRete() {
@@ -462,6 +463,7 @@ function azzera() {
   S.suo = null;
   S.attivo = false;
   fermaOrologi();
+  clearInterval(S.fantasma); S.fantasma = null;
   chiudiIstanza();
 }
 
