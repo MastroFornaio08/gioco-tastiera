@@ -21,6 +21,7 @@ GIOCHI.push({
   ],
   gara: false,
   solo: false,
+  maxGiocatori: 2,          // tre file di tre non reggono più di due simboli
   durata: 240,
 
   generaPartita() {
@@ -30,7 +31,8 @@ GIOCHI.push({
 
   crea(api) {
     const { partite, offset } = api.dati;
-    const io = api.sonoHost ? 0 : 1;
+    const io = api.indiceMio;
+    const avversario = api.giocatori[1 - io] || { nome: "Avversario" };
 
     let partita = 0;
     let griglia = Array(9).fill(-1);
@@ -56,7 +58,7 @@ GIOCHI.push({
       const mio = turno === io;
       elTesta.innerHTML =
         "<span class='mem-turno " + (mio ? "attivo" : "") + "'>" +
-        (mio ? "Tocca a te (✕)" : "Tocca a " + fuggiHtml(S.nomeAvv) + " (◯)") + "</span>" +
+        (mio ? "Tocca a te (✕)" : "Tocca a " + fuggiHtml(avversario.nome) + " (◯)") + "</span>" +
         "<span class='mem-conta'>Partita " + (partita + 1) + " di " + partite + "</span>";
 
       elGriglia.innerHTML = griglia.map((v, i) =>

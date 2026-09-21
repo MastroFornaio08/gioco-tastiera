@@ -1,29 +1,36 @@
-/* Duello a Due — motore comune a tutti i giochi.
+/* Duello a Due — motore comune a tutti i giochi, da 2 a 6 giocatori.
 
-   Qui sta tutto ciò che i giochi hanno in comune: connessione, lobby, i cinque
-   round, il conto alla rovescia, i punteggi e le schermate. I singoli giochi si
-   limitano a disegnare dentro l'arena e a dire quanti punti ha fatto il giocatore.
+   Qui sta tutto ciò che i giochi hanno in comune: lobby, round, conto alla
+   rovescia, punteggi e schermate. I singoli giochi disegnano dentro l'arena e
+   dichiarano quanti punti ha fatto il giocatore; alla classifica pensa il motore.
+
+   L'host è l'arbitro: sceglie il gioco, genera i dati dei round, raccoglie i
+   risultati di tutti e distribuisce la classifica. Gli altri eseguono.
 
    Un modulo di gioco si registra così:
 
      GIOCHI.push({
        id, nome, icona, desc, regole,
-       gara: true,        // i due giocano insieme (barre di avanzamento)
-       solo: true,        // ammette l'allenamento contro il fantasma
-       durata: 60,        // secondi massimi per round
-       generaPartita(),   // -> array di 5 "dati", uno per round (li crea l'host)
-       crea(api)          // -> { messaggio(m), scaduto(), chiudi() }
+       gara: true,          // tutti giocano insieme (barre di avanzamento)
+       solo: true,          // ammette l'allenamento contro il fantasma
+       maxGiocatori: 6,     // quanti ne regge (il Tris per esempio solo 2)
+       durata: 60,          // secondi massimi per round
+       generaPartita(),     // -> array di dati, uno per round (li crea l'host)
+       crea(api)            // -> { messaggio(m, da), scaduto(), chiudi() }
      });
 
    L'oggetto `api` passato a crea() offre:
-     api.round      indice del round (0-4)
-     api.dati       dati del round generati dall'host
-     api.sonoHost   true se tocca a noi fare da arbitro
-     api.arena      elemento in cui disegnare
-     api.invia(m)   manda un messaggio all'avversario
-     api.avanzo(p)  aggiorna la propria barra (0-1)
-     api.finito(r)  dichiara il risultato: { punti, dettaglio }
-     api.tempo()    secondi trascorsi dall'inizio del round
+     api.round        indice del round
+     api.dati         dati del round generati dall'host
+     api.sonoHost     true se siamo noi l'arbitro
+     api.arena        elemento in cui disegnare
+     api.io           il proprio id di giocatore ('p0'…'p5')
+     api.giocatori    elenco ordinato { id, nome, colore }
+     api.indiceMio    la nostra posizione in quell'elenco
+     api.invia(m)     manda un messaggio a tutti gli altri
+     api.avanzo(p)    aggiorna la propria barra (0-1)
+     api.finito(r)    dichiara il risultato: { punti, dettaglio }
+     api.tempo()      secondi trascorsi dall'inizio del round
 */
 
 const GIOCHI = [];
@@ -32,19 +39,26 @@ const $ = (id) => document.getElementById(id);
 const MAX_ROUND = 3;
 const BONUS_PRIMO = 100;   // a chi finisce per primo, nei giochi di velocità
 
+/* Un colore per posto: serve a riconoscersi a colpo d'occhio fra sei. */
+const COLORI = ["#ff3b6b", "#2dd4ff", "#ffd23b", "#5cff8f", "#c46bff", "#ff9a3b"];
+const ID_FANTASMA = "gh";
+
 /* ------------------------------------------------------------------ stato */
 
 const S = {
   nome: "Giocatore",
-  nomeAvv: "Avversario",
   ruolo: null,          // 'host' | 'ospite' | 'solo'
+  io: "p0",             // il proprio id di giocatore
   latenza: 0,
+
+  giocatori: [],        // [{ id, nome, colore, punti, online }]
+  esiti: {},            // id -> { punti, dettaglio, tempo }   (round corrente)
+  avanzamenti: {},      // id -> 0..1
 
   giocoId: null,
   gioco: null,
   partita: [],
   round: 0,
-  punti: { io: 0, avv: 0 },
   storico: [],
 
   // round in corso
@@ -52,10 +66,8 @@ const S = {
   attivo: false,
   tick: null,
   scadenza: null,
-  conto: null,          // intervallo del conto alla rovescia
-  istanza: null,        // handle restituito da gioco.crea()
-  mio: null,
-  suo: null,
+  conto: null,
+  istanza: null,
   fantasma: null,
   fantasmaDati: null,
   ultimoPong: 0,
@@ -81,12 +93,12 @@ function toast(msg) {
 
 function stato(id, msg, classe = "") {
   const el = $(id);
+  if (!el) return;
   el.textContent = msg;
   el.className = "status" + (classe ? " " + classe : "");
 }
 
 function scegli(lista) { return lista[Math.floor(Math.random() * lista.length)]; }
-
 function interoTra(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
 
 function mescola(lista) {
@@ -98,7 +110,6 @@ function mescola(lista) {
   return a;
 }
 
-/* Sceglie n elementi distinti da una lista. */
 function scegliDistinti(lista, n) { return mescola(lista).slice(0, n); }
 
 function fuggiHtml(s) {
@@ -107,25 +118,74 @@ function fuggiHtml(s) {
 
 function trovaGioco(id) { return GIOCHI.find(g => g.id === id); }
 
+/* Distribuisce le fasce di difficoltà sul numero di round effettivo, così la
+   partita parte facile e finisce difficile qualunque sia MAX_ROUND. */
+function fasceScalate(n, fasce = ["corte", "medie", "lunghe"]) {
+  if (n <= 1) return [fasce[Math.floor(fasce.length / 2)]];
+  return Array.from({ length: n }, (_, i) =>
+    fasce[Math.round(i * (fasce.length - 1) / (n - 1))]);
+}
+
+/* ------------------------------------------------------ elenco giocatori */
+
+function gioc(id) { return S.giocatori.find(g => g.id === id); }
+function nomeDi(id) { const g = gioc(id); return g ? g.nome : "—"; }
+function coloreDi(id) { const g = gioc(id); return g ? g.colore : COLORI[0]; }
+function attivi() { return S.giocatori.filter(g => g.online); }
+
+function aggiungiGiocatore(id, nome) {
+  let g = gioc(id);
+  if (g) { g.nome = nome; g.online = true; return g; }
+  g = {
+    id, nome,
+    colore: COLORI[S.giocatori.length % COLORI.length],
+    punti: 0,
+    online: true
+  };
+  S.giocatori.push(g);
+  return g;
+}
+
+/* L'elenco che viaggia sulla rete: solo ciò che serve agli altri. */
+function elencoDaSpedire() {
+  return S.giocatori.map(g => ({ id: g.id, nome: g.nome, colore: g.colore, punti: g.punti, online: g.online }));
+}
+
+function applicaElenco(lista) {
+  S.giocatori = lista.map(g => ({ ...g }));
+}
+
 /* ------------------------------------------------------------ scelta gioco */
 
+/* Un gioco è disponibile se regge il numero di giocatori presenti
+   (e, in allenamento, se ha senso da soli). */
+function motivoBlocco(g) {
+  if (S.ruolo === "solo") return g.solo ? null : "solo in gruppo";
+  const n = Math.max(S.giocatori.length, 2);
+  const max = g.maxGiocatori || 6;
+  if (n > max) return "max " + max + " giocatori";
+  return null;
+}
+
 function disegnaGriglia() {
-  const soloAmmessi = S.ruolo === "solo";
   $("lista-giochi").innerHTML = GIOCHI.map(g => {
-    const bloccato = soloAmmessi && !g.solo;
-    return "<div class='riga-gioco" + (bloccato ? " bloccata" : "") + "'" +
-      " data-gioco='" + g.id + "'" + (bloccato ? " disabled" : "") + ">" +
+    const blocco = motivoBlocco(g);
+    return "<div class='riga-gioco" + (blocco ? " bloccata" : "") + "' data-gioco='" + g.id + "'>" +
       "<div class='rg-icona'>" + g.icona + "</div>" +
       "<div class='rg-info'>" +
         "<div class='rg-nome'>" + fuggiHtml(g.nome) + "</div>" +
-        (bloccato ? "<div class='rg-tag'>solo in due</div>" : "") +
+        (blocco ? "<div class='rg-tag'>" + fuggiHtml(blocco) + "</div>" : "") +
       "</div>" +
       "</div>";
   }).join("");
 
   $("lista-giochi").querySelectorAll("[data-gioco]").forEach(b => {
     b.onclick = () => {
-      if (S.ruolo === "ospite" || b.classList.contains("disabled")) return;
+      if (S.ruolo === "ospite") { toast("Il gioco lo sceglie l'host."); return; }
+      if (b.classList.contains("bloccata")) {
+        toast("Non si può giocare in " + S.giocatori.length + ".");
+        return;
+      }
       selezionaGioco(b.dataset.gioco);
       if (S.ruolo === "host") Rete.invia("scelta", { giocoId: b.dataset.gioco });
     };
@@ -146,36 +206,64 @@ function selezionaGioco(id) {
     "<p class='sg-desc'>" + fuggiHtml(g.desc) + "</p>" +
     "<ul class='sg-regole'>" + g.regole.map(r => "<li>" + r + "</li>").join("") + "</ul>";
 
-  $("btn-start").disabled = S.ruolo === "ospite";
+  aggiornaTastoInizia();
 }
 
-/* --------------------------------------------------------- punti e round */
-
-function aggiornaPunteggi() {
-  $("hud-me-score").textContent = S.punti.io;
-  $("hud-op-score").textContent = S.punti.avv;
+function aggiornaTastoInizia() {
+  const btn = $("btn-start");
+  if (S.ruolo === "ospite") { btn.disabled = true; return; }
+  const blocco = S.gioco ? motivoBlocco(S.gioco) : "nessun gioco";
+  const pochi = S.ruolo !== "solo" && attivi().length < 2;
+  btn.disabled = !S.gioco || !!blocco || pochi;
 }
+
+/* --------------------------------------------------------- HUD e barre */
+
+function disegnaPunteggiHud() {
+  $("hud-punti").innerHTML = S.giocatori.map(g =>
+    "<div class='hud-p" + (g.id === S.io ? " mio" : "") + (g.online ? "" : " fuori") + "'>" +
+      "<i style='background:" + g.colore + "'></i>" +
+      "<span>" + fuggiHtml(g.nome) + "</span>" +
+      "<b data-punti='" + g.id + "'>" + g.punti + "</b>" +
+    "</div>").join("");
+}
+
+function disegnaBarre() {
+  const mostraBarre = S.gioco && S.gioco.gara;
+  $("bars").style.display = mostraBarre ? "" : "none";
+  if (!mostraBarre) return;
+
+  $("bars").innerHTML = S.giocatori.map(g =>
+    "<div class='bar-row'>" +
+      "<span class='bar-label'>" + fuggiHtml(g.nome) + "</span>" +
+      "<div class='bar'><i data-barra='" + g.id + "' style='background:" + g.colore + "'></i></div>" +
+    "</div>").join("");
+}
+
+function aggiornaBarra(id, p) {
+  S.avanzamenti[id] = p;
+  const el = $("bars").querySelector("[data-barra='" + id + "']");
+  if (el) el.style.width = (Math.max(0, Math.min(1, p)) * 100).toFixed(1) + "%";
+}
+
+/* --------------------------------------------------------------- round */
 
 function preparaRound() {
   const g = S.gioco;
-  fermaOrologi();        // un round che comincia non deve ereditare timer del precedente
-  S.mio = null;
-  S.suo = null;
+  fermaOrologi();
+  S.esiti = {};
+  S.avanzamenti = {};
   S.attivo = false;
   clearInterval(S.fantasma); S.fantasma = null;
   chiudiIstanza();
 
   $("hud-round").textContent = S.round + 1;
-  $("hud-me-name").textContent = S.nome;
-  $("hud-op-name").textContent = S.nomeAvv;
-  $("bar-me-label").textContent = S.nome;
-  $("bar-op-label").textContent = S.nomeAvv;
-  aggiornaPunteggi();
+  $("hud-round-tot").textContent = MAX_ROUND;
+  disegnaPunteggiHud();
+  disegnaBarre();
 
-  $("bars").style.display = g.gara ? "" : "none";
-  $("bar-me").style.width = "0%";
-  $("bar-op").style.width = "0%";
   $("hud-timer").textContent = "0.0s";
+  $("hud-timer").classList.remove("urgente");
   $("typing-hint").textContent = "";
 
   const badge = $("modifier-badge");
@@ -189,14 +277,12 @@ function preparaRound() {
   contoAllaRovescia();
 }
 
-/* Ferma ogni orologio del round: conto alla rovescia, cronometro, scadenza e
-   fantasma. Va chiamato prima di far partire qualunque cosa nuova, altrimenti
-   un timer rimasto indietro fa ripartire il round a tradimento. */
+/* Ferma gli orologi del round. Il fantasma no: in allenamento deve finire
+   la sua corsa anche se noi abbiamo già consegnato. */
 function fermaOrologi() {
   clearInterval(S.conto); S.conto = null;
   clearInterval(S.tick); S.tick = null;
   clearTimeout(S.scadenza); S.scadenza = null;
-  // Non fermiamo S.fantasma qui, altrimenti in modalità solo l'avversario non finisce se noi vinciamo prima!
 }
 
 function azzeraRete() {
@@ -209,15 +295,19 @@ function contoAllaRovescia() {
   el.classList.add("is-on");
   let n = 3;
   el.textContent = n;
+  el.classList.remove("via");
   clearInterval(S.conto);
   S.conto = setInterval(() => {
     n--;
+    el.classList.remove("battito");
+    void el.offsetWidth;            // forza il riavvio dell'animazione
+    el.classList.add("battito");
     if (n > 0) el.textContent = n;
-    else if (n === 0) el.textContent = "VIA!";
+    else if (n === 0) { el.textContent = "VIA!"; el.classList.add("via"); }
     else {
       clearInterval(S.conto);
       S.conto = null;
-      el.classList.remove("is-on");
+      el.classList.remove("is-on", "via", "battito");
       iniziaRound();
     }
   }, 750);
@@ -230,7 +320,9 @@ function iniziaRound() {
   S.attivo = true;
 
   S.tick = setInterval(() => {
-    $("hud-timer").textContent = ((performance.now() - S.t0) / 1000).toFixed(1) + "s";
+    const t = (performance.now() - S.t0) / 1000;
+    $("hud-timer").textContent = t.toFixed(1) + "s";
+    $("hud-timer").classList.toggle("urgente", g.durata - t <= 5);
   }, 100);
 
   S.scadenza = setTimeout(() => {
@@ -250,6 +342,10 @@ const api = {
   get dati() { return S.partita[S.round]; },
   get sonoHost() { return S.ruolo !== "ospite"; },
   get arena() { return $("arena"); },
+  get io() { return S.io; },
+  get giocatori() { return S.giocatori; },
+  get indiceMio() { return Math.max(0, S.giocatori.findIndex(g => g.id === S.io)); },
+  get nGiocatori() { return S.giocatori.length; },
 
   tempo() { return (performance.now() - S.t0) / 1000; },
 
@@ -261,13 +357,15 @@ const api = {
     b.classList.add("is-on");
   },
 
+  nome(id) { return nomeDi(id); },
+
   invia(m) {
     if (S.ruolo !== "solo") Rete.invia("g", { g: m });
   },
 
   avanzo(p) {
     p = Math.max(0, Math.min(1, p));
-    $("bar-me").style.width = (p * 100).toFixed(1) + "%";
+    aggiornaBarra(S.io, p);
     const ora = performance.now();
     if (S.ruolo !== "solo" && ora - ultimoAvanzo > 90) {
       ultimoAvanzo = ora;
@@ -280,23 +378,22 @@ const api = {
     S.attivo = false;
     fermaOrologi();
 
-    S.mio = {
+    const mio = {
       punti: Math.max(0, Math.round(ris.punti || 0)),
       dettaglio: ris.dettaglio || "",
       tempo: this.tempo()
     };
-    $("hud-timer").textContent = S.mio.tempo.toFixed(1) + "s";
+    S.esiti[S.io] = mio;
+    $("hud-timer").textContent = mio.tempo.toFixed(1) + "s";
 
     if (S.ruolo === "solo") {
-      if (!S.suo && S.fantasmaDati) {
-        // Se il giocatore finisce prima, concludi istantaneamente il fantasma
-        S.suo = S.fantasmaDati;
-      }
+      if (!S.esiti[ID_FANTASMA] && S.fantasmaDati) S.esiti[ID_FANTASMA] = S.fantasmaDati;
+      forseChiudiRound();
+    } else if (S.ruolo === "host") {
       forseChiudiRound();
     } else {
-      Rete.invia("fine", S.mio);
-      $("typing-hint").textContent = "Hai finito. Aspetto l'avversario…";
-      if (S.ruolo === "host") forseChiudiRound();
+      Rete.invia("fine", mio);
+      $("typing-hint").textContent = "Hai finito. Aspetto gli altri…";
     }
   }
 };
@@ -321,79 +418,92 @@ function avviaFantasma() {
   clearInterval(S.fantasma);
   S.fantasma = setInterval(() => {
     const p = Math.min((performance.now() - inizio) / durata, 1);
-    $("bar-op").style.width = (p * 100).toFixed(1) + "%";
+    aggiornaBarra(ID_FANTASMA, p);
     if (p >= 1) {
       clearInterval(S.fantasma);
       S.fantasma = null;
-      S.suo = S.fantasmaDati;
+      S.esiti[ID_FANTASMA] = S.fantasmaDati;
       forseChiudiRound();
     }
   }, 90);
 }
 
-/* Solo l'arbitro chiude il round: raccoglie i due risultati e assegna i punti. */
+/* ------------------------------------------------------ chiusura del round */
+
+/* Solo l'arbitro chiude il round, e solo quando hanno consegnato tutti
+   quelli ancora collegati. */
 function forseChiudiRound() {
   if (S.ruolo === "ospite") return;
-  if (!S.mio || !S.suo) return;
-  if (S.attivo) return; // Wait until round is fully inactive
+  if (S.attivo) return;
 
-  let pMio = S.mio.punti, pSuo = S.suo.punti;
+  const presenti = attivi();
+  if (!presenti.every(g => S.esiti[g.id])) return;
 
-  // nei giochi a durata fissa il "primo al traguardo" non significa nulla
-  if (S.gioco.gara && S.gioco.bonusPrimo !== false && pMio > 0 && pSuo > 0) {
-    if (S.mio.tempo < S.suo.tempo) pMio += BONUS_PRIMO;
-    else if (S.suo.tempo < S.mio.tempo) pSuo += BONUS_PRIMO;
+  // punti grezzi del round
+  const tabella = presenti.map(g => ({
+    id: g.id,
+    punti: S.esiti[g.id].punti,
+    dettaglio: S.esiti[g.id].dettaglio,
+    tempo: S.esiti[g.id].tempo,
+    guadagno: S.esiti[g.id].punti
+  }));
+
+  // nei giochi di velocità il primo al traguardo prende un premio
+  if (S.gioco.gara && S.gioco.bonusPrimo !== false) {
+    const validi = tabella.filter(r => r.punti > 0);
+    if (validi.length > 1) {
+      const migliore = validi.reduce((a, b) => (b.tempo < a.tempo ? b : a));
+      migliore.guadagno += BONUS_PRIMO;
+      migliore.primo = true;
+    }
   }
 
-  S.punti.io += pMio;
-  S.punti.avv += pSuo;
-  S.storico.push({ mio: S.mio, suo: S.suo, pMio, pSuo });
+  tabella.forEach(r => { const g = gioc(r.id); if (g) g.punti += r.guadagno; });
+  tabella.sort((a, b) => b.guadagno - a.guadagno);
+
+  S.storico.push(tabella);
 
   if (S.ruolo === "host") {
-    Rete.invia("esito", {
-      round: S.round,
-      mio: S.suo, suo: S.mio,          // invertiti: è il punto di vista dell'ospite
-      pMio: pSuo, pSuo: pMio,
-      totMio: S.punti.avv, totSuo: S.punti.io
-    });
+    Rete.invia("esito", { round: S.round, tabella, totali: elencoDaSpedire() });
   }
-  mostraRisultato(pMio, pSuo);
+  mostraRisultato(tabella);
 }
 
 function applicaEsitoRemoto(m) {
   S.attivo = false;
   fermaOrologi();
-  S.mio = m.mio;
-  S.suo = m.suo;
-  S.punti.io = m.totMio;
-  S.punti.avv = m.totSuo;
-  S.storico.push({ mio: m.mio, suo: m.suo, pMio: m.pMio, pSuo: m.pSuo });
-  mostraRisultato(m.pMio, m.pSuo);
+  applicaElenco(m.totali);
+  S.storico.push(m.tabella);
+  mostraRisultato(m.tabella);
 }
 
 /* ------------------------------------------------------- schermata esito */
 
-function rigaEsito(nome, esito, punti, vincitore) {
-  return "<tr class='" + (vincitore ? "vinto" : "") + "'>" +
-    "<td>" + fuggiHtml(nome) + (vincitore ? " 👑" : "") + "</td>" +
-    "<td>" + fuggiHtml(esito.dettaglio || "—") + "</td>" +
-    "<td>" + esito.tempo.toFixed(1) + "s</td>" +
-    "<td class='punti'>" + punti + "</td></tr>";
-}
+function medaglia(i) { return ["🥇", "🥈", "🥉"][i] || ""; }
 
-function mostraRisultato(pMio, pSuo) {
+function mostraRisultato(tabella) {
   chiudiIstanza();
-  aggiornaPunteggi();
+  disegnaPunteggiHud();
 
-  $("result-title").textContent =
-    pMio > pSuo ? "Round vinto!" : pSuo > pMio ? "Round perso" : "Round in parità";
+  const mia = tabella.findIndex(r => r.id === S.io);
+  const titolo = mia === 0
+    ? (tabella.length > 2 ? "Primo posto!" : "Round vinto!")
+    : mia === tabella.length - 1 ? "Ultimo… si rimonta" : "Round chiuso";
+  $("result-title").textContent = titolo;
 
   $("result-table").innerHTML =
-    "<tr><th>Giocatore</th><th>Risultato</th><th>Tempo</th><th>Punti</th></tr>" +
-    rigaEsito(S.nome, S.mio, pMio, pMio > pSuo) +
-    rigaEsito(S.nomeAvv, S.suo, pSuo, pSuo > pMio) +
-    "<tr><td colspan='3'>Totale</td><td class='punti'>" +
-      S.punti.io + " – " + S.punti.avv + "</td></tr>";
+    "<tr><th></th><th>Giocatore</th><th>Risultato</th><th>Tempo</th><th>Punti</th></tr>" +
+    tabella.map((r, i) =>
+      "<tr class='" + (i === 0 ? "vinto " : "") + (r.id === S.io ? "mio" : "") + "'>" +
+        "<td class='pos'>" + (medaglia(i) || (i + 1)) + "</td>" +
+        "<td><i class='pastiglia' style='background:" + coloreDi(r.id) + "'></i>" +
+          fuggiHtml(nomeDi(r.id)) + "</td>" +
+        "<td>" + fuggiHtml(r.dettaglio || "—") + "</td>" +
+        "<td>" + r.tempo.toFixed(1) + "s</td>" +
+        "<td class='punti'>+" + r.guadagno + (r.primo ? " ⚡" : "") + "</td>" +
+      "</tr>").join("");
+
+  if (mia === 0) coriandoli();
 
   const ultimo = S.round >= MAX_ROUND - 1;
   const btn = $("btn-next");
@@ -430,22 +540,29 @@ function avanza() {
 
 function mostraFinale() {
   chiudiIstanza();
-  const io = S.punti.io, avv = S.punti.avv;
+  const classifica = S.giocatori.slice().sort((a, b) => b.punti - a.punti);
+  const mia = classifica.findIndex(g => g.id === S.io);
 
-  $("final-title").textContent = io > avv ? "Hai vinto!" : avv > io ? "Hai perso" : "Pareggio";
-  $("final-trophy").textContent = io > avv ? "🏆" : avv > io ? "💀" : "🤝";
+  $("final-title").textContent =
+    mia === 0 ? "Hai vinto!" : mia === 1 ? "Secondo posto" : "Fine partita";
+  $("final-trophy").textContent = mia === 0 ? "🏆" : mia === classifica.length - 1 ? "💀" : "🎖️";
 
   $("final-table").innerHTML =
-    "<tr><th>Giocatore</th><th>Punti</th></tr>" +
-    "<tr class='" + (io > avv ? "vinto" : "") + "'><td>" + fuggiHtml(S.nome) +
-      "</td><td class='punti'>" + io + "</td></tr>" +
-    "<tr class='" + (avv > io ? "vinto" : "") + "'><td>" + fuggiHtml(S.nomeAvv) +
-      "</td><td class='punti'>" + avv + "</td></tr>";
+    "<tr><th></th><th>Giocatore</th><th>Punti</th></tr>" +
+    classifica.map((g, i) =>
+      "<tr class='" + (i === 0 ? "vinto " : "") + (g.id === S.io ? "mio" : "") + "'>" +
+        "<td class='pos'>" + (medaglia(i) || (i + 1)) + "</td>" +
+        "<td><i class='pastiglia' style='background:" + g.colore + "'></i>" +
+          fuggiHtml(g.nome) + "</td>" +
+        "<td class='punti'>" + g.punti + "</td>" +
+      "</tr>").join("");
 
-  const vinti = S.storico.filter(r => r.pMio > r.pSuo).length;
+  const vinti = S.storico.filter(t => t.length && t[0].id === S.io).length;
   $("final-stats").innerHTML =
-    S.gioco.icona + " " + fuggiHtml(S.gioco.nome) + "<br>" +
+    S.gioco.icona + " " + fuggiHtml(S.gioco.nome) + " · " + S.giocatori.length + " giocatori<br>" +
     "Round vinti: <b>" + vinti + " su " + S.storico.length + "</b>";
+
+  if (mia === 0) coriandoli(90);
 
   const rematch = $("btn-rematch");
   const cambia = $("btn-change");
@@ -465,11 +582,11 @@ function mostraFinale() {
 
 function azzera() {
   S.round = 0;
-  S.punti = { io: 0, avv: 0 };
   S.storico = [];
-  S.mio = null;
-  S.suo = null;
+  S.esiti = {};
+  S.avanzamenti = {};
   S.attivo = false;
+  S.giocatori.forEach(g => { g.punti = 0; });
   fermaOrologi();
   clearInterval(S.fantasma); S.fantasma = null;
   chiudiIstanza();
@@ -477,11 +594,16 @@ function azzera() {
 
 function avviaPartita() {
   if (!S.gioco) { toast("Scegli prima un gioco."); return; }
+  if (motivoBlocco(S.gioco)) { toast("Questo gioco non regge " + S.giocatori.length + " giocatori."); return; }
   azzera();
   S.partita = S.gioco.generaPartita();
 
   if (S.ruolo === "host") {
-    Rete.invia("partita", { giocoId: S.giocoId, partita: S.partita });
+    Rete.invia("partita", {
+      giocoId: S.giocoId,
+      partita: S.partita,
+      giocatori: elencoDaSpedire()
+    });
     Rete.invia("via", { round: 0 });
     setTimeout(preparaRound, S.latenza);
   } else {
@@ -494,36 +616,59 @@ function avviaPartita() {
 function collegaRete() {
   Rete.on("stanzaPronta", ({ codice }) => {
     $("room-code").textContent = codice;
-    stato("host-status", "Stanza aperta. Aspetto l'avversario…");
+    S.io = "p0";
+    S.giocatori = [];
+    aggiungiGiocatore("p0", S.nome);
+    disegnaSalaAttesa();
+    stato("host-status", "Stanza aperta. Aspetto i giocatori…");
   });
 
+  // l'ospite, appena il canale si apre, si presenta
   Rete.on("connesso", () => {
-    Rete.invia("ciao", { nome: S.nome });
-    if (S.ruolo === "host") misuraLatenza();
+    if (S.ruolo === "ospite") Rete.invia("ciao", { nome: S.nome });
+    else misuraLatenza();
   });
 
   Rete.on("messaggio", (m) => {
     switch (m.tipo) {
-      case "ciao":
-        S.nomeAvv = (m.nome || "Avversario").slice(0, 14);
+
+      case "ciao": {                     // solo l'host lo riceve
+        if (S.ruolo !== "host") break;
+        aggiungiGiocatore(m.da, (m.nome || "Giocatore").slice(0, 14));
+        Rete.inviaA(m.da, "benvenuto", { tuoId: m.da, giocoId: S.giocoId });
+        Rete.invia("giocatori", { lista: elencoDaSpedire() });
+        disegnaSalaAttesa();
         entraInLobby();
-        if (S.ruolo === "host" && S.giocoId) Rete.invia("scelta", { giocoId: S.giocoId });
+        toast(nomeDi(m.da) + " è entrato!");
+        break;
+      }
+
+      case "benvenuto":
+        S.io = m.tuoId;
+        if (m.giocoId) S.giocoId = m.giocoId;
         break;
 
-      case "ping": 
-        Rete.invia("pong", { t: m.t }); 
-        S.ultimoPong = performance.now();
+      case "giocatori":
+        applicaElenco(m.lista);
+        if (S.giocoId) selezionaGioco(S.giocoId);
+        entraInLobby();
         break;
-      case "pong": 
-        S.latenza = Math.min(Math.round((performance.now() - m.t) / 2), 400); 
-        S.ultimoPong = performance.now();
+
+      case "pieno":
+        stato("join-status", "Stanza piena: sono già in sei.", "err");
+        Rete.chiudi();
         break;
+
+      case "ping": Rete.invia("pong", { t: m.t }); S.ultimoPong = performance.now(); break;
+      case "pong": S.latenza = Math.min(Math.round((performance.now() - m.t) / 2), 400);
+                   S.ultimoPong = performance.now(); break;
 
       case "scelta":
         selezionaGioco(m.giocoId);
         break;
 
       case "partita":
+        applicaElenco(m.giocatori);
         azzera();
         selezionaGioco(m.giocoId);
         S.partita = m.partita;
@@ -535,16 +680,17 @@ function collegaRete() {
         break;
 
       case "avanzo":
-        $("bar-op").style.width = (m.p * 100).toFixed(1) + "%";
+        aggiornaBarra(m.da, m.p);
         break;
 
       case "g":   // messaggio interno al gioco
-        if (S.istanza && S.istanza.messaggio) S.istanza.messaggio(m.g);
+        if (S.istanza && S.istanza.messaggio) S.istanza.messaggio(m.g, m.da);
         break;
 
-      case "fine":
-        S.suo = m;
-        if (S.ruolo === "host") forseChiudiRound();
+      case "fine":                        // solo l'host lo riceve
+        if (S.ruolo !== "host") break;
+        S.esiti[m.da] = { punti: m.punti, dettaglio: m.dettaglio, tempo: m.tempo };
+        forseChiudiRound();
         break;
 
       case "esito": applicaEsitoRemoto(m); break;
@@ -557,12 +703,33 @@ function collegaRete() {
     }
   });
 
-  Rete.on("disconnesso", () => {
+  Rete.on("disconnesso", ({ id }) => {
     if (S.ruolo === "solo") return;
-    azzera();
-    azzeraRete();
-    toast("Avversario disconnesso.");
-    tornaAlMenu();
+
+    if (S.ruolo === "ospite" && id === "p0") {
+      azzera(); azzeraRete();
+      toast("L'host ha chiuso la partita.");
+      tornaAlMenu();
+      return;
+    }
+
+    // un ospite se n'è andato: la partita continua fra i rimasti
+    const g = gioc(id);
+    if (g) g.online = false;
+    toast((g ? g.nome : "Un giocatore") + " si è disconnesso.");
+
+    if (S.ruolo === "host") {
+      Rete.invia("giocatori", { lista: elencoDaSpedire() });
+      if (attivi().length < 2) {
+        toast("Sei rimasto solo. Torno in sala d'attesa.");
+        azzera();
+        entraInLobby();
+        return;
+      }
+      disegnaSalaAttesa();
+      aggiornaTastoInizia();
+      forseChiudiRound();   // magari mancava solo lui per chiudere il round
+    }
   });
 
   Rete.on("errore", ({ messaggio }) => {
@@ -575,33 +742,49 @@ function misuraLatenza() {
   clearInterval(S.pingInterval);
   S.pingInterval = setInterval(() => {
     Rete.invia("ping", { t: performance.now() });
-    
-    // Check if we haven't received a pong (or ping from them) in 8 seconds
-    if (performance.now() - S.ultimoPong > 8000) {
-      if (S.ruolo !== "solo" && Rete.conn) {
-        console.warn("Nessun pong ricevuto, disconnessione...");
-        Rete.chiudi();
-        Rete._emit("disconnesso", {});
-      }
-    }
   }, 2000);
 }
 
+/* ------------------------------------------------------- sala d'attesa */
+
+function disegnaSalaAttesa() {
+  const el = $("host-giocatori");
+  if (!el) return;
+  const posti = [];
+  S.giocatori.forEach(g => {
+    posti.push("<div class='posto pieno'>" +
+      "<i class='pastiglia' style='background:" + g.colore + "'></i>" +
+      fuggiHtml(g.nome) + (g.id === "p0" ? " <small>host</small>" : "") + "</div>");
+  });
+  for (let i = S.giocatori.length; i < MAX_GIOCATORI; i++) {
+    posti.push("<div class='posto vuoto'>in attesa…</div>");
+  }
+  el.innerHTML = posti.join("");
+  const n = S.giocatori.length;
+  $("btn-host-start").disabled = n < 2;
+  $("btn-host-start").textContent = n < 2 ? "Serve almeno un altro giocatore" : "Vai alla scelta del gioco (" + n + ")";
+}
+
 function entraInLobby() {
-  $("lobby-p1").textContent = S.ruolo === "ospite" ? S.nomeAvv : S.nome;
-  $("lobby-p2").textContent = S.ruolo === "ospite" ? S.nome : S.nomeAvv;
+  $("lobby-giocatori").innerHTML = S.giocatori.map(g =>
+    "<div class='gioc" + (g.id === S.io ? " mio" : "") + (g.online ? "" : " fuori") + "'>" +
+      "<div class='gioc-avatar' style='background:" + g.colore + "'>" +
+        fuggiHtml((g.nome || "?").slice(0, 1).toUpperCase()) + "</div>" +
+      "<div class='gioc-nome'>" + fuggiHtml(g.nome) + "</div>" +
+    "</div>").join("");
 
   disegnaGriglia();
   if (S.giocoId) selezionaGioco(S.giocoId);
+  aggiornaTastoInizia();
 
   if (S.ruolo === "ospite") {
     $("lobby-titolo").textContent = "L'host sta scegliendo";
-    $("btn-start").disabled = true;
     stato("lobby-status", "Connesso. Il gioco lo sceglie l'host.");
   } else {
     $("lobby-titolo").textContent = "Scegli la sfida";
-    $("btn-start").disabled = !S.giocoId;
-    stato("lobby-status", S.ruolo === "solo" ? "" : "Avversario connesso!");
+    stato("lobby-status", S.ruolo === "solo" ? "" :
+      attivi().length < 2 ? "Aspetto che rientri qualcuno…" :
+      "In " + attivi().length + ". Si può cominciare.");
   }
   mostra("screen-lobby");
 }
@@ -611,7 +794,10 @@ function tornaAlMenu() {
   azzera();
   azzeraRete();
   S.ruolo = null;
-  S.nomeAvv = "Avversario";
+  S.io = "p0";
+  S.giocatori = [];
+  S.giocoId = null;
+  S.gioco = null;
   S.latenza = 0;
   mostra("screen-menu");
 }

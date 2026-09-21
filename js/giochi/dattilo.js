@@ -21,7 +21,7 @@ GIOCHI.push({
   generaPartita() {
     const speciali = mescola(MODIFICATORI.filter(m => m.id !== "normale" && m.id !== "turbo"));
     const usate = new Set();
-    return FASCE_ROUND.map((fascia, i) => {
+    return fasceScalate(MAX_ROUND).map((fascia, i) => {
       let frase;
       do { frase = scegli(FRASI[fascia]); } while (usate.has(frase));
       usate.add(frase);

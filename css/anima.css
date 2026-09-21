@@ -1,0 +1,191 @@
+/* Sfida Party — il movimento.
+
+   Tenuto separato dal resto perché è una scelta di stile a sé: spegnendo
+   questo file il gioco resta identico, solo fermo.
+
+   Le animazioni usate, con il nome che hanno qui dentro:
+
+     molla        entrata con rimbalzo (scala oltre il 100% e torna)
+     cascata      gli elementi di un elenco compaiono uno dopo l'altro
+     galleggia    le macchie dello sfondo si muovono lente e mai uguali
+     battito      pulsazione singola, per il conto alla rovescia
+     respiro      pulsazione continua, per ciò che aspetta un tuo gesto
+     scossa       tremolio orizzontale, per gli errori
+     luccichio    riflesso che attraversa una superficie
+     strisce      motivo diagonale che scorre dentro le barre
+     sali         entrata dal basso, per le schermate
+*/
+
+/* ---------------------------------------------------- entrata schermate */
+
+.screen.is-active {
+  animation: molla .45s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+
+@keyframes molla {
+  from { opacity: 0; transform: scale(.94) translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes sali {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ------------------------------------------------------ sfondo che vive */
+
+.macchia { animation: galleggia 22s ease-in-out infinite; }
+.m2 { animation-duration: 28s; animation-delay: -7s; }
+.m3 { animation-duration: 34s; animation-delay: -14s; }
+
+@keyframes galleggia {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(6vmax, 4vmax) scale(1.12); }
+  66%      { transform: translate(-5vmax, 6vmax) scale(.93); }
+}
+
+/* --------------------------------------------------- titolo con riflesso */
+
+.logo span {
+  background: linear-gradient(90deg, #ff3b8e, #ffd23b, #2dd4ff, #ff3b8e);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: scorriColori 6s linear infinite;
+}
+
+@keyframes scorriColori {
+  to { background-position: 300% 0; }
+}
+
+/* ------------------------------------------------ elenchi a cascata */
+
+/* I giochi della lista e i posti in sala d'attesa entrano uno per volta.
+   Il ritardo cresce di 35 ms per riga: abbastanza da vedersi, poco da pesare. */
+.riga-gioco, .posto, .gioc, .hud-p {
+  animation: sali .34s ease-out both;
+}
+.riga-gioco:nth-child(1), .posto:nth-child(1), .gioc:nth-child(1), .hud-p:nth-child(1) { animation-delay: .00s; }
+.riga-gioco:nth-child(2), .posto:nth-child(2), .gioc:nth-child(2), .hud-p:nth-child(2) { animation-delay: .035s; }
+.riga-gioco:nth-child(3), .posto:nth-child(3), .gioc:nth-child(3), .hud-p:nth-child(3) { animation-delay: .07s; }
+.riga-gioco:nth-child(4), .posto:nth-child(4), .gioc:nth-child(4), .hud-p:nth-child(4) { animation-delay: .105s; }
+.riga-gioco:nth-child(5), .posto:nth-child(5), .gioc:nth-child(5), .hud-p:nth-child(5) { animation-delay: .14s; }
+.riga-gioco:nth-child(6), .posto:nth-child(6), .gioc:nth-child(6), .hud-p:nth-child(6) { animation-delay: .175s; }
+.riga-gioco:nth-child(n+7) { animation-delay: .21s; }
+
+/* righe della classifica: stessa idea, un filo più lente perché si leggono */
+.scoreboard-table tr { animation: sali .4s ease-out both; }
+.scoreboard-table tr:nth-child(2) { animation-delay: .06s; }
+.scoreboard-table tr:nth-child(3) { animation-delay: .12s; }
+.scoreboard-table tr:nth-child(4) { animation-delay: .18s; }
+.scoreboard-table tr:nth-child(5) { animation-delay: .24s; }
+.scoreboard-table tr:nth-child(6) { animation-delay: .30s; }
+.scoreboard-table tr:nth-child(n+7) { animation-delay: .36s; }
+
+/* ------------------------------------------------- gioco scelto: respiro */
+
+.riga-gioco.scelta { animation: respiro 2.2s ease-in-out infinite; }
+
+@keyframes respiro {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.018); }
+}
+
+/* -------------------------------------------- conto alla rovescia a colpi */
+
+.countdown.battito { animation: battito .45s cubic-bezier(.34, 1.56, .64, 1); }
+
+@keyframes battito {
+  from { transform: scale(1.7); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* ------------------------------------------------------- bottone in attesa */
+
+/* Il tasto principale "chiama" con una pulsazione, ma solo se è premibile. */
+.btn-primary:not(:disabled) { animation: pulsaOmbra 2.6s ease-in-out infinite; }
+
+@keyframes pulsaOmbra {
+  0%, 100% { box-shadow: 0 6px 0 var(--primario-ombra), 0 0 0 0 rgba(255, 59, 142, .45); }
+  50%      { box-shadow: 0 6px 0 var(--primario-ombra), 0 0 0 12px rgba(255, 59, 142, 0); }
+}
+.btn-primary:active:not(:disabled) { animation: none; }
+
+/* ------------------------------------------------------- barre a strisce */
+
+.bar i {
+  background-image: linear-gradient(115deg,
+    rgba(255,255,255,.28) 25%, transparent 25%,
+    transparent 50%, rgba(255,255,255,.28) 50%,
+    rgba(255,255,255,.28) 75%, transparent 75%);
+  background-size: 22px 22px;
+  animation: strisce .7s linear infinite;
+}
+
+@keyframes strisce {
+  to { background-position: 22px 0; }
+}
+
+/* ------------------------------------------------------------- errori */
+
+.scossa, .errata { animation: scossa .35s; }
+
+@keyframes scossa {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-9px); }
+  45%      { transform: translateX(8px); }
+  70%      { transform: translateX(-5px); }
+}
+
+/* ------------------------------------------------- codice che luccica */
+
+.code {
+  position: relative;
+  background: linear-gradient(90deg, var(--oro) 0%, #fff6d0 45%, var(--oro) 60%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: luccichio 3.4s ease-in-out infinite;
+}
+
+@keyframes luccichio {
+  0%, 100% { background-position: 220% 0; }
+  55%      { background-position: -20% 0; }
+}
+
+/* --------------------------------------------- trofeo che festeggia */
+
+.trophy { animation: saltello 1.6s ease-in-out infinite; transform-origin: 50% 90%; }
+
+@keyframes saltello {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50%      { transform: translateY(-12px) rotate(4deg); }
+}
+
+/* --------------------------------------------- avatar del proprio posto */
+
+.gioc.mio .gioc-avatar { animation: respiro 2s ease-in-out infinite; }
+
+/* --------------------------------------------- posto libero che attende */
+
+.posto.vuoto { animation: attesa 1.8s ease-in-out infinite; }
+
+@keyframes attesa {
+  0%, 100% { opacity: .45; }
+  50%      { opacity: .8; }
+}
+
+/* ------------------------------------------------------------------------
+   Chi ha chiesto meno animazioni al sistema operativo le ottiene: restano
+   solo le transizioni brevissime, il resto si ferma.
+   ------------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

@@ -16,7 +16,7 @@ GIOCHI.push({
   durata: 90,
 
   generaPartita() {
-    const fasce = ["corte", "corte", "medie", "medie", "lunghe"];
+    const fasce = fasceScalate(MAX_ROUND);
     const usate = new Set();
     return fasce.map(fascia => ({
       parole: Array.from({ length: 3 }, () => {

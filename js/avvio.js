@@ -53,11 +53,17 @@ function collegaInterfaccia() {
   $("btn-solo").onclick = () => {
     S.nome = nomeScelto();
     S.ruolo = "solo";
-    S.nomeAvv = "Fantasma";
+    S.io = "p0";
+    S.giocatori = [];
+    aggiungiGiocatore("p0", S.nome);
+    aggiungiGiocatore(ID_FANTASMA, "Fantasma");
     S.giocoId = null;
     S.gioco = null;
     entraInLobby();
   };
+
+  // dalla sala d'attesa si passa alla scelta del gioco quando l'host decide
+  $("btn-host-start").onclick = () => entraInLobby();
 
   $("btn-copy-code").onclick = () => copia($("room-code").textContent, "Codice copiato!");
 

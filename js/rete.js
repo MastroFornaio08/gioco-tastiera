@@ -1,9 +1,27 @@
-/* Rete peer-to-peer basata su PeerJS.
-   L'host apre un peer con un id derivato dal codice stanza; l'ospite si connette a quell'id.
-   Nessun server di gioco: il broker pubblico serve solo per la stretta di mano. */
+/* Rete peer-to-peer basata su PeerJS, topologia a stella.
+
+   L'host apre un peer con un id derivato dal codice stanza; tutti gli altri si
+   collegano a lui. Nessuno parla direttamente con nessun altro: l'host sta al
+   centro e rilancia i messaggi agli altri. Così bastano N-1 connessioni invece
+   di N×(N-1)/2, e c'è un solo arbitro.
+
+        ospite2   ospite3
+             \     /
+   ospite1 -- HOST -- ospite4
+             /     \
+        ospite5   (max 6 in tutto)
+
+   Ogni giocatore ha un id breve e stabile: 'p0' è sempre l'host, gli ospiti
+   ricevono 'p1'…'p5' nell'ordine in cui entrano. L'id resta valido per tutta
+   la partita e non cambia se qualcuno se ne va.
+*/
 
 const PREFISSO_ID = "dattiloduello-v1-";
 const ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // niente I/O/0/1, si confondono
+const MAX_GIOCATORI = 6;
+
+/* Messaggi che riguardano solo l'arbitro: non vanno rilanciati agli altri. */
+const SOLO_ARBITRO = ["ciao", "fine", "ping", "pong"];
 
 function codiceCasuale(n = 4) {
   let s = "";
@@ -13,10 +31,11 @@ function codiceCasuale(n = 4) {
 
 const Rete = {
   peer: null,
-  conn: null,
   ruolo: null,          // 'host' | 'ospite'
   codice: null,
-  handlers: {},         // tipo -> callback
+  io: null,             // il proprio id di giocatore
+  conns: new Map(),     // idGiocatore -> connessione   (l'ospite ha solo 'p0')
+  handlers: {},
 
   on(tipo, fn) { this.handlers[tipo] = fn; return this; },
 
@@ -25,38 +44,89 @@ const Rete = {
     if (fn) fn(dati);
   },
 
-  invia(tipo, dati = {}) {
-    if (this.conn && this.conn.open) {
-      try { this.conn.send({ tipo, ...dati }); } catch (e) { /* connessione morente */ }
+  _spedisci(conn, pacco) {
+    if (conn && conn.open) {
+      try { conn.send(pacco); } catch (e) { /* connessione morente */ }
     }
   },
 
-  _collegaConn(conn) {
-    this.conn = conn;
-    conn.on("data", (msg) => {
-      if (msg && msg.tipo) this._emit("messaggio", msg);
-    });
-    conn.on("open", () => this._emit("connesso", { peer: conn.peer }));
-    conn.on("close", () => this._emit("disconnesso", {}));
-    conn.on("error", () => this._emit("disconnesso", {}));
+  /* Host: manda a tutti gli ospiti. Ospite: manda all'host. */
+  invia(tipo, dati = {}) {
+    const pacco = { tipo, da: this.io, ...dati };
+    this.conns.forEach(conn => this._spedisci(conn, pacco));
   },
 
-  /* Host: prova a registrare un id ricavato da un codice casuale.
+  /* Host: manda a un solo ospite. */
+  inviaA(id, tipo, dati = {}) {
+    this._spedisci(this.conns.get(id), { tipo, da: this.io, ...dati });
+  },
+
+  /* Host: rilancia agli altri un messaggio arrivato da un ospite. */
+  _inoltra(msg) {
+    this.conns.forEach((conn, id) => {
+      if (id !== msg.da) this._spedisci(conn, msg);
+    });
+  },
+
+  get quanti() { return this.ruolo === "host" ? this.conns.size + 1 : 0; },
+
+  /* Primo slot libero fra p1 e p5, così un posto liberato viene riusato. */
+  _slotLibero() {
+    for (let i = 1; i < MAX_GIOCATORI; i++) {
+      if (!this.conns.has("p" + i)) return "p" + i;
+    }
+    return null;
+  },
+
+  _collegaConn(id, conn) {
+    this.conns.set(id, conn);
+
+    conn.on("data", (msg) => {
+      if (!msg || !msg.tipo) return;
+      if (this.ruolo === "host") {
+        msg.da = id;                                    // non fidarsi del mittente dichiarato
+        if (!SOLO_ARBITRO.includes(msg.tipo)) this._inoltra(msg);
+      }
+      this._emit("messaggio", msg);
+    });
+
+    conn.on("open", () => this._emit("connesso", { id }));
+
+    const addio = () => {
+      if (this.conns.get(id) === conn) {
+        this.conns.delete(id);
+        this._emit("disconnesso", { id });
+      }
+    };
+    conn.on("close", addio);
+    conn.on("error", addio);
+  },
+
+  /* Host: registra un id ricavato da un codice casuale.
      Se il codice è già occupato, ne genera un altro (max 5 tentativi). */
   creaStanza(tentativi = 5) {
     const codice = codiceCasuale();
-    const id = PREFISSO_ID + codice;
     this.ruolo = "host";
+    this.io = "p0";
     this.codice = codice;
+    this.conns = new Map();
 
-    const peer = new Peer(id, { debug: 0 });
+    const peer = new Peer(PREFISSO_ID + codice, { debug: 0 });
     this.peer = peer;
 
     peer.on("open", () => this._emit("stanzaPronta", { codice }));
 
     peer.on("connection", (conn) => {
-      if (this.conn && this.conn.open) { conn.close(); return; } // stanza piena
-      this._collegaConn(conn);
+      const id = this._slotLibero();
+      if (!id) {
+        // stanza piena: lo diciamo e chiudiamo, senza lasciarlo in attesa
+        conn.on("open", () => {
+          try { conn.send({ tipo: "pieno" }); } catch (e) {}
+          setTimeout(() => { try { conn.close(); } catch (e) {} }, 300);
+        });
+        return;
+      }
+      this._collegaConn(id, conn);
     });
 
     peer.on("error", (err) => {
@@ -69,23 +139,24 @@ const Rete = {
     });
   },
 
-  /* Ospite: si connette all'id dell'host. */
+  /* Ospite: si collega all'host. L'id definitivo glielo comunica l'host. */
   entraStanza(codice) {
     codice = (codice || "").trim().toUpperCase();
     if (codice.length < 3) { this._emit("errore", { messaggio: "Codice troppo corto." }); return; }
 
     this.ruolo = "ospite";
+    this.io = null;               // lo assegna l'host col messaggio di benvenuto
     this.codice = codice;
+    this.conns = new Map();
 
     const peer = new Peer(undefined, { debug: 0 });
     this.peer = peer;
 
     peer.on("open", () => {
       const conn = peer.connect(PREFISSO_ID + codice, { reliable: true });
-      this._collegaConn(conn);
-      // Se entro 12 secondi non si apre, la stanza probabilmente non esiste.
+      this._collegaConn("p0", conn);
       setTimeout(() => {
-        if (!this.conn || !this.conn.open) {
+        if (!conn.open) {
           this._emit("errore", { messaggio: "Stanza non trovata. Controlla il codice." });
         }
       }, 12000);
@@ -100,10 +171,18 @@ const Rete = {
     });
   },
 
+  /* Host: chiude il posto di un giocatore (espulsione o uscita). */
+  scollega(id) {
+    const conn = this.conns.get(id);
+    if (conn) { try { conn.close(); } catch (e) {} }
+    this.conns.delete(id);
+  },
+
   chiudi() {
-    try { if (this.conn) this.conn.close(); } catch (e) {}
+    this.conns.forEach(conn => { try { conn.close(); } catch (e) {} });
+    this.conns.clear();
     try { if (this.peer) this.peer.destroy(); } catch (e) {}
-    this.conn = null; this.peer = null; this.ruolo = null; this.codice = null;
+    this.peer = null; this.ruolo = null; this.codice = null; this.io = null;
   }
 };
 

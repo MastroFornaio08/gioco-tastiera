@@ -1,10 +1,14 @@
-/* 🧠 Memory — le classiche coppie di carte, giocate a turni sulla stessa plancia.
-   Ogni mossa viaggia sulla rete: le due plance restano identiche perché entrambi
-   eseguono la stessa logica sullo stesso messaggio. Chi indovina, rigioca. */
+/* 🧠 Memory — le coppie di figure, giocate a turno sulla stessa plancia.
+
+   Funziona da 2 a 6. Ogni mossa viaggia sulla rete e viene eseguita
+   identica da tutti: le plance restano allineate perché ognuno applica la
+   stessa logica allo stesso messaggio, non perché qualcuno mandi lo stato.
+   Chi indovina una coppia rigioca; altrimenti il turno passa al successivo. */
 
 const FIGURE_MEMORY = [
   "🍎", "🍋", "🍇", "🍓", "🥝", "🍌", "🍑", "🥑",
-  "🐶", "🐱", "🦊", "🐼", "🐸", "🐧", "🦉", "🐢"
+  "🐶", "🐱", "🦊", "🐼", "🐸", "🐧", "🦉", "🐢",
+  "🚀", "⚽", "🎸", "🎩", "💡", "🔔", "🎲", "🧲"
 ];
 
 GIOCHI.push({
@@ -13,18 +17,19 @@ GIOCHI.push({
   icona: "🧠",
   desc: "Scopri le coppie di figure. Chi ne trova di più vince il round.",
   regole: [
-    "Si gioca <b>a turni</b>: chi trova una coppia rigioca subito.",
-    "Ogni coppia vale <b>150 punti</b>, vincere il round ne vale <b>250</b>.",
-    "La plancia cresce: da <b>6</b> a <b>10</b> coppie.",
+    "Si gioca <b>a turno</b>: chi trova una coppia rigioca subito.",
+    "Ogni coppia vale <b>150 punti</b>, il primato del round ne vale <b>250</b>.",
+    "La plancia cresce con il numero di giocatori.",
     "Chi comincia cambia a ogni round."
   ],
   gara: false,
   solo: false,
-  durata: 240,
+  maxGiocatori: 6,
+  durata: 300,
 
   generaPartita() {
     return Array.from({ length: MAX_ROUND }, (_, r) => {
-      const coppie = 6 + r;
+      const coppie = 8 + r * 2;
       const figure = scegliDistinti(FIGURE_MEMORY, coppie);
       return { coppie, carte: mescola(figure.concat(figure)) };
     });
@@ -32,24 +37,28 @@ GIOCHI.push({
 
   crea(api) {
     const { carte, coppie } = api.dati;
-    const io = api.sonoHost ? 0 : 1;
-    let turno = api.round % 2;          // a round pari comincia l'host
+    const giocatori = api.giocatori;
+    const n = giocatori.length;
+    const io = api.indiceMio;
 
-    const trovate = [0, 0];
-    const scoperte = new Set();         // indici già conquistati
-    let girate = [];                    // indici attualmente a faccia in su
+    let turno = api.round % n;            // chi comincia ruota a ogni round
+    const trovate = new Array(n).fill(0);
+    const scoperte = new Set();
+    let girate = [];
     let bloccato = false;
     let concluso = false;
     let attesa = null;
 
     api.arena.innerHTML =
       "<div class='mem-testa' id='mem-testa'></div>" +
+      "<div class='mem-punti' id='mem-punti'></div>" +
       "<div class='mem-griglia' id='mem-griglia'></div>";
 
     const elTesta = api.arena.querySelector("#mem-testa");
+    const elPunti = api.arena.querySelector("#mem-punti");
     const elGriglia = api.arena.querySelector("#mem-griglia");
 
-    const colonne = coppie <= 6 ? 4 : coppie <= 8 ? 5 : 5;
+    const colonne = carte.length <= 16 ? 4 : carte.length <= 24 ? 6 : 6;
     elGriglia.style.gridTemplateColumns = "repeat(" + colonne + ", 1fr)";
     elGriglia.innerHTML = carte.map((f, i) =>
       "<button class='mem-carta' data-i='" + i + "'>" +
@@ -60,11 +69,14 @@ GIOCHI.push({
 
     function testa() {
       const mio = turno === io;
-      elTesta.innerHTML =
-        "<span class='mem-turno " + (mio ? "attivo" : "") + "'>" +
-        (mio ? "Tocca a te" : "Tocca a " + fuggiHtml(S.nomeAvv)) + "</span>" +
-        "<span class='mem-conta'>" + fuggiHtml(S.nome) + " " + trovate[io] +
-        " — " + trovate[1 - io] + " " + fuggiHtml(S.nomeAvv) + "</span>";
+      elTesta.innerHTML = "<span class='mem-turno " + (mio ? "attivo" : "") + "'>" +
+        (mio ? "Tocca a te!" : "Tocca a " + fuggiHtml(giocatori[turno].nome)) + "</span>";
+
+      elPunti.innerHTML = giocatori.map((g, k) =>
+        "<span class='mem-p" + (k === turno ? " ora" : "") + "'>" +
+          "<i class='pastiglia' style='background:" + g.colore + "'></i>" +
+          fuggiHtml(g.nome) + " <b>" + trovate[k] + "</b></span>").join("");
+
       elGriglia.classList.toggle("non-mio", !mio);
     }
 
@@ -74,7 +86,6 @@ GIOCHI.push({
 
       girate.push(i);
       celle[i].classList.add("su");
-
       if (girate.length < 2) return;
 
       bloccato = true;
@@ -96,7 +107,7 @@ GIOCHI.push({
           celle[b].classList.remove("su");
           girate = [];
           bloccato = false;
-          turno = 1 - turno;
+          turno = (turno + 1) % n;
           testa();
         }, 900);
       }
@@ -105,9 +116,10 @@ GIOCHI.push({
     function concludi() {
       if (concluso) return;
       concluso = true;
-      const mie = trovate[io], sue = trovate[1 - io];
+      const mie = trovate[io];
+      const massimo = Math.max(...trovate);
       let punti = mie * 150;
-      if (mie > sue) punti += 250;
+      if (mie === massimo && mie > 0) punti += 250;
       api.finito({ punti, dettaglio: mie + " coppie su " + coppie });
     }
 
@@ -116,7 +128,7 @@ GIOCHI.push({
         if (turno !== io || bloccato || concluso) return;
         const i = Number(c.dataset.i);
         if (scoperte.has(i) || girate.includes(i)) return;
-        api.invia({ i });      // l'avversario applica la stessa mossa
+        api.invia({ i });
         gira(i);
       };
     });
