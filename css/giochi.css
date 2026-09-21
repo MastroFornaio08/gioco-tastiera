@@ -480,3 +480,111 @@
   color: var(--muto);
   font-variant-numeric: tabular-nums;
 }
+
+/* ---------- schermata di avvio comune ai giochi che chiedono permessi ---------- */
+.ar-avvio {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  text-align: center; padding: 10px;
+}
+.ar-icona { font-size: 3.4rem; }
+.ar-avvio p { color: var(--muto); font-weight: 600; margin: 0; max-width: 340px; }
+.ar-nota { color: var(--errore); font-weight: 700; font-size: 0.86rem; min-height: 1.2em; }
+
+/* ---------- caccia AR ---------- */
+.arena-caccia { padding: 0; overflow: hidden; }
+.ar-scena {
+  position: relative; width: 100%; height: 420px;
+  background: #0d0820; border-radius: var(--raggio-sm); overflow: hidden;
+  touch-action: none;
+}
+.ar-scena.col-dito { cursor: grab; }
+.ar-scena.col-dito:active { cursor: grabbing; }
+#ar-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ar-scena.senza-video #ar-video { display: none; }
+.ar-scena.senza-video {
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 2px, transparent 2px 60px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 2px, transparent 2px 60px),
+    linear-gradient(180deg, #1b1038, #0d0820);
+}
+
+.ar-forme { position: absolute; inset: 0; pointer-events: none; }
+.ar-forma {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 62px; height: 62px;
+  border: 4px solid #fff;
+  box-shadow: 0 0 0 3px rgba(0,0,0,.35);
+  background: rgba(255,255,255,.14);
+}
+.ar-cerchio { border-radius: 50%; border-color: var(--avversario); }
+.ar-quadrato { border-radius: 8px; border-color: var(--lime); }
+.ar-oro { border-radius: 50%; border-color: var(--oro); background: rgba(255,210,59,.3); }
+.ar-forma.agganciata {
+  background: conic-gradient(var(--primario) var(--carica), rgba(255,255,255,.18) 0);
+  transform: translate(-50%, -50%) scale(1.12);
+}
+
+.ar-mirino {
+  position: absolute; left: 50%; top: 50%;
+  width: 78px; height: 78px; margin: -39px 0 0 -39px;
+  border: 3px dashed rgba(255,255,255,.55);
+  border-radius: 50%; pointer-events: none;
+}
+.ar-mirino.attivo { border-color: var(--primario); border-style: solid; }
+
+.ar-hud {
+  position: absolute; top: 10px; left: 10px; right: 10px;
+  display: flex; justify-content: space-between;
+  font-weight: 900; font-size: 1rem;
+  text-shadow: 0 2px 6px rgba(0,0,0,.8);
+  pointer-events: none;
+}
+.ar-bussola {
+  position: absolute; left: 12px; right: 12px; bottom: 12px; height: 8px;
+  background: rgba(0,0,0,.45); border-radius: 99px; pointer-events: none;
+}
+.ar-bussola i {
+  position: absolute; top: -3px; width: 6px; height: 14px;
+  margin-left: -3px; border-radius: 3px; background: var(--oro);
+}
+
+/* ---------- scuoti e urlo ---------- */
+.sc-scena, .ur-scena {
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  width: 100%; padding: 16px; border-radius: var(--raggio-sm);
+  background: var(--bg-soft-2); transition: background .08s;
+  touch-action: manipulation; user-select: none;
+}
+.sc-scena.botta { background: rgba(255, 59, 142, .35); }
+.sc-energia, .ur-livello {
+  width: 100%; height: 22px; background: rgba(0,0,0,.4);
+  border-radius: 99px; overflow: hidden;
+}
+.sc-energia i, .ur-livello i {
+  display: block; height: 100%; width: 0;
+  background: linear-gradient(90deg, var(--lime), var(--oro), var(--primario));
+  transition: width .08s linear;
+}
+.sc-numero { font-size: 3rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+.sc-modo { color: var(--muto); font-weight: 700; text-align: center; }
+.sc-tempo { font-family: var(--mono); font-weight: 900; font-size: 1.2rem; color: var(--oro); }
+.ur-bocca { font-size: 3.6rem; }
+
+/* ---------- yahtzee ---------- */
+.ya-dadi { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.ya-dadi.rotola { animation: scossa .4s; }
+.ya-dado {
+  width: 62px; height: 62px;
+  font-size: 2.6rem; line-height: 1;
+  color: var(--testo);
+  background: var(--bg-soft-2);
+  border: 3px solid var(--linea);
+  border-radius: 14px;
+  box-shadow: 0 5px 0 var(--linea);
+  cursor: pointer;
+  padding: 0;
+}
+.ya-dado.bloccato { border-color: var(--oro); color: var(--oro); box-shadow: 0 5px 0 #8a6a00; }
+.ya-dado.vuoto { opacity: .4; font-size: 1.5rem; }
+.ya-combo { font-size: 1.15rem; font-weight: 800; color: var(--oro); }
+.ya-combo.vuota { color: var(--muto); font-weight: 600; }
