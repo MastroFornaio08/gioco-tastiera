@@ -163,7 +163,9 @@ function motivoBlocco(g) {
   if (S.ruolo === "solo") return g.solo ? null : "solo in gruppo";
   const n = Math.max(S.giocatori.length, 2);
   const max = g.maxGiocatori || 6;
+  const min = g.minGiocatori || 2;
   if (n > max) return "max " + max + " giocatori";
+  if (n < min) return "servono almeno " + min;
   return null;
 }
 
@@ -361,6 +363,22 @@ const api = {
 
   invia(m) {
     if (S.ruolo !== "solo") Rete.invia("g", { g: m });
+  },
+
+  /* Canale privato verso l'arbitro: nessun altro giocatore lo vede.
+     Serve ai giochi in cui qualcosa deve restare segreto (voti, ruoli). */
+  aArbitro(m) {
+    if (S.ruolo === "ospite") Rete.invia("gp", { g: m });
+    else if (S.istanza && S.istanza.messaggio) S.istanza.messaggio(m, S.io);
+  },
+
+  /* Canale privato dall'arbitro a un singolo giocatore. */
+  aGiocatore(id, m) {
+    if (id === S.io) {
+      if (S.istanza && S.istanza.messaggio) S.istanza.messaggio(m, S.io);
+    } else if (S.ruolo === "host") {
+      Rete.inviaA(id, "gp", { g: m });
+    }
   },
 
   avanzo(p) {
@@ -683,7 +701,8 @@ function collegaRete() {
         aggiornaBarra(m.da, m.p);
         break;
 
-      case "g":   // messaggio interno al gioco
+      case "g":   // messaggio interno al gioco, visibile a tutti
+      case "gp":  // idem, ma privato fra un giocatore e l'arbitro
         if (S.istanza && S.istanza.messaggio) S.istanza.messaggio(m.g, m.da);
         break;
 
@@ -717,6 +736,7 @@ function collegaRete() {
     const g = gioc(id);
     if (g) g.online = false;
     toast((g ? g.nome : "Un giocatore") + " si è disconnesso.");
+    disegnaPunteggiHud();     // lo si vede subito barrato, senza aspettare il round dopo
 
     if (S.ruolo === "host") {
       Rete.invia("giocatori", { lista: elencoDaSpedire() });

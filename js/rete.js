@@ -20,8 +20,11 @@ const PREFISSO_ID = "dattiloduello-v1-";
 const ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // niente I/O/0/1, si confondono
 const MAX_GIOCATORI = 6;
 
-/* Messaggi che riguardano solo l'arbitro: non vanno rilanciati agli altri. */
-const SOLO_ARBITRO = ["ciao", "fine", "ping", "pong"];
+/* Messaggi che riguardano solo l'arbitro: non vanno rilanciati agli altri.
+   "gp" è il canale privato dei giochi (parole segrete, voti): deve restare
+   fra un giocatore e l'arbitro, altrimenti basterebbe guardare i messaggi
+   in arrivo per sapere tutto. */
+const SOLO_ARBITRO = ["ciao", "fine", "ping", "pong", "gp"];
 
 function codiceCasuale(n = 4) {
   let s = "";
