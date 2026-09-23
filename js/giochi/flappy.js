@@ -129,7 +129,7 @@ GIOCHI.push({
       birdEl.style.top = birdY + "%";
 
       // Ruota l'uccellino in base alla velocità
-      birdEl.style.transform = \`rotate(\${Math.min(90, Math.max(-20, velocity * 4))}deg)\`;
+      birdEl.style.transform = `rotate(${Math.min(90, Math.max(-20, velocity * 4))}deg)`;
 
       // Gestione tubi
       if (frames % 90 === 0) {
