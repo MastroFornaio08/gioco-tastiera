@@ -103,10 +103,19 @@ GIOCHI.push({
         "<button class='ya-dado" + (bloccati[i] ? " bloccato" : "") + (d ? "" : " vuoto") + "' " +
         "data-i='" + i + "'>" + (d ? "⚀⚁⚂⚃⚄⚅"[d - 1] : "·") + "</button>").join("");
 
-      const m = dadi[0] ? migliore(dadi) : null;
-      elMano.innerHTML = m
-        ? "<span class='ya-combo'>" + fuggiHtml(m.nome) + " · <b>" + m.punti + "</b></span>"
-        : "<span class='ya-combo vuota'>nessun tiro ancora</span>";
+      const mTotale = dadi[0] ? migliore(dadi) : null;
+      const dadiBloccati = dadi.filter((_, i) => bloccati[i]);
+      const mSicuro = dadiBloccati.length > 0 ? migliore(dadiBloccati) : null;
+
+      if (mTotale) {
+        let htmlMano = "<span class='ya-combo'>" + fuggiHtml(mTotale.nome) + " · <b>" + mTotale.punti + "</b></span>";
+        if (tiriFatti < maxTiri && mSicuro && mSicuro.punti > 10) {
+          htmlMano += "<br><span class='ya-combo-sicuro' style='font-size:0.85em; opacity:0.8; margin-top:4px; display:inline-block;'>Garantito: " + fuggiHtml(mSicuro.nome) + " · <b>" + mSicuro.punti + "</b></span>";
+        }
+        elMano.innerHTML = htmlMano;
+      } else {
+        elMano.innerHTML = "<span class='ya-combo vuota'>nessun tiro ancora</span>";
+      }
 
       btnTira.disabled = !mio || tiriFatti >= maxTiri;
       btnTira.textContent = tiriFatti === 0 ? "Tira"
