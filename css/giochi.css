@@ -1378,3 +1378,141 @@
   transform: translateX(-50%) scale(1.3);
   color: var(--primario);
 }
+
+/* =========================================================
+   TEMI DELLE ARENE (SFONDI PERSONALIZZATI PER GIOCO)
+   ========================================================= */
+
+/* Flappy: cielo notturno/azzurro */
+.arena-flappy {
+  background: linear-gradient(180deg, #0b1d42 0%, #1a3673 100%);
+  border-color: #2a58b5;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+}
+
+/* Yahtzee: tavolo verde da casinò */
+.arena-yahtzee {
+  background: radial-gradient(circle at center, #0a4f27 0%, #03210f 100%);
+  border-color: #5c3a21; /* bordo in legno */
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.7), 0 8px 0 #3d2412;
+}
+
+/* Dattilo: terminale hacker */
+.arena-dattilo {
+  background: #020a04;
+  border-color: #0f3816;
+  box-shadow: inset 0 0 30px rgba(0,255,0,0.1);
+}
+.arena-dattilo .phrase c.ok, 
+.arena-dattilo .frase c.ok {
+  color: #0f0;
+  text-shadow: 0 0 5px #0f0;
+}
+.arena-dattilo .typing-hint {
+  color: #0f0;
+  opacity: 0.7;
+}
+
+/* Bersagli: poligono di tiro */
+.arena-bersagli {
+  background: 
+    repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(255,255,255,0.03) 20px),
+    repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(255,255,255,0.03) 20px),
+    #17102b;
+  border-color: #3f2a63;
+}
+
+/* Impostore: mistero/rosso scuro */
+.arena-impostore {
+  background: radial-gradient(circle at top, #2e0813 0%, #110105 100%);
+  border-color: #540e21;
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+}
+
+/* Snake (nuovo) */
+.arena-snake {
+  background: #0d120d;
+  border-color: #1b3819;
+}
+
+/* Dodge (nuovo) */
+.arena-dodge {
+  background: linear-gradient(180deg, #050414 0%, #110d2e 100%);
+  border-color: #2b226e;
+}
+
+/* ---------- snake ---------- */
+.snake-board {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1;
+  background: rgba(0,0,0,0.4);
+  border: 2px solid var(--linea);
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  grid-template-rows: repeat(15, 1fr);
+  gap: 1px;
+}
+.snake-board.sn-dead {
+  filter: grayscale(1) sepia(1) hue-rotate(-50deg);
+}
+.sn-cell {
+  background: rgba(255,255,255,0.03);
+  border-radius: 2px;
+}
+.sn-body { background: var(--successo); }
+.sn-head { background: #fff; }
+.sn-food { background: var(--errore); border-radius: 50%; }
+
+.snake-punteggio {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--oro);
+  margin-top: 10px;
+}
+
+.sn-ctrl {
+  position: absolute;
+  z-index: 50;
+  opacity: 0;
+}
+.sn-ctrl.up { top: 0; left: 0; right: 0; height: 30%; }
+.sn-ctrl.down { bottom: 0; left: 0; right: 0; height: 30%; }
+.sn-ctrl.left { top: 30%; bottom: 30%; left: 0; width: 30%; }
+.sn-ctrl.right { top: 30%; bottom: 30%; right: 0; width: 30%; }
+
+/* ---------- dodge ---------- */
+.dodge-area {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  height: 360px;
+  background: rgba(0,0,0,0.2);
+  border: 2px solid var(--linea);
+  border-radius: var(--raggio);
+  overflow: hidden;
+  user-select: none;
+}
+.dodge-ship {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2.2rem;
+  transition: left 0.05s linear;
+  z-index: 20;
+}
+.dodge-meteor {
+  position: absolute;
+  font-size: 1.8rem;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+.dodge-score {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--primario);
+  margin-top: 10px;
+}
