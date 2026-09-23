@@ -115,8 +115,9 @@ h2 { font-size: 1.8rem; text-align: center; }
   text-align: center;
   margin-bottom: 4px;
   letter-spacing: -0.02em;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
 }
-.logo span { color: var(--primario); }
+.logo span { color: var(--primario); text-shadow: 0 0 20px var(--primario); }
 
 .tagline { color: var(--muto); margin: 0 0 28px; text-align: center; font-size: 1.02rem; }
 .muted, .hint { color: var(--muto); font-size: 0.95rem; }
@@ -193,10 +194,13 @@ h2 { font-size: 1.8rem; text-align: center; }
   color: #2b0016;
   background: linear-gradient(180deg, #ff6aa8 0%, var(--primario) 100%);
   border-color: #ff8fc0;
-  box-shadow: 0 6px 0 var(--primario-ombra);
+  box-shadow: 0 6px 0 var(--primario-ombra), 0 0 15px rgba(255, 59, 142, 0.6);
 }
-.btn-primary:hover:not(:disabled) { background: linear-gradient(180deg, #ff7db3 0%, var(--primario-scuro) 100%); }
-.btn-primary:active:not(:disabled) { box-shadow: 0 0 0 var(--primario-ombra); }
+.btn-primary:hover:not(:disabled) { 
+  background: linear-gradient(180deg, #ff7db3 0%, var(--primario-scuro) 100%); 
+  box-shadow: 0 6px 0 var(--primario-ombra), 0 0 25px rgba(255, 59, 142, 0.9);
+}
+.btn-primary:active:not(:disabled) { box-shadow: 0 0 0 var(--primario-ombra), 0 0 15px rgba(255, 59, 142, 0.6); }
 .btn-primary small { color: rgba(43, 0, 22, .65); }
 
 .btn-ghost { background: transparent; box-shadow: none; }
