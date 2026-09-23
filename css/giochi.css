@@ -1441,6 +1441,122 @@
   border-color: #2b226e;
 }
 
+/* =========================================================
+   TEMI AGGIUNTIVI PER TUTTI GLI ALTRI GIOCHI
+   ========================================================= */
+
+/* Anagrammi: stile quaderno/lavagna */
+.arena-anagrammi {
+  background: #fdf5e6;
+  background-image: linear-gradient(#919191 1px, transparent 1px);
+  background-size: 100% 2em;
+  border-color: #d1bfae;
+}
+
+/* Caccia al tesoro: mappa vecchia */
+.arena-caccia {
+  background: radial-gradient(circle at center, #dcb98a 0%, #a67c46 100%);
+  border-color: #5c3c16;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
+}
+
+/* Calcolo: lavagna in ardesia */
+.arena-calcolo {
+  background: #2b3a32;
+  border-color: #17211b;
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+}
+
+/* Conta: sfondo blu con pallini (abaco) */
+.arena-conta {
+  background: radial-gradient(circle, #22427a 0%, #0d1b33 100%);
+  border-color: #152747;
+}
+
+/* Memoria Fotografica: mirino macchina fotografica */
+.arena-fotografica {
+  background: #111;
+  border: 4px solid #fff;
+  outline: 2px solid #333;
+}
+
+/* Tiro alla fune: sabbia/palestra */
+.arena-fune {
+  background: linear-gradient(90deg, #8a5a2b 0%, #c48b49 50%, #8a5a2b 100%);
+  border-color: #4a2e13;
+}
+
+/* Intruso: pattern ipnotico/strano */
+.arena-intruso {
+  background: repeating-radial-gradient(circle at top left, #301847, #301847 10px, #1c0c2b 10px, #1c0c2b 20px);
+  border-color: #5c3285;
+}
+
+/* Inverso: specchio diviso */
+.arena-inverso {
+  background: linear-gradient(135deg, #444 50%, #222 50%);
+  border-color: #666;
+}
+
+/* Memory: tavolo da carte classico (blu) */
+.arena-memory {
+  background: radial-gradient(circle, #1a4f66 0%, #0c2633 100%);
+  border-color: #0b1d26;
+}
+
+/* Ordine: sfumatura rigida */
+.arena-ordine {
+  background: linear-gradient(to bottom, #113333 33.3%, #1a4c4c 33.3%, #1a4c4c 66.6%, #226666 66.6%);
+  border-color: #0c2222;
+}
+
+/* Riflessi: neon lampeggiante (simulato col colore) */
+.arena-riflessi {
+  background: radial-gradient(circle, #380838 0%, #170217 100%);
+  border-color: #ff00ff;
+  box-shadow: inset 0 0 40px rgba(255,0,255,0.2);
+}
+
+/* Scuoti: dinamico / blur */
+.arena-scuoti {
+  background: linear-gradient(45deg, #cc4400, #ff8800);
+  border-color: #662200;
+}
+
+/* Sequenza: retro synthwave */
+.arena-sequenza {
+  background: linear-gradient(180deg, #1f043d 0%, #571649 100%);
+  border-top: 3px solid #f90;
+  border-bottom: 3px solid #0ff;
+}
+
+/* Sniper: verde mimetico */
+.arena-sniper {
+  background: repeating-linear-gradient(45deg, #2b3d22, #2b3d22 15px, #1f2b18 15px, #1f2b18 30px);
+  border-color: #121a0e;
+}
+
+/* Stroop: arcobaleno scuro */
+.arena-stroop {
+  background: linear-gradient(90deg, rgba(128,0,0,0.5), rgba(128,128,0,0.5), rgba(0,128,0,0.5), rgba(0,0,128,0.5));
+  background-color: #111;
+  border-color: #333;
+}
+
+/* Tris: foglio a quadretti */
+.arena-tris {
+  background: #f0f0f0;
+  background-image: linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px);
+  background-size: 20px 20px;
+  border-color: #888;
+}
+
+/* Urlo: rosso energia */
+.arena-urlo {
+  background: radial-gradient(circle at center, #9e1414 0%, #3d0505 100%);
+  border-color: #ff2a2a;
+}
+
 /* ---------- snake ---------- */
 .snake-board {
   position: relative;
