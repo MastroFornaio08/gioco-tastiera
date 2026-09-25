@@ -37,9 +37,19 @@
       <button class="btn btn-primary" id="btn-create">Crea una partita<small>sei tu l'host, fino a 6 giocatori</small></button>
       <button class="btn" id="btn-join-screen">Entra con codice<small>ti serve il codice dell'host</small></button>
       <button class="btn btn-ghost" id="btn-solo">Allenamento<small>da solo, contro un fantasma</small></button>
+      <button class="btn btn-ghost" id="btn-records">🏆 Record Personali<small>le tue migliori prestazioni</small></button>
     </div>
 
     <p class="hint">Serve solo il browser. Niente account, niente installazioni.</p>
+  </section>
+
+  <!-- ============ LEADERBOARD ============ -->
+  <section class="screen" id="screen-records">
+    <h2>I Tuoi Migliori Punteggi</h2>
+    <div class="scoreboard-table-wrap" style="max-height: 50vh; overflow-y: auto; margin-bottom: 20px;">
+      <table class="scoreboard-table" id="records-table"></table>
+    </div>
+    <button class="btn btn-ghost btn-small" data-back>Torna al menu</button>
   </section>
 
   <!-- ============ HOST / SALA D'ATTESA ============ -->
@@ -81,7 +91,10 @@
 
     <div class="scheda-gioco" id="scheda-gioco"></div>
 
-    <button class="btn btn-primary" id="btn-start">Inizia la sfida</button>
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button class="btn btn-primary" id="btn-start" style="flex:1;">Gioca Singolo (3 round)</button>
+      <button class="btn btn-primary" id="btn-start-tournament" style="flex:1; background:#ffd23b; color:#000;">👑 Avvia Torneo (Primo a 3)</button>
+    </div>
     <p class="status" id="lobby-status"></p>
     <button class="btn btn-ghost btn-small" data-back>Torna al menu</button>
   </section>

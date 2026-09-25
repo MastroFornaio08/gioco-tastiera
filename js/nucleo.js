@@ -60,6 +60,8 @@ const S = {
   partita: [],
   round: 0,
   storico: [],
+  isTorneo: false,
+  corone: {}, // id -> numero di vittorie
 
   // round in corso
   t0: 0,
@@ -489,8 +491,14 @@ function forseChiudiRound() {
 
   S.storico.push(tabella);
 
+  if (S.isTorneo && tabella[0]) {
+    // In torneo, il vincitore del round prende una corona
+    const vincitoreId = tabella[0].id;
+    S.corone[vincitoreId] = (S.corone[vincitoreId] || 0) + 1;
+  }
+
   if (S.ruolo === "host") {
-    Rete.invia("esito", { round: S.round, tabella, totali: elencoDaSpedire() });
+    Rete.invia("esito", { round: S.round, tabella, totali: elencoDaSpedire(), corone: S.corone });
   }
   mostraRisultato(tabella);
 }
@@ -500,6 +508,7 @@ function applicaEsitoRemoto(m) {
   fermaOrologi();
   applicaElenco(m.totali);
   S.storico.push(m.tabella);
+  if (m.corone) S.corone = m.corone;
   mostraRisultato(m.tabella);
 }
 
@@ -526,8 +535,23 @@ function mostraRisultato(tabella) {
           fuggiHtml(nomeDi(r.id)) + "</td>" +
         "<td>" + fuggiHtml(r.dettaglio || "—") + "</td>" +
         "<td>" + r.tempo.toFixed(1) + "s</td>" +
-        "<td class='punti'>+" + r.guadagno + (r.primo ? " ⚡" : "") + "</td>" +
+        "<td class='punti'>+" + r.guadagno + (r.primo ? " ⚡" : "") + (S.isTorneo && i === 0 ? " 👑" : "") + "</td>" +
       "</tr>").join("");
+
+  // Salva il record locale se è il mio punteggio migliore in questo gioco
+  if (mia !== -1 && S.giocoId) {
+    const mioRisultato = tabella[mia];
+    if (mioRisultato && mioRisultato.guadagno > 0) {
+      try {
+        const records = JSON.parse(localStorage.getItem("dd-records") || "{}");
+        const curr = records[S.giocoId] || 0;
+        if (mioRisultato.guadagno > curr) {
+          records[S.giocoId] = mioRisultato.guadagno;
+          localStorage.setItem("dd-records", JSON.stringify(records));
+        }
+      } catch (e) { /* silent fail per incognito */ }
+    }
+  }
 
   if (mia === 0) {
     coriandoli();
@@ -555,6 +579,20 @@ function mostraRisultato(tabella) {
 /* ------------------------------------------------------ avanzamento round */
 
 function avanza() {
+  if (S.isTorneo) {
+    // In torneo, si torna alla lobby se nessuno ha vinto
+    const maxCorone = Math.max(...Object.values(S.corone || {}), 0);
+    if (maxCorone >= 3) {
+      if (S.ruolo === "host") Rete.invia("finale", {});
+      mostraFinale();
+      return;
+    }
+    // Altrimenti torniamo in lobby per un altro gioco
+    if (S.ruolo === "host") Rete.invia("lobby", {});
+    entraInLobby();
+    return;
+  }
+
   if (S.round >= MAX_ROUND - 1) {
     if (S.ruolo === "host") Rete.invia("finale", {});
     mostraFinale();
@@ -573,27 +611,31 @@ function avanza() {
 
 function mostraFinale() {
   chiudiIstanza();
-  const classifica = S.giocatori.slice().sort((a, b) => b.punti - a.punti);
+  const classifica = S.giocatori.slice().sort((a, b) => {
+    if (S.isTorneo) return (S.corone[b.id] || 0) - (S.corone[a.id] || 0);
+    return b.punti - a.punti;
+  });
   const mia = classifica.findIndex(g => g.id === S.io);
 
   $("final-title").textContent =
-    mia === 0 ? "Hai vinto!" : mia === 1 ? "Secondo posto" : "Fine partita";
-  $("final-trophy").textContent = mia === 0 ? "🏆" : mia === classifica.length - 1 ? "💀" : "🎖️";
+    mia === 0 ? (S.isTorneo ? "Re della Collina!" : "Hai vinto!") : mia === 1 ? "Secondo posto" : "Fine partita";
+  $("final-trophy").textContent = mia === 0 ? "👑" : mia === classifica.length - 1 ? "💀" : "🎖️";
 
   $("final-table").innerHTML =
-    "<tr><th></th><th>Giocatore</th><th>Punti</th></tr>" +
+    "<tr><th></th><th>Giocatore</th><th>" + (S.isTorneo ? "Corone" : "Punti") + "</th></tr>" +
     classifica.map((g, i) =>
       "<tr class='" + (i === 0 ? "vinto " : "") + (g.id === S.io ? "mio" : "") + "'>" +
         "<td class='pos'>" + (medaglia(i) || (i + 1)) + "</td>" +
         "<td><i class='pastiglia' style='background:" + g.colore + "'></i>" +
           fuggiHtml(g.nome) + "</td>" +
-        "<td class='punti'>" + g.punti + "</td>" +
+        "<td class='punti'>" + (S.isTorneo ? (S.corone[g.id] || 0) + " 👑" : g.punti) + "</td>" +
       "</tr>").join("");
 
   const vinti = S.storico.filter(t => t.length && t[0].id === S.io).length;
-  $("final-stats").innerHTML =
-    S.gioco.icona + " " + fuggiHtml(S.gioco.nome) + " · " + S.giocatori.length + " giocatori<br>" +
-    "Round vinti: <b>" + vinti + " su " + S.storico.length + "</b>";
+  $("final-stats").innerHTML = S.isTorneo 
+    ? "Torneo Re della Collina terminato!"
+    : (S.gioco.icona + " " + fuggiHtml(S.gioco.nome) + " · " + S.giocatori.length + " giocatori<br>" +
+       "Round vinti: <b>" + vinti + " su " + S.storico.length + "</b>");
 
   if (mia === 0) {
     coriandoli(90);
@@ -619,29 +661,44 @@ function mostraFinale() {
 
 /* ---------------------------------------------------------- inizio partita */
 
-function azzera() {
+function azzera(resetTotale = true) {
   S.round = 0;
   S.storico = [];
   S.esiti = {};
   S.avanzamenti = {};
   S.attivo = false;
-  S.giocatori.forEach(g => { g.punti = 0; });
+  if (resetTotale) {
+    S.giocatori.forEach(g => { g.punti = 0; });
+    S.corone = {};
+    S.isTorneo = false;
+  }
   fermaOrologi();
   clearInterval(S.fantasma); S.fantasma = null;
   chiudiIstanza();
 }
 
-function avviaPartita() {
-  if (!S.gioco) { toast("Scegli prima un gioco."); return; }
-  if (motivoBlocco(S.gioco)) { toast("Questo gioco non regge " + S.giocatori.length + " giocatori."); return; }
-  azzera();
-  S.partita = S.gioco.generaPartita();
+function avviaPartita(torneo = false) {
+  if (torneo) {
+    S.isTorneo = true;
+    S.gioco = scegli(GIOCHI); // Scegli un gioco a caso
+    S.giocoId = S.gioco.id;
+    // In torneo gioca 1 solo round di un gioco a caso
+    S.partita = [S.gioco.generaPartita()[0]]; 
+    // Manteniamo le corone se non azzerate, ma azzera() viene chiamato prima da btn-start
+  } else {
+    S.isTorneo = false;
+    if (!S.gioco) { toast("Scegli prima un gioco."); return; }
+    if (motivoBlocco(S.gioco)) { toast("Questo gioco non regge " + S.giocatori.length + " giocatori."); return; }
+    S.partita = S.gioco.generaPartita();
+  }
 
   if (S.ruolo === "host") {
     Rete.invia("partita", {
       giocoId: S.giocoId,
       partita: S.partita,
-      giocatori: elencoDaSpedire()
+      giocatori: elencoDaSpedire(),
+      isTorneo: S.isTorneo,
+      corone: S.corone
     });
     Rete.invia("via", { round: 0 });
     setTimeout(preparaRound, S.latenza);
@@ -708,7 +765,9 @@ function collegaRete() {
 
       case "partita":
         applicaElenco(m.giocatori);
-        azzera();
+        azzera(false);
+        S.isTorneo = !!m.isTorneo;
+        S.corone = m.corone || {};
         selezionaGioco(m.giocoId);
         S.partita = m.partita;
         break;

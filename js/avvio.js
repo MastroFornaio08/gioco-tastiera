@@ -62,6 +62,20 @@ function collegaInterfaccia() {
     entraInLobby();
   };
 
+  $("btn-records").onclick = () => {
+    mostra("screen-records");
+    let records = {};
+    try { records = JSON.parse(localStorage.getItem("dd-records") || "{}"); } catch (e) {}
+    const html = GIOCHI.filter(g => records[g.id]).sort((a,b) => records[b.id] - records[a.id]).map(g =>
+      `<tr>
+        <td style="font-size:1.5rem">${g.icona}</td>
+        <td style="text-align:left"><b>${fuggiHtml(g.nome)}</b></td>
+        <td class="punti">${records[g.id]} pt</td>
+      </tr>`
+    ).join("");
+    $("records-table").innerHTML = html || "<tr><td colspan='3' class='muted'>Nessun record ancora registrato. Inizia a giocare!</td></tr>";
+  };
+
   // dalla sala d'attesa si passa alla scelta del gioco quando l'host decide
   $("btn-host-start").onclick = () => entraInLobby();
 
@@ -74,7 +88,9 @@ function collegaInterfaccia() {
 
   document.querySelectorAll("[data-back]").forEach(b => { b.onclick = tornaAlMenu; });
 
-  $("btn-start").onclick = () => { $("btn-start").disabled = true; avviaPartita(); };
+  $("btn-start").onclick = () => { $("btn-start").disabled = true; azzera(); avviaPartita(false); };
+  
+  $("btn-start-tournament").onclick = () => { $("btn-start-tournament").disabled = true; if (Object.keys(S.corone||{}).length === 0) azzera(); avviaPartita(true); };
 
   $("btn-next").onclick = () => { $("btn-next").disabled = true; avanza(); };
 
