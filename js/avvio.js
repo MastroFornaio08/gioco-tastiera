@@ -86,8 +86,25 @@ function collegaInterfaccia() {
     entraInLobby();
   };
 
+  if ($("btn-share")) {
+    $("btn-share").onclick = () => {
+      const classifica = S.giocatori.slice().sort((a, b) => b.punti - a.punti);
+      const mia = classifica.findIndex(g => g.id === S.io);
+      const testo = `🎉 Ho giocato a SfidaParty!\n🥇 Sono arrivato ${mia + 1}° con ${S.giocatori.find(g => g.id === S.io).punti} punti!\nProva a battermi!`;
+      copia(testo, "Risultato copiato negli appunti!");
+    };
+  }
+
   $("btn-quit").onclick = tornaAlMenu;
   $("btn-quit-game").onclick = tornaAlMenu;
+  
+  // Suono ai click sui bottoni
+  document.querySelectorAll(".btn, .riga-gioco").forEach(b => {
+    b.addEventListener("mousedown", () => {
+       if (window.Suoni) Suoni.playClick();
+       if (window.Vibrazione) Vibrazione.click();
+    });
+  });
 }
 
 (function avvio() {

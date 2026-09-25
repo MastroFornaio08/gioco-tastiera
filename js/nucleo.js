@@ -304,8 +304,16 @@ function contoAllaRovescia() {
     el.classList.remove("battito");
     void el.offsetWidth;            // forza il riavvio dell'animazione
     el.classList.add("battito");
-    if (n > 0) el.textContent = n;
-    else if (n === 0) { el.textContent = "VIA!"; el.classList.add("via"); }
+    if (n > 0) {
+      el.textContent = n;
+      if (window.Suoni) Suoni.playTick();
+    }
+    else if (n === 0) { 
+      el.textContent = "VIA!"; 
+      el.classList.add("via");
+      if (window.Suoni) Suoni.playDing();
+      if (window.Vibrazione) Vibrazione.successo();
+    }
     else {
       clearInterval(S.conto);
       S.conto = null;
@@ -521,7 +529,14 @@ function mostraRisultato(tabella) {
         "<td class='punti'>+" + r.guadagno + (r.primo ? " ⚡" : "") + "</td>" +
       "</tr>").join("");
 
-  if (mia === 0) coriandoli();
+  if (mia === 0) {
+    coriandoli();
+    if (window.Suoni) Suoni.playDing();
+    if (window.Vibrazione) Vibrazione.successo();
+  } else {
+    if (window.Suoni) Suoni.playBuzzer();
+    if (window.Vibrazione) Vibrazione.errore();
+  }
 
   const ultimo = S.round >= MAX_ROUND - 1;
   const btn = $("btn-next");
@@ -580,7 +595,13 @@ function mostraFinale() {
     S.gioco.icona + " " + fuggiHtml(S.gioco.nome) + " · " + S.giocatori.length + " giocatori<br>" +
     "Round vinti: <b>" + vinti + " su " + S.storico.length + "</b>";
 
-  if (mia === 0) coriandoli(90);
+  if (mia === 0) {
+    coriandoli(90);
+    if (window.Suoni) { Suoni.playDing(); setTimeout(() => Suoni.playDing(), 200); }
+    if (window.Vibrazione) Vibrazione.successo();
+  } else {
+    if (window.Suoni) Suoni.playBuzzer();
+  }
 
   const rematch = $("btn-rematch");
   const cambia = $("btn-change");
