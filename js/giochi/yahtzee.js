@@ -108,7 +108,9 @@ GIOCHI.push({
       const mSicuro = dadiBloccati.length > 0 ? migliore(dadiBloccati) : null;
 
       if (mTotale) {
-        let htmlMano = "<span class='ya-combo'>" + fuggiHtml(mTotale.nome) + " · <b>" + mTotale.punti + "</b></span>";
+        let isEpica = mTotale.punti >= 280;
+        let classeCombo = "ya-combo" + (isEpica ? " epica" : "");
+        let htmlMano = "<span class='" + classeCombo + "'>" + fuggiHtml(mTotale.nome) + " · <b>" + mTotale.punti + "</b></span>";
         if (tiriFatti < maxTiri && mSicuro && mSicuro.punti > 10) {
           htmlMano += "<br><span class='ya-combo-sicuro' style='font-size:0.85em; opacity:0.8; margin-top:4px; display:inline-block;'>Garantito: " + fuggiHtml(mSicuro.nome) + " · <b>" + mSicuro.punti + "</b></span>";
         }
