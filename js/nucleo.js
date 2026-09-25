@@ -679,14 +679,17 @@ function azzera(resetTotale = true) {
 
 function avviaPartita(torneo = false) {
   if (torneo) {
+    if (Object.keys(S.corone || {}).length === 0) azzera(true);
+    else azzera(false); // Mantieni le corone intatte per i round successivi!
     S.isTorneo = true;
-    S.gioco = scegli(GIOCHI); // Scegli un gioco a caso
+    const giochiValidi = GIOCHI.filter(g => !motivoBlocco(g));
+    if (giochiValidi.length === 0) { toast("Nessun gioco supporta questo numero di giocatori."); return; }
+    S.gioco = scegli(giochiValidi);
     S.giocoId = S.gioco.id;
     // In torneo gioca 1 solo round di un gioco a caso
     S.partita = [S.gioco.generaPartita()[0]]; 
-    // Manteniamo le corone se non azzerate, ma azzera() viene chiamato prima da btn-start
   } else {
-    S.isTorneo = false;
+    azzera(true);
     if (!S.gioco) { toast("Scegli prima un gioco."); return; }
     if (motivoBlocco(S.gioco)) { toast("Questo gioco non regge " + S.giocatori.length + " giocatori."); return; }
     S.partita = S.gioco.generaPartita();

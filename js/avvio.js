@@ -83,14 +83,26 @@ function collegaInterfaccia() {
 
   $("btn-copy-link").onclick = () => {
     const url = location.origin + location.pathname + "?s=" + $("room-code").textContent;
-    copia(url, "Link copiato!");
+    if (navigator.share) {
+      navigator.share({
+        title: "SfidaParty",
+        text: "Entra nella mia stanza su SfidaParty! Clicca sul link per giocare con me:",
+        url: url
+      }).catch(err => {
+        // Fallback se l'utente annulla o c'è un errore
+        if (err.name !== 'AbortError') copia(url, "Link copiato!");
+      });
+    } else {
+      // Fallback per browser desktop vecchi che non supportano Web Share API
+      copia(url, "Link copiato!");
+    }
   };
 
   document.querySelectorAll("[data-back]").forEach(b => { b.onclick = tornaAlMenu; });
 
-  $("btn-start").onclick = () => { $("btn-start").disabled = true; azzera(); avviaPartita(false); };
+  $("btn-start").onclick = () => { $("btn-start").disabled = true; avviaPartita(false); };
   
-  $("btn-start-tournament").onclick = () => { $("btn-start-tournament").disabled = true; if (Object.keys(S.corone||{}).length === 0) azzera(); avviaPartita(true); };
+  $("btn-start-tournament").onclick = () => { $("btn-start-tournament").disabled = true; avviaPartita(true); };
 
   $("btn-next").onclick = () => { $("btn-next").disabled = true; avanza(); };
 
