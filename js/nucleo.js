@@ -79,9 +79,17 @@ const S = {
 /* ------------------------------------------------------- utilità generiche */
 
 function mostra(id) {
-  document.querySelectorAll(".screen").forEach(s => s.classList.remove("is-active"));
-  $(id).classList.add("is-active");
-  $("app").classList.toggle("is-wide", id === "screen-round" || id === "screen-lobby");
+  const switchScreen = () => {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("is-active"));
+    $(id).classList.add("is-active");
+    $("app").classList.toggle("is-wide", id === "screen-round" || id === "screen-lobby");
+  };
+
+  if (document.startViewTransition) {
+    document.startViewTransition(switchScreen);
+  } else {
+    switchScreen();
+  }
 }
 
 let toastTimer = null;
@@ -178,6 +186,7 @@ function disegnaGriglia() {
       "<div class='rg-icona'>" + g.icona + "</div>" +
       "<div class='rg-info'>" +
         "<div class='rg-nome'>" + fuggiHtml(g.nome) + "</div>" +
+        "<div class='rg-desc'>" + fuggiHtml(g.desc) + "</div>" +
         (blocco ? "<div class='rg-tag'>" + fuggiHtml(blocco) + "</div>" : "") +
       "</div>" +
       "</div>";

@@ -27,7 +27,7 @@ const SECONDI_VOTO = 35;
 GIOCHI.push({
   id: "impostore",
   nome: "L'Impostore",
-  icona: "🕵️",
+  icona: "<img src='img/impostore.jpg' class='gioco-img'>",
   desc: "Tutti conoscono la parola segreta tranne uno. Scoprite chi.",
   regole: [
     "Uno di voi non riceve la parola: sa solo la <b>categoria</b>.",

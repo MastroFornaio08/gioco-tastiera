@@ -6,7 +6,7 @@ const PRECISIONE_MINIMA = 0.75;
 GIOCHI.push({
   id: "dattilo",
   nome: "Dattilo Duello",
-  icona: "⌨️",
+  icona: "<img src='img/dattilo.jpg' class='gioco-img'>",
   desc: "Scrivi la frase più in fretta che puoi, senza sbagliare.",
   regole: [
     "Le frasi si allungano round dopo round.",

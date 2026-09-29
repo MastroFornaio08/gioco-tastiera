@@ -4,7 +4,7 @@
 GIOCHI.push({
   id: "bomba",
   nome: "Bomba a Orologeria",
-  icona: "💣",
+  icona: "<img src='img/bomba.jpg' class='gioco-img'>",
   desc: "La bomba sta per esplodere! Scrivi le parole richieste per aggiungere secondi al timer.",
   regole: [
     "La bomba parte da <b>20 secondi</b>.",
