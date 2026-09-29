@@ -104,7 +104,8 @@ GIOCHI.push({
       });
     }
 
-    typer.addEventListener("input", () => {
+    typer.addEventListener("input", (e) => {
+      if (window.Suoni && e.inputType !== "deleteContentBackward") Suoni.playTypewriter();
       ridisegna(typer.value);
       api.avanzo(typer.value.length / bersaglio.length);
       if (typer.value.length >= bersaglio.length) consegna();

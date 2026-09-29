@@ -8,6 +8,13 @@ function nomeScelto() {
   return nome;
 }
 
+function avatarScelto() {
+  const btn = document.querySelector(".avatar-btn.scelto");
+  const avatar = btn ? btn.textContent : "🦁";
+  try { localStorage.setItem("dd-avatar", avatar); } catch (e) {}
+  return avatar;
+}
+
 function copia(testo, conferma) {
   const ok = () => toast(conferma);
   if (navigator.clipboard) {
@@ -25,6 +32,7 @@ function copia(testo, conferma) {
 function collegaInterfaccia() {
   $("btn-create").onclick = () => {
     S.nome = nomeScelto();
+    S.avatar = avatarScelto();
     S.ruolo = "host";
     $("room-code").textContent = "·····";
     stato("host-status", "Creazione della stanza…");
@@ -43,6 +51,7 @@ function collegaInterfaccia() {
     const codice = $("input-code").value.trim().toUpperCase();
     if (codice.length < 4) { stato("join-status", "Il codice ha 4 caratteri.", "err"); return; }
     S.nome = nomeScelto();
+    S.avatar = avatarScelto();
     S.ruolo = "ospite";
     stato("join-status", "Connessione in corso…");
     Rete.entraStanza(codice);
@@ -52,11 +61,12 @@ function collegaInterfaccia() {
 
   $("btn-solo").onclick = () => {
     S.nome = nomeScelto();
+    S.avatar = avatarScelto();
     S.ruolo = "solo";
     S.io = "p0";
     S.giocatori = [];
-    aggiungiGiocatore("p0", S.nome);
-    aggiungiGiocatore(ID_FANTASMA, "Fantasma");
+    aggiungiGiocatore("p0", S.nome, S.avatar);
+    aggiungiGiocatore(ID_FANTASMA, "Fantasma", "👻");
     S.giocoId = null;
     S.gioco = null;
     entraInLobby();
@@ -139,9 +149,38 @@ function collegaInterfaccia() {
   collegaInterfaccia();
   collegaRete();
 
+  // Avatar selector
+  const avatarBtns = document.querySelectorAll(".avatar-btn");
+  avatarBtns.forEach(btn => {
+    btn.onclick = () => {
+      avatarBtns.forEach(b => b.classList.remove("scelto"));
+      btn.classList.add("scelto");
+    };
+  });
+
+  // Theme toggle
+  const btnTheme = $("btn-theme");
+  if (btnTheme) {
+    btnTheme.onclick = () => {
+      document.body.classList.toggle("dark-theme");
+      try { localStorage.setItem("dd-theme", document.body.classList.contains("dark-theme") ? "dark" : "light"); } catch(e){}
+    };
+  }
+
   try {
     const salvato = localStorage.getItem("dd-nome");
     if (salvato) $("input-name").value = salvato;
+    const avatar = localStorage.getItem("dd-avatar");
+    if (avatar) {
+      avatarBtns.forEach(b => {
+        if(b.textContent === avatar) {
+          avatarBtns.forEach(x => x.classList.remove("scelto"));
+          b.classList.add("scelto");
+        }
+      });
+    }
+    const theme = localStorage.getItem("dd-theme");
+    if (theme === "dark") document.body.classList.add("dark-theme");
   } catch (e) { /* navigazione privata */ }
 
   const codice = new URLSearchParams(location.search).get("s");

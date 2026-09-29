@@ -116,7 +116,7 @@ GIOCHI.push({
         elTimer.style.color = "#ff3b6b";
         if (Math.floor(timerBomba * 10) % 10 === 0) {
           elTimer.style.transform = "scale(1.1)";
-          if (window.Suoni) window.Suoni.playTick();
+          if (window.Suoni) window.Suoni.playTicTac();
           setTimeout(() => elTimer.style.transform = "scale(1)", 50);
         }
       } else {

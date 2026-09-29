@@ -44,6 +44,66 @@
   66%      { transform: translate(-5vmax, 6vmax) scale(.93); }
 }
 
+/* ------------------------------------------------------ stelle cadenti */
+
+.stella {
+  position: absolute;
+  width: 180px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primario));
+  border-radius: 50%;
+  transform: rotate(-45deg) translate(-200px, -200px);
+  animation: stellaCadente 7s linear infinite;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stella::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 5px;
+  height: 5px;
+  background: var(--primario);
+  border-radius: 50%;
+  transform: translateY(-50%);
+  box-shadow: 0 0 12px 3px var(--primario);
+}
+
+.stella:nth-child(even) {
+  background: linear-gradient(90deg, transparent, var(--avversario));
+}
+.stella:nth-child(even)::after {
+  background: var(--avversario);
+  box-shadow: 0 0 12px 3px var(--avversario);
+}
+.stella:nth-child(3n) {
+  background: linear-gradient(90deg, transparent, var(--oro));
+}
+.stella:nth-child(3n)::after {
+  background: var(--oro);
+  box-shadow: 0 0 12px 3px var(--oro);
+}
+
+@keyframes stellaCadente {
+  0% {
+    transform: rotate(-45deg) translate(200px, 0);
+    opacity: 0;
+  }
+  3% {
+    opacity: 1;
+  }
+  15% {
+    transform: rotate(-45deg) translate(-800px, 0);
+    opacity: 0;
+  }
+  100% {
+    transform: rotate(-45deg) translate(-800px, 0);
+    opacity: 0;
+  }
+}
+
 /* --------------------------------------------------- titolo con riflesso */
 
 .logo span {

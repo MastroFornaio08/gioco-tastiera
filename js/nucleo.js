@@ -143,11 +143,12 @@ function nomeDi(id) { const g = gioc(id); return g ? g.nome : "—"; }
 function coloreDi(id) { const g = gioc(id); return g ? g.colore : COLORI[0]; }
 function attivi() { return S.giocatori.filter(g => g.online); }
 
-function aggiungiGiocatore(id, nome) {
+function aggiungiGiocatore(id, nome, avatar) {
   let g = gioc(id);
-  if (g) { g.nome = nome; g.online = true; return g; }
+  if (g) { g.nome = nome; g.avatar = avatar || g.avatar || "🦁"; g.online = true; return g; }
   g = {
     id, nome,
+    avatar: avatar || "🦁",
     colore: COLORI[S.giocatori.length % COLORI.length],
     punti: 0,
     online: true
@@ -158,7 +159,7 @@ function aggiungiGiocatore(id, nome) {
 
 /* L'elenco che viaggia sulla rete: solo ciò che serve agli altri. */
 function elencoDaSpedire() {
-  return S.giocatori.map(g => ({ id: g.id, nome: g.nome, colore: g.colore, punti: g.punti, online: g.online }));
+  return S.giocatori.map(g => ({ id: g.id, nome: g.nome, avatar: g.avatar, colore: g.colore, punti: g.punti, online: g.online }));
 }
 
 function applicaElenco(lista) {
@@ -235,7 +236,7 @@ function aggiornaTastoInizia() {
 function disegnaPunteggiHud() {
   $("hud-punti").innerHTML = S.giocatori.map(g =>
     "<div class='hud-p" + (g.id === S.io ? " mio" : "") + (g.online ? "" : " fuori") + "'>" +
-      "<i style='background:" + g.colore + "'></i>" +
+      "<i style='background:" + g.colore + "'>" + (g.avatar || "") + "</i>" +
       "<span>" + fuggiHtml(g.nome) + "</span>" +
       "<b data-punti='" + g.id + "'>" + g.punti + "</b>" +
     "</div>").join("");
@@ -540,7 +541,7 @@ function mostraRisultato(tabella) {
     tabella.map((r, i) =>
       "<tr class='" + (i === 0 ? "vinto " : "") + (r.id === S.io ? "mio" : "") + "'>" +
         "<td class='pos'>" + (medaglia(i) || (i + 1)) + "</td>" +
-        "<td><i class='pastiglia' style='background:" + coloreDi(r.id) + "'></i>" +
+        "<td><i class='pastiglia' style='background:" + coloreDi(r.id) + "'>" + (gioc(r.id)?.avatar || "") + "</i>" +
           fuggiHtml(nomeDi(r.id)) + "</td>" +
         "<td>" + fuggiHtml(r.dettaglio || "—") + "</td>" +
         "<td>" + r.tempo.toFixed(1) + "s</td>" +
@@ -635,7 +636,7 @@ function mostraFinale() {
     classifica.map((g, i) =>
       "<tr class='" + (i === 0 ? "vinto " : "") + (g.id === S.io ? "mio" : "") + "'>" +
         "<td class='pos'>" + (medaglia(i) || (i + 1)) + "</td>" +
-        "<td><i class='pastiglia' style='background:" + g.colore + "'></i>" +
+        "<td><i class='pastiglia' style='background:" + g.colore + "'>" + (g.avatar || "") + "</i>" +
           fuggiHtml(g.nome) + "</td>" +
         "<td class='punti'>" + (S.isTorneo ? (S.corone[g.id] || 0) + " 👑" : g.punti) + "</td>" +
       "</tr>").join("");
@@ -733,7 +734,7 @@ function collegaRete() {
 
   // l'ospite, appena il canale si apre, si presenta
   Rete.on("connesso", () => {
-    if (S.ruolo === "ospite") Rete.invia("ciao", { nome: S.nome });
+    if (S.ruolo === "ospite") Rete.invia("ciao", { nome: S.nome, avatar: S.avatar });
     else misuraLatenza();
   });
 
@@ -742,7 +743,7 @@ function collegaRete() {
 
       case "ciao": {                     // solo l'host lo riceve
         if (S.ruolo !== "host") break;
-        aggiungiGiocatore(m.da, (m.nome || "Giocatore").slice(0, 14));
+        aggiungiGiocatore(m.da, (m.nome || "Giocatore").slice(0, 14), m.avatar);
         Rete.inviaA(m.da, "benvenuto", { tuoId: m.da, giocoId: S.giocoId });
         Rete.invia("giocatori", { lista: elencoDaSpedire() });
         disegnaSalaAttesa();
@@ -811,6 +812,10 @@ function collegaRete() {
         azzera();
         entraInLobby();
         break;
+        
+      case "reazione":
+        mostraReazione(m.emoji, m.da);
+        break;
     }
   });
 
@@ -865,7 +870,7 @@ function disegnaSalaAttesa() {
   const posti = [];
   S.giocatori.forEach(g => {
     posti.push("<div class='posto pieno'>" +
-      "<i class='pastiglia' style='background:" + g.colore + "'></i>" +
+      "<i class='pastiglia' style='background:" + g.colore + "'>" + (g.avatar || "") + "</i>" +
       fuggiHtml(g.nome) + (g.id === "p0" ? " <small>host</small>" : "") + "</div>");
   });
   for (let i = S.giocatori.length; i < MAX_GIOCATORI; i++) {
@@ -881,7 +886,7 @@ function entraInLobby() {
   $("lobby-giocatori").innerHTML = S.giocatori.map(g =>
     "<div class='gioc" + (g.id === S.io ? " mio" : "") + (g.online ? "" : " fuori") + "'>" +
       "<div class='gioc-avatar' style='background:" + g.colore + "'>" +
-        fuggiHtml((g.nome || "?").slice(0, 1).toUpperCase()) + "</div>" +
+        (g.avatar || fuggiHtml((g.nome || "?").slice(0, 1).toUpperCase())) + "</div>" +
       "<div class='gioc-nome'>" + fuggiHtml(g.nome) + "</div>" +
     "</div>").join("");
 
@@ -913,3 +918,29 @@ function tornaAlMenu() {
   S.latenza = 0;
   mostra("screen-menu");
 }
+
+/* ------------------------------------------------------- reazioni rapide */
+function mostraReazione(emoji, daId) {
+  const layer = $("reactions-layer");
+  if (!layer) return;
+  const g = gioc(daId);
+  const div = document.createElement("div");
+  div.className = "floating-reaction";
+  div.textContent = emoji;
+  const x = 10 + Math.random() * 80; // tra il 10% e il 90% della larghezza
+  div.style.left = x + "%";
+  if (g) div.style.textShadow = "0 0 15px " + g.colore;
+  layer.appendChild(div);
+  setTimeout(() => { if (div.parentNode) div.parentNode.removeChild(div); }, 3000);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".reaction-bar button").forEach(b => {
+    b.onclick = () => {
+      const emoji = b.textContent;
+      mostraReazione(emoji, S.io);
+      if (S.ruolo !== "solo") Rete.invia("reazione", { emoji: emoji });
+      if (window.Suoni) Suoni.playClick();
+    };
+  });
+});

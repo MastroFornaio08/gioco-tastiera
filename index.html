@@ -1,198 +1,245 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Sfida Party — 22 giochi rapidi da 2 a 6 giocatori</title>
-<meta name="description" content="Ventidue giochi lampo da sfidare fino in sei, direttamente dal browser. Niente account, niente installazioni.">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ff3b6b">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>">
-<link rel="stylesheet" href="css/style.css?v=9">
-<link rel="stylesheet" href="css/giochi.css?v=9">
-<link rel="stylesheet" href="css/anima.css?v=9">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Sfida Party — 22 giochi rapidi da 2 a 6 giocatori</title>
+  <meta name="description"
+    content="Ventidue giochi lampo da sfidare fino in sei, direttamente dal browser. Niente account, niente installazioni.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ff3b6b">
+  <link rel="icon" href="img/panda.jpg">
+  <link rel="stylesheet" href="css/style.css?v=9">
+  <link rel="stylesheet" href="css/giochi.css?v=9">
+  <link rel="stylesheet" href="css/anima.css?v=9">
 </head>
+
 <body>
 
-<!-- macchie colorate che galleggiano dietro a tutto -->
-<div class="sfondo" aria-hidden="true">
-  <span class="macchia m1"></span>
-  <span class="macchia m2"></span>
-  <span class="macchia m3"></span>
-</div>
+  <!-- macchie colorate che galleggiano dietro a tutto e stelle cadenti -->
+  <div class="sfondo" aria-hidden="true">
+    <span class="macchia m1"></span>
+    <span class="macchia m2"></span>
+    <span class="macchia m3"></span>
 
-<div id="app">
+    <!-- stelle cadenti dinamiche -->
+    <div class="stella" style="top: 10%; left: 80%; animation-delay: 0.2s;"></div>
+    <div class="stella" style="top: -10%; left: 50%; animation-delay: 1.5s;"></div>
+    <div class="stella" style="top: 40%; left: 110%; animation-delay: 2.7s;"></div>
+    <div class="stella" style="top: 20%; left: 150%; animation-delay: 4.1s;"></div>
+    <div class="stella" style="top: 70%; left: 90%; animation-delay: 5.5s;"></div>
+    <div class="stella" style="top: -20%; left: 30%; animation-delay: 6.8s;"></div>
+  </div>
 
-  <!-- ============ MENU ============ -->
-  <section class="screen is-active" id="screen-menu">
-    <h1 class="logo">Sfida<span>Party</span></h1>
-    <p class="tagline">Ventidue giochi lampo. Da 2 a 6 giocatori. Tre round e si vede chi comanda.</p>
+  <div id="app">
 
-    <label class="field">
-      <span>Il tuo nome</span>
-      <input id="input-name" maxlength="14" placeholder="Es. Marco" autocomplete="nickname">
-    </label>
+    <!-- ============ MENU ============ -->
+    <section class="screen is-active" id="screen-menu">
+      <h1 class="logo">
+        <img src="img/panda.jpg" alt="Panda Logo"
+          style="width: 1em; height: 1em; vertical-align: middle; border-radius: 50%; margin-right: 10px;">
+        Sfida<span>Party</span>
+      </h1>
+      <p class="tagline">Ventidue giochi lampo. Da 2 a 6 giocatori. Tre round e si vede chi comanda.</p>
 
-    <div class="menu-actions">
-      <button class="btn btn-primary" id="btn-create">Crea una partita<small>sei tu l'host, fino a 6 giocatori</small></button>
-      <button class="btn" id="btn-join-screen">Entra con codice<small>ti serve il codice dell'host</small></button>
-      <button class="btn btn-ghost" id="btn-solo">Allenamento<small>da solo, contro un fantasma</small></button>
-      <button class="btn btn-ghost" id="btn-records">🏆 Record Personali<small>le tue migliori prestazioni</small></button>
-    </div>
+      <label class="field">
+        <span>Il tuo nome</span>
+        <input id="input-name" maxlength="14" placeholder="Es. Marco" autocomplete="nickname">
+      </label>
 
-    <p class="hint">Serve solo il browser. Niente account, niente installazioni.</p>
-  </section>
+      <label class="field">
+        <span>Il tuo Avatar</span>
+        <div class="avatar-selector" id="avatar-selector">
+          <button class="avatar-btn scelto">🦁</button>
+          <button class="avatar-btn">🦄</button>
+          <button class="avatar-btn">👽</button>
+          <button class="avatar-btn">👻</button>
+          <button class="avatar-btn">🤖</button>
+          <button class="avatar-btn">🤠</button>
+          <button class="avatar-btn">🦖</button>
+          <button class="avatar-btn">🦊</button>
+        </div>
+      </label>
 
-  <!-- ============ LEADERBOARD ============ -->
-  <section class="screen" id="screen-records">
-    <h2>I Tuoi Migliori Punteggi</h2>
-    <div class="scoreboard-table-wrap" style="max-height: 50vh; overflow-y: auto; margin-bottom: 20px;">
-      <table class="scoreboard-table" id="records-table"></table>
-    </div>
-    <button class="btn btn-ghost btn-small" data-back>Torna al menu</button>
-  </section>
+      <div class="menu-actions">
+        <button class="btn btn-primary" id="btn-create">Crea una partita<small>sei tu l'host, fino a 6
+            giocatori</small></button>
+        <button class="btn" id="btn-join-screen">Entra con codice<small>ti serve il codice dell'host</small></button>
+        <button class="btn btn-ghost" id="btn-solo">Allenamento<small>da solo, contro un fantasma</small></button>
+        <button class="btn btn-ghost" id="btn-records">🏆 Record Personali<small>le tue migliori
+            prestazioni</small></button>
+      </div>
 
-  <!-- ============ HOST / SALA D'ATTESA ============ -->
-  <section class="screen" id="screen-host">
-    <h2>Sala d'attesa</h2>
-    <p class="muted centrato">Manda questo codice a chi vuoi invitare.</p>
+      <p class="hint">Serve solo il browser. Niente account, niente installazioni.</p>
+    </section>
 
-    <div class="code-box">
-      <div class="code" id="room-code">·····</div>
-      <button class="btn btn-small btn-ghost" id="btn-copy-code">Copia solo codice</button>
-      <button class="btn btn-small btn-primary" id="btn-copy-link" style="margin-top: 10px; width: 100%;">Invita amici 📲</button>
-    </div>
+    <!-- ============ LEADERBOARD ============ -->
+    <section class="screen" id="screen-records">
+      <h2>I Tuoi Migliori Punteggi</h2>
+      <div class="scoreboard-table-wrap" style="max-height: 50vh; overflow-y: auto; margin-bottom: 20px;">
+        <table class="scoreboard-table" id="records-table"></table>
+      </div>
+      <button class="btn btn-ghost btn-small" data-back>Torna al menu</button>
+    </section>
 
-    <div class="posti" id="host-giocatori"></div>
+    <!-- ============ HOST / SALA D'ATTESA ============ -->
+    <section class="screen" id="screen-host">
+      <h2>Sala d'attesa</h2>
+      <p class="muted centrato">Manda questo codice a chi vuoi invitare.</p>
 
-    <button class="btn btn-primary" id="btn-host-start" disabled>Serve almeno un altro giocatore</button>
-    <p class="status" id="host-status">Creazione della stanza…</p>
-    <button class="btn btn-ghost btn-small" data-back>Annulla</button>
-  </section>
+      <div class="code-box">
+        <div class="code" id="room-code">·····</div>
+        <button class="btn btn-small btn-ghost" id="btn-copy-code">Copia solo codice</button>
+        <button class="btn btn-small btn-primary" id="btn-copy-link" style="margin-top: 10px; width: 100%;">Invita amici
+          📲</button>
+      </div>
 
-  <!-- ============ JOIN ============ -->
-  <section class="screen" id="screen-join">
-    <h2>Entra in partita</h2>
-    <label class="field">
-      <span>Codice della stanza</span>
-      <input id="input-code" maxlength="5" placeholder="ABCD" autocapitalize="characters" autocomplete="off" spellcheck="false">
-    </label>
-    <button class="btn btn-primary" id="btn-join">Connetti</button>
-    <p class="status" id="join-status"></p>
-    <button class="btn btn-ghost btn-small" data-back>Indietro</button>
-  </section>
+      <div class="posti" id="host-giocatori"></div>
 
-  <!-- ============ LOBBY / SCELTA GIOCO ============ -->
-  <section class="screen" id="screen-lobby">
-    <div class="giocatori" id="lobby-giocatori"></div>
+      <button class="btn btn-primary" id="btn-host-start" disabled>Serve almeno un altro giocatore</button>
+      <p class="status" id="host-status">Creazione della stanza…</p>
+      <button class="btn btn-ghost btn-small" data-back>Annulla</button>
+    </section>
 
-    <h2 id="lobby-titolo">Scegli la sfida</h2>
-    <div class="lista-giochi" id="lista-giochi"></div>
+    <!-- ============ JOIN ============ -->
+    <section class="screen" id="screen-join">
+      <h2>Entra in partita</h2>
+      <label class="field">
+        <span>Codice della stanza</span>
+        <input id="input-code" maxlength="5" placeholder="ABCD" autocapitalize="characters" autocomplete="off"
+          spellcheck="false">
+      </label>
+      <button class="btn btn-primary" id="btn-join">Connetti</button>
+      <p class="status" id="join-status"></p>
+      <button class="btn btn-ghost btn-small" data-back>Indietro</button>
+    </section>
 
-    <div class="scheda-gioco" id="scheda-gioco"></div>
+    <!-- ============ LOBBY / SCELTA GIOCO ============ -->
+    <section class="screen" id="screen-lobby">
+      <div class="giocatori" id="lobby-giocatori"></div>
 
-    <div style="display:flex; gap:10px; margin-top:20px;">
-      <button class="btn btn-primary" id="btn-start" style="flex:1;">Gioca Singolo (3 round)</button>
-      <button class="btn btn-primary" id="btn-start-tournament" style="flex:1; background:#ffd23b; color:#000;">👑 Avvia Torneo (Primo a 3)</button>
-    </div>
-    <p class="status" id="lobby-status"></p>
-    <button class="btn btn-ghost btn-small" data-back>Torna al menu</button>
-  </section>
+      <h2 id="lobby-titolo">Scegli la sfida</h2>
+      <div class="lista-giochi" id="lista-giochi"></div>
 
-  <!-- ============ ROUND ============ -->
-  <section class="screen" id="screen-round">
-    <header class="hud">
-      <div class="hud-round">Round <span id="hud-round">1</span>/<span id="hud-round-tot">3</span></div>
-      <div class="hud-timer" id="hud-timer">0.0s</div>
-      <button class="btn-esci" id="btn-quit-game">Esci</button>
-    </header>
+      <div class="scheda-gioco" id="scheda-gioco"></div>
 
-    <div class="hud-punti" id="hud-punti"></div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button class="btn btn-primary" id="btn-start" style="flex:1;">Gioca Singolo (3 round)</button>
+        <button class="btn btn-primary" id="btn-start-tournament" style="flex:1; background:#ffd23b; color:#000;">👑
+          Avvia Torneo (Primo a 3)</button>
+      </div>
+      <p class="status" id="lobby-status"></p>
+      <button class="btn btn-ghost btn-small" data-back>Torna al menu</button>
+    </section>
 
-    <div class="modifier" id="modifier-badge"></div>
+    <!-- ============ ROUND ============ -->
+    <section class="screen" id="screen-round">
+      <header class="hud">
+        <div class="hud-round">Round <span id="hud-round">1</span>/<span id="hud-round-tot">3</span></div>
+        <div class="hud-timer" id="hud-timer">0.0s</div>
+        <button class="btn-esci" id="btn-quit-game">Esci</button>
+      </header>
 
-    <div class="bars" id="bars"></div>
+      <div class="hud-punti" id="hud-punti"></div>
 
-    <div class="arena-wrap">
-      <div class="arena" id="arena"></div>
-      <div class="countdown" id="countdown"></div>
-    </div>
+      <div class="modifier" id="modifier-badge"></div>
 
-    <p class="typing-hint" id="typing-hint"></p>
-  </section>
+      <div class="bars" id="bars"></div>
 
-  <!-- ============ RISULTATO ROUND ============ -->
-  <section class="screen" id="screen-result">
-    <h2 id="result-title">Round concluso</h2>
-    <div class="scoreboard-table-wrap">
-      <table class="scoreboard-table" id="result-table"></table>
-    </div>
-    <div class="status" id="result-status"></div>
-    <button class="btn btn-primary" id="btn-next">Prossimo round</button>
-  </section>
+      <div class="arena-wrap">
+        <div class="arena" id="arena"></div>
+        <div class="countdown" id="countdown"></div>
+      </div>
 
-  <!-- ============ FINALE ============ -->
-  <section class="screen" id="screen-final">
-    <h2 id="final-title">Fine partita</h2>
-    <div class="trophy" id="final-trophy">🏆</div>
-    <div class="scoreboard-table-wrap">
-      <table class="scoreboard-table" id="final-table"></table>
-    </div>
-    <div class="final-stats" id="final-stats"></div>
-    <button class="btn btn-primary" id="btn-rematch">Rivincita</button>
-    <button class="btn btn-ghost btn-small" id="btn-share">Condividi Vittoria</button>
-    <button class="btn btn-ghost btn-small" id="btn-change">Cambia gioco</button>
-    <button class="btn btn-ghost btn-small" id="btn-quit">Torna al menu</button>
-    <p class="status" id="final-status"></p>
-  </section>
+      <p class="typing-hint" id="typing-hint"></p>
+    </section>
 
-  <div class="toast" id="toast"></div>
-</div>
+    <!-- ============ RISULTATO ROUND ============ -->
+    <section class="screen" id="screen-result">
+      <h2 id="result-title">Round concluso</h2>
+      <div class="scoreboard-table-wrap">
+        <table class="scoreboard-table" id="result-table"></table>
+      </div>
+      <div class="status" id="result-status"></div>
+      <button class="btn btn-primary" id="btn-next">Prossimo round</button>
+    </section>
 
-<canvas id="coriandoli" aria-hidden="true"></canvas>
+    <!-- ============ FINALE ============ -->
+    <section class="screen" id="screen-final">
+      <h2 id="final-title">Fine partita</h2>
+      <div class="trophy" id="final-trophy">🏆</div>
+      <div class="scoreboard-table-wrap">
+        <table class="scoreboard-table" id="final-table"></table>
+      </div>
+      <div class="final-stats" id="final-stats"></div>
+      <button class="btn btn-primary" id="btn-rematch">Rivincita</button>
+      <button class="btn btn-ghost btn-small" id="btn-share">Condividi Vittoria</button>
+      <button class="btn btn-ghost btn-small" id="btn-change">Cambia gioco</button>
+      <button class="btn btn-ghost btn-small" id="btn-quit">Torna al menu</button>
+      <p class="status" id="final-status"></p>
+    </section>
 
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <div class="toast" id="toast"></div>
+  </div>
 
-<!-- dati -->
-<script src="js/frasi.js?v=8"></script>
-<script src="js/parole.js?v=8"></script>
-<script src="js/parole-impostore.js?v=8"></script>
+  <div id="reactions-layer" class="reactions-layer"></div>
+  <div id="reaction-bar" class="reaction-bar">
+    <button>🔥</button>
+    <button>😂</button>
+    <button>🤬</button>
+    <button>😭</button>
+    <button>👏</button>
+  </div>
 
-<!-- rete, effetti e motore comune -->
-<script src="js/audio.js?v=8"></script>
-<script src="js/rete.js?v=8"></script>
-<script src="js/effetti.js?v=8"></script>
-<script src="js/nucleo.js?v=8"></script>
+  <button id="btn-theme" class="btn-theme" title="Tema Scuro/Chiaro">🌙</button>
+  <button id="btn-music" class="btn-music" title="Musica On/Off">🔇</button>
 
-<!-- i giochi -->
-<script src="js/giochi/dattilo.js?v=8"></script>
-<script src="js/giochi/riflessi.js?v=8"></script>
-<script src="js/giochi/calcolo.js?v=8"></script>
-<script src="js/giochi/anagrammi.js?v=8"></script>
-<script src="js/giochi/sequenza.js?v=8"></script>
-<script src="js/giochi/bersagli.js?v=8"></script>
-<script src="js/giochi/intruso.js?v=8"></script>
-<script src="js/giochi/stroop.js?v=8"></script>
-<script src="js/giochi/ordine.js?v=8"></script>
-<script src="js/giochi/memory.js?v=8"></script>
-<script src="js/giochi/tris.js?v=8"></script>
-<script src="js/giochi/fune.js?v=8"></script>
-<script src="js/giochi/sniper.js?v=8"></script>
-<script src="js/giochi/fotografica.js?v=8"></script>
-<script src="js/giochi/conta.js?v=8"></script>
-<script src="js/giochi/inverso.js?v=8"></script>
-<script src="js/giochi/impostore.js?v=8"></script>
-<script src="js/giochi/yahtzee.js?v=8"></script>
-<script src="js/giochi/caccia.js?v=8"></script>
-<script src="js/giochi/scuoti.js?v=8"></script>
-<script src="js/giochi/urlo.js?v=8"></script>
-<script src="js/giochi/bomba.js?v=8"></script>
+  <canvas id="coriandoli" aria-hidden="true"></canvas>
 
-<script src="js/avvio.js?v=8"></script>
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(console.error);
-  }
-</script>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <!-- dati -->
+  <script src="js/frasi.js?v=8"></script>
+  <script src="js/parole.js?v=8"></script>
+  <script src="js/parole-impostore.js?v=8"></script>
+
+  <!-- rete, effetti e motore comune -->
+  <script src="js/audio.js?v=8"></script>
+  <script src="js/rete.js?v=8"></script>
+  <script src="js/effetti.js?v=8"></script>
+  <script src="js/nucleo.js?v=8"></script>
+
+  <!-- i giochi -->
+  <script src="js/giochi/dattilo.js?v=8"></script>
+  <script src="js/giochi/riflessi.js?v=8"></script>
+  <script src="js/giochi/calcolo.js?v=8"></script>
+  <script src="js/giochi/anagrammi.js?v=8"></script>
+  <script src="js/giochi/sequenza.js?v=8"></script>
+  <script src="js/giochi/bersagli.js?v=8"></script>
+  <script src="js/giochi/intruso.js?v=8"></script>
+  <script src="js/giochi/stroop.js?v=8"></script>
+  <script src="js/giochi/ordine.js?v=8"></script>
+  <script src="js/giochi/memory.js?v=8"></script>
+  <script src="js/giochi/tris.js?v=8"></script>
+  <script src="js/giochi/fune.js?v=8"></script>
+  <script src="js/giochi/sniper.js?v=8"></script>
+  <script src="js/giochi/fotografica.js?v=8"></script>
+  <script src="js/giochi/conta.js?v=8"></script>
+  <script src="js/giochi/inverso.js?v=8"></script>
+  <script src="js/giochi/impostore.js?v=8"></script>
+  <script src="js/giochi/yahtzee.js?v=8"></script>
+  <script src="js/giochi/caccia.js?v=8"></script>
+  <script src="js/giochi/scuoti.js?v=8"></script>
+  <script src="js/giochi/urlo.js?v=8"></script>
+  <script src="js/giochi/bomba.js?v=8"></script>
+
+  <script src="js/avvio.js?v=8"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(console.error);
+    }
+  </script>
 </body>
+
 </html>
