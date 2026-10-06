@@ -339,7 +339,9 @@
   <script src="js/avvio.js?v=9"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(console.error);
+      navigator.serviceWorker.register('sw.js').then((reg) => {
+        reg.update();
+      }).catch(console.error);
     }
   </script>
 </body>

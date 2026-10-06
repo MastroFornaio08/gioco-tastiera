@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sfidaparty-v2';
+const CACHE_NAME = 'sfidaparty-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -9,14 +9,48 @@ const ASSETS = [
   './js/obiettivi.js'
 ];
 
+// Install: memorizza la cache base e forza l'attivazione immediata
 self.addEventListener('install', (e) => {
+  self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
+// Activate: elimina le vecchie versioni della cache e prende il controllo subito
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
+});
+
+// Fetch: strategia Network-First
+// Prova prima a scaricare la versione più recente da internet.
+// Solo se si è offline o la rete fallisce, usa la cache salvata.
 self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET' || !e.request.url.startsWith('http')) return;
+
   e.respondWith(
-    caches.match(e.request).then((response) => response || fetch(e.request))
+    fetch(e.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(e.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(e.request);
+      })
   );
 });
