@@ -589,6 +589,25 @@ function mostraRisultato(tabella) {
 /* ------------------------------------------------------ avanzamento round */
 
 function avanza() {
+  if (S.isBoard) {
+    if (S.ruolo === "host" || S.ruolo === "solo") {
+      preparaTurnoBoard();
+      
+      // Invia lo stato iniziale del tabellone post-round
+      if (S.ruolo === "host") {
+        Rete.invia("partita", {
+          boardInit: true,
+          posizioni: S.posizioni,
+          boardVincitore: S.boardVincitore,
+          boardUltimo: S.boardUltimo,
+          giocatori: elencoDaSpedire()
+        });
+      }
+      entraInBoard();
+    }
+    return;
+  }
+
   if (S.isTorneo) {
     // In torneo, si torna alla lobby se nessuno ha vinto
     const maxCorone = Math.max(...Object.values(S.corone || {}), 0);
@@ -622,23 +641,24 @@ function avanza() {
 function mostraFinale() {
   chiudiIstanza();
   const classifica = S.giocatori.slice().sort((a, b) => {
+    if (S.isBoard) return (S.posizioni[b.id] || 0) - (S.posizioni[a.id] || 0);
     if (S.isTorneo) return (S.corone[b.id] || 0) - (S.corone[a.id] || 0);
     return b.punti - a.punti;
   });
   const mia = classifica.findIndex(g => g.id === S.io);
 
   $("final-title").textContent =
-    mia === 0 ? (S.isTorneo ? "Re della Collina!" : "Hai vinto!") : mia === 1 ? "Secondo posto" : "Fine partita";
+    mia === 0 ? (S.isBoard ? "Vittoria nel Tabellone!" : S.isTorneo ? "Re della Collina!" : "Hai vinto!") : mia === 1 ? "Secondo posto" : "Fine partita";
   $("final-trophy").textContent = mia === 0 ? "👑" : mia === classifica.length - 1 ? "💀" : "🎖️";
 
   $("final-table").innerHTML =
-    "<tr><th></th><th>Giocatore</th><th>" + (S.isTorneo ? "Corone" : "Punti") + "</th></tr>" +
+    "<tr><th></th><th>Giocatore</th><th>" + (S.isBoard ? "Casella" : S.isTorneo ? "Corone" : "Punti") + "</th></tr>" +
     classifica.map((g, i) =>
       "<tr class='" + (i === 0 ? "vinto " : "") + (g.id === S.io ? "mio" : "") + "'>" +
         "<td class='pos'>" + (medaglia(i) || (i + 1)) + "</td>" +
         "<td><i class='pastiglia' style='background:" + g.colore + "'>" + (g.avatar || "") + "</i>" +
           fuggiHtml(g.nome) + "</td>" +
-        "<td class='punti'>" + (S.isTorneo ? (S.corone[g.id] || 0) + " 👑" : g.punti) + "</td>" +
+        "<td class='punti'>" + (S.isBoard ? (S.posizioni[g.id] || 0) : S.isTorneo ? (S.corone[g.id] || 0) + " 👑" : g.punti) + "</td>" +
       "</tr>").join("");
 
   const vinti = S.storico.filter(t => t.length && t[0].id === S.io).length;
@@ -687,16 +707,44 @@ function azzera(resetTotale = true) {
   chiudiIstanza();
 }
 
-function avviaPartita(torneo = false) {
-  if (torneo) {
-    if (Object.keys(S.corone || {}).length === 0) azzera(true);
-    else azzera(false); // Mantieni le corone intatte per i round successivi!
-    S.isTorneo = true;
+function avviaPartita(torneo = false, board = false) {
+  if (board) {
+    if (Object.keys(S.posizioni || {}).length === 0) {
+      azzera(true);
+      S.posizioni = {};
+      S.giocatori.forEach(g => S.posizioni[g.id] = 0);
+    } else {
+      azzera(false);
+    }
+    S.isBoard = true;
+    
+    if (S.ruolo === "host" || S.ruolo === "solo") {
+      if (S.ruolo === "host") {
+        Rete.invia("partita", {
+          boardInit: true,
+          posizioni: S.posizioni,
+          giocatori: elencoDaSpedire()
+        });
+      }
+      entraInBoard();
+    }
+    return;
+  }
+
+  if (torneo || S.isBoard) {
+    if (!S.isBoard) {
+      if (Object.keys(S.corone || {}).length === 0) azzera(true);
+      else azzera(false); 
+      S.isTorneo = true;
+    }
     const giochiValidi = GIOCHI.filter(g => !motivoBlocco(g));
     if (giochiValidi.length === 0) { toast("Nessun gioco supporta questo numero di giocatori."); return; }
-    S.gioco = scegli(giochiValidi);
-    S.giocoId = S.gioco.id;
-    // In torneo gioca 1 solo round di un gioco a caso
+    
+    if (!(S.isBoard && S.gioco)) {
+      S.gioco = scegli(giochiValidi);
+      S.giocoId = S.gioco.id;
+    }
+    // In torneo o board gioca 1 solo round
     S.partita = [S.gioco.generaPartita()[0]]; 
   } else {
     azzera(true);
@@ -711,13 +759,23 @@ function avviaPartita(torneo = false) {
       partita: S.partita,
       giocatori: elencoDaSpedire(),
       isTorneo: S.isTorneo,
-      corone: S.corone
+      isBoard: S.isBoard,
+      corone: S.corone,
+      posizioni: S.posizioni
     });
     Rete.invia("via", { round: 0 });
     setTimeout(preparaRound, S.latenza);
   } else {
     preparaRound();
   }
+}
+
+function lanciaSfidaBoard(sceltaId) {
+  if (sceltaId) {
+    S.giocoId = sceltaId;
+    S.gioco = GIOCHI.find(g => g.id === sceltaId);
+  }
+  avviaPartita(false, false); 
 }
 
 /* ------------------------------------------------------------------ rete */
@@ -778,9 +836,20 @@ function collegaRete() {
 
       case "partita":
         applicaElenco(m.giocatori);
+        if (m.boardInit) {
+          azzera(true);
+          S.isBoard = true;
+          S.posizioni = m.posizioni || {};
+          S.boardVincitore = m.boardVincitore;
+          S.boardUltimo = m.boardUltimo;
+          entraInBoard();
+          break;
+        }
         azzera(false);
         S.isTorneo = !!m.isTorneo;
+        S.isBoard = !!m.isBoard;
         S.corone = m.corone || {};
+        S.posizioni = m.posizioni || {};
         selezionaGioco(m.giocoId);
         S.partita = m.partita;
         break;
@@ -811,6 +880,18 @@ function collegaRete() {
       case "lobby":
         azzera();
         entraInLobby();
+        break;
+        
+      case "boardDado":
+        if (S.ruolo === "host") lanciaDadoBoardHost(m.dado);
+        break;
+
+      case "boardDadoAnim":
+        animaLancioBoard(m.tiratoreId, m.dado, m.boardUltimo);
+        break;
+        
+      case "boardScegliGioco":
+        if (S.ruolo === "host") lanciaSfidaBoard(m.giocoId);
         break;
         
       case "reazione":

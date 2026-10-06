@@ -114,6 +114,10 @@ function collegaInterfaccia() {
   
   $("btn-start-tournament").onclick = () => { $("btn-start-tournament").disabled = true; avviaPartita(true); };
 
+  if($("btn-start-board")) $("btn-start-board").onclick = () => { $("btn-start-board").disabled = true; avviaPartita(false, true); };
+  if($("btn-board-next")) $("btn-board-next").onclick = () => { $("btn-board-next").disabled = true; lanciaSfidaBoard(); };
+  if($("btn-board-quit")) $("btn-board-quit").onclick = () => { tornaAlMenu(); };
+
   $("btn-next").onclick = () => { $("btn-next").disabled = true; avanza(); };
 
   $("btn-rematch").onclick = () => { avviaPartita(); };

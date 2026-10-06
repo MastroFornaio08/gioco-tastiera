@@ -124,13 +124,45 @@
 
       <div class="scheda-gioco" id="scheda-gioco"></div>
 
-      <div style="display:flex; gap:10px; margin-top:20px;">
-        <button class="btn btn-primary" id="btn-start" style="flex:1;">Gioca Singolo (3 round)</button>
-        <button class="btn btn-primary" id="btn-start-tournament" style="flex:1; background:#ffd23b; color:#000;">👑
-          Avvia Torneo (Primo a 3)</button>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-primary" id="btn-start" style="flex:1;">Gioca Singolo</button>
+          <button class="btn btn-primary" id="btn-start-tournament" style="flex:1; background:#ffd23b; color:#000;">👑 Torneo</button>
+        </div>
+        <button class="btn btn-primary" id="btn-start-board" style="width:100%; background:#10b981; color:#fff; font-size:1.2rem;">🎲 Gioco dell'Oca (Tabellone)</button>
       </div>
       <p class="status" id="lobby-status"></p>
       <button class="btn btn-ghost btn-small" data-back>Torna al menu</button>
+    </section>
+
+    <!-- ============ TABELLONE (OCA) ============ -->
+    <section class="screen" id="screen-board">
+      <h2>Il Tabellone</h2>
+      <div class="board-wrapper" style="padding: 20px 0; max-height: 60vh; overflow-y: auto;">
+        <div id="board-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; max-width: 500px; margin: 0 auto; padding: 10px; justify-items: center;">
+           <!-- generato da js -->
+        </div>
+      </div>
+      <div class="board-controls" style="text-align: center; margin-top: 10px;">
+         <div id="board-status" style="margin-bottom: 15px; font-weight: bold; font-size: 1.2rem; color: #ffd23b;">Prepara i dadi...</div>
+         
+         <div id="board-dice-area" style="display: none; margin-bottom: 15px;">
+           <div id="board-dice-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 10px 0;">
+             <div id="board-dice-cube" style="font-size: 4rem; line-height: 1; margin-bottom: 6px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); transition: transform 0.15s ease;">🎲</div>
+             <div id="board-dice-result" style="font-size: 1.25rem; font-weight: bold; color: #fff; min-height: 1.6rem; text-shadow: 0 2px 4px rgba(0,0,0,0.6);"></div>
+           </div>
+           <button class="btn btn-primary" id="btn-roll-dice" style="width: 100%; max-width: 320px; margin: 0 auto; padding: 14px 20px; font-size: 1.3rem; font-weight: bold; background: #eab308; color: #000; border-radius: 12px; box-shadow: 0 4px 12px rgba(234, 179, 8, 0.4);">🎲 Lancia il tuo Dado!</button>
+         </div>
+
+         <div id="board-choose-area" style="display: none; margin-bottom: 15px;">
+           <h3 id="board-choose-title" style="margin-bottom: 10px; color: #10b981;">Scegli tu il prossimo gioco:</h3>
+           <div id="board-game-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 220px; overflow-y: auto;">
+             <!-- generato da js -->
+           </div>
+         </div>
+
+         <button class="btn btn-ghost btn-small" id="btn-board-quit">Abbandona partita</button>
+      </div>
     </section>
 
     <!-- ============ ROUND ============ -->
@@ -237,7 +269,9 @@
   <script src="js/giochi/cronometro.js?v=8"></script>
   <script src="js/giochi/spam.js?v=8"></script>
   <script src="js/giochi/equilibrio.js?v=8"></script>
+  <script src="js/giochi/oca.js?v=8"></script>
 
+  <script src="js/tabellone.js?v=8"></script>
   <script src="js/avvio.js?v=8"></script>
   <script>
     if ('serviceWorker' in navigator) {

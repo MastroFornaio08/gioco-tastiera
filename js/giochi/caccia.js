@@ -29,7 +29,7 @@ const MS_AGGANCIO = 450;        // quanto va tenuta ferma per catturarla
 GIOCHI.push({
   id: "caccia",
   nome: "Caccia AR",
-  icona: "<img src='img/caccia.jpg' class='gioco-img'>",
+  icona: "💎",
   desc: "Girati con il telefono e inquadra le forme sparse intorno a te.",
   regole: [
     "Le forme stanno <b>tutt'intorno</b>: per trovarle devi girarti davvero.",

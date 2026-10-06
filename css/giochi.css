@@ -1738,3 +1738,23 @@
   color: var(--primario);
   margin-top: 10px;
 }
+
+/* ---------- Gioco dell'Oca Minigame ---------- */
+.arena-oca {
+  background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+  border-color: #3b82f6;
+  padding: 8px;
+}
+
+.oca-tile {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.oca-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.5);
+}
+
+#oca-dice-cube:hover {
+  transform: scale(1.1) rotate(5deg);
+}
