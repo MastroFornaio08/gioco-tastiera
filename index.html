@@ -4,15 +4,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Sfida Party — 22 giochi rapidi da 2 a 6 giocatori</title>
+  <title>Sfida Party — 27 giochi rapidi da 2 a 6 giocatori</title>
   <meta name="description"
-    content="Ventidue giochi lampo da sfidare fino in sei, direttamente dal browser. Niente account, niente installazioni.">
+    content="Ventisette giochi lampo da sfidare fino in sei, direttamente dal browser. Niente account, niente installazioni.">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ff3b6b">
   <link rel="icon" href="img/panda.jpg">
-  <link rel="stylesheet" href="css/style.css?v=9">
-  <link rel="stylesheet" href="css/giochi.css?v=9">
-  <link rel="stylesheet" href="css/anima.css?v=9">
+  <link rel="stylesheet" href="css/style.css?v=10">
+  <link rel="stylesheet" href="css/giochi.css?v=10">
+  <link rel="stylesheet" href="css/anima.css?v=10">
 </head>
 
 <body>
@@ -41,7 +41,7 @@
           style="width: 1em; height: 1em; vertical-align: middle; border-radius: 50%; margin-right: 10px;">
         Sfida<span>Party</span>
       </h1>
-      <p class="tagline">Ventidue giochi lampo. Da 2 a 6 giocatori. Tre round e si vede chi comanda.</p>
+      <p class="tagline">Ventisette giochi lampo. Da 2 a 6 giocatori. Tre round e si vede chi comanda.</p>
 
       <label class="field">
         <span>Il tuo nome</span>
@@ -67,19 +67,31 @@
             giocatori</small></button>
         <button class="btn" id="btn-join-screen">Entra con codice<small>ti serve il codice dell'host</small></button>
         <button class="btn btn-ghost" id="btn-solo">Allenamento<small>da solo, contro un fantasma</small></button>
-        <button class="btn btn-ghost" id="btn-records">🏆 Record Personali<small>le tue migliori
-            prestazioni</small></button>
+        <button class="btn btn-ghost" id="btn-records">🏆 Record & Trofei<small>punteggi e badge sbloccati</small></button>
       </div>
 
       <p class="hint">Serve solo il browser. Niente account, niente installazioni.</p>
     </section>
 
-    <!-- ============ LEADERBOARD ============ -->
+    <!-- ============ LEADERBOARD & OBIETTIVI ============ -->
     <section class="screen" id="screen-records">
-      <h2>I Tuoi Migliori Punteggi</h2>
-      <div class="scoreboard-table-wrap" style="max-height: 50vh; overflow-y: auto; margin-bottom: 20px;">
-        <table class="scoreboard-table" id="records-table"></table>
+      <div class="records-tabs" style="display: flex; gap: 8px; margin-bottom: 16px; justify-content: center;">
+        <button class="records-tab-btn is-active" id="tab-btn-records" style="padding: 8px 18px; border-radius: 99px; border: none; font-weight: bold; cursor: pointer; background: var(--primario); color: #fff;">📊 Migliori Punteggi</button>
+        <button class="records-tab-btn" id="tab-btn-trofei" style="padding: 8px 18px; border-radius: 99px; border: 2px solid var(--linea); font-weight: bold; cursor: pointer; background: var(--bg-soft-2); color: var(--testo);">🏅 Trofei & Badge</button>
       </div>
+
+      <div id="tab-content-records">
+        <h2>I Tuoi Migliori Punteggi</h2>
+        <div class="scoreboard-table-wrap" style="max-height: 50vh; overflow-y: auto; margin-bottom: 20px;">
+          <table class="scoreboard-table" id="records-table"></table>
+        </div>
+      </div>
+
+      <div id="tab-content-trofei" style="display: none;">
+        <h2>I Tuoi Trofei</h2>
+        <div id="trofei-container" style="max-height: 50vh; overflow-y: auto; margin-bottom: 20px;"></div>
+      </div>
+
       <button class="btn btn-ghost btn-small" data-back>Torna al menu</button>
     </section>
 
@@ -90,9 +102,14 @@
 
       <div class="code-box">
         <div class="code" id="room-code">·····</div>
+
+        <div id="host-qrcode-container" style="margin: 15px auto; display: flex; flex-direction: column; align-items: center;">
+          <div id="host-qrcode"></div>
+          <small class="muted" style="margin-top: 8px; font-weight: bold; font-size: 0.9rem;">📲 Inquadra dal cellulare per entrare!</small>
+        </div>
+
         <button class="btn btn-small btn-ghost" id="btn-copy-code">Copia solo codice</button>
-        <button class="btn btn-small btn-primary" id="btn-copy-link" style="margin-top: 10px; width: 100%;">Invita amici
-          📲</button>
+        <button class="btn btn-small btn-primary" id="btn-copy-link" style="margin-top: 10px; width: 100%;">Invita amici 📲</button>
       </div>
 
       <div class="posti" id="host-giocatori"></div>
@@ -120,11 +137,27 @@
       <div class="giocatori" id="lobby-giocatori"></div>
 
       <h2 id="lobby-titolo">Scegli la sfida</h2>
+
+      <!-- Filtri categorie giochi -->
+      <div class="lobby-filtri" id="lobby-filtri">
+        <button class="filtro-btn is-active" data-cat="tutti">🌟 Tutti</button>
+        <button class="filtro-btn" data-cat="azione">⚡ Riflessi</button>
+        <button class="filtro-btn" data-cat="mente">🧠 Mente</button>
+        <button class="filtro-btn" data-cat="precisione">🎯 Abilità</button>
+        <button class="filtro-btn" data-cat="party">🎭 Party</button>
+      </div>
+
       <div class="lista-giochi" id="lista-giochi"></div>
 
       <div class="scheda-gioco" id="scheda-gioco"></div>
 
-      <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+      <!-- Azioni extra: Roulette casuale e Votazione democratica -->
+      <div class="lobby-extra-actions" style="display: flex; gap: 8px; margin-top: 12px;">
+        <button class="btn btn-ghost" id="btn-roulette" style="flex: 1; border-color: #ffd23b; font-size: 0.95rem;">🎲 Sorpresa!</button>
+        <button class="btn btn-ghost" id="btn-start-vote" style="flex: 1; border-color: #a855f7; font-size: 0.95rem;">🗳️ Vota Gioco</button>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:16px;">
         <div style="display:flex; gap:10px;">
           <button class="btn btn-primary" id="btn-start" style="flex:1;">Gioca Singolo</button>
           <button class="btn btn-primary" id="btn-start-tournament" style="flex:1; background:#ffd23b; color:#000;">👑 Torneo</button>
@@ -213,17 +246,44 @@
     </section>
 
     <div class="toast" id="toast"></div>
+
+    <!-- ============ OVERLAY VOTAZIONE PARTY ============ -->
+    <div class="modal-overlay" id="modal-voto" style="display: none;">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>🗳️ Votazione Sfida</h3>
+          <div class="modal-timer" id="voto-timer">10s</div>
+        </div>
+        <p class="muted" style="margin: 8px 0 16px;">Vota la sfida che vuoi giocare!</p>
+        <div class="voto-opzioni" id="voto-opzioni"></div>
+        <p class="status" id="voto-status"></p>
+      </div>
+    </div>
+
   </div>
 
+  <!-- Reazioni ed Quick Chat Floating -->
   <div id="reactions-layer" class="reactions-layer"></div>
-  <div id="reaction-bar" class="reaction-bar">
-    <button>🔥</button>
-    <button>😂</button>
-    <button>🤬</button>
-    <button>😭</button>
-    <button>👏</button>
+  
+  <div id="quick-chat-drawer" class="quick-chat-drawer">
+    <button class="chat-pill-btn">Bella giocata! 👏</button>
+    <button class="chat-pill-btn">Vendetta! ⚔️</button>
+    <button class="chat-pill-btn">Che fortuna! 🍀</button>
+    <button class="chat-pill-btn">Rigiochiamo! 🔄</button>
+    <button class="chat-pill-btn">Non vale! 🙈</button>
+    <button class="chat-pill-btn">GG a tutti! 🎉</button>
   </div>
 
+  <div id="reaction-bar" class="reaction-bar">
+    <button class="reaction-emoji-btn">🔥</button>
+    <button class="reaction-emoji-btn">😂</button>
+    <button class="reaction-emoji-btn">🤬</button>
+    <button class="reaction-emoji-btn">😭</button>
+    <button class="reaction-emoji-btn">👏</button>
+    <button id="btn-toggle-chat" class="btn-chat-toggle" title="Frasi rapide">💬</button>
+  </div>
+
+  <button id="btn-fullscreen" class="btn-fullscreen" title="Schermo Intero">⛶</button>
   <button id="btn-theme" class="btn-theme" title="Tema Scuro/Chiaro">🌙</button>
   <button id="btn-music" class="btn-music" title="Musica On/Off">🔇</button>
 
@@ -231,48 +291,52 @@
 
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
+  <!-- utilità qr code e obiettivi -->
+  <script src="js/qrcode.js?v=9"></script>
+  <script src="js/obiettivi.js?v=9"></script>
+
   <!-- dati -->
-  <script src="js/frasi.js?v=8"></script>
-  <script src="js/parole.js?v=8"></script>
-  <script src="js/parole-impostore.js?v=8"></script>
+  <script src="js/frasi.js?v=9"></script>
+  <script src="js/parole.js?v=9"></script>
+  <script src="js/parole-impostore.js?v=9"></script>
 
-  <!-- rete, effetti e motore comune -->
-  <script src="js/audio.js?v=8"></script>
-  <script src="js/rete.js?v=8"></script>
-  <script src="js/effetti.js?v=8"></script>
-  <script src="js/nucleo.js?v=8"></script>
+  <!-- rete, audio, effetti e motore comune -->
+  <script src="js/audio.js?v=9"></script>
+  <script src="js/rete.js?v=9"></script>
+  <script src="js/effetti.js?v=9"></script>
+  <script src="js/nucleo.js?v=9"></script>
 
-  <!-- i giochi -->
-  <script src="js/giochi/dattilo.js?v=8"></script>
-  <script src="js/giochi/riflessi.js?v=8"></script>
-  <script src="js/giochi/calcolo.js?v=8"></script>
-  <script src="js/giochi/anagrammi.js?v=8"></script>
-  <script src="js/giochi/sequenza.js?v=8"></script>
-  <script src="js/giochi/bersagli.js?v=8"></script>
-  <script src="js/giochi/intruso.js?v=8"></script>
-  <script src="js/giochi/stroop.js?v=8"></script>
-  <script src="js/giochi/ordine.js?v=8"></script>
-  <script src="js/giochi/memory.js?v=8"></script>
-  <script src="js/giochi/tris.js?v=8"></script>
-  <script src="js/giochi/fune.js?v=8"></script>
-  <script src="js/giochi/sniper.js?v=8"></script>
-  <script src="js/giochi/fotografica.js?v=8"></script>
-  <script src="js/giochi/conta.js?v=8"></script>
-  <script src="js/giochi/inverso.js?v=8"></script>
-  <script src="js/giochi/impostore.js?v=8"></script>
-  <script src="js/giochi/yahtzee.js?v=8"></script>
-  <script src="js/giochi/caccia.js?v=8"></script>
-  <script src="js/giochi/scuoti.js?v=8"></script>
-  <script src="js/giochi/urlo.js?v=8"></script>
-  <script src="js/giochi/bomba.js?v=8"></script>
-  <script src="js/giochi/simon.js?v=8"></script>
-  <script src="js/giochi/cronometro.js?v=8"></script>
-  <script src="js/giochi/spam.js?v=8"></script>
-  <script src="js/giochi/equilibrio.js?v=8"></script>
-  <script src="js/giochi/oca.js?v=8"></script>
+  <!-- i 27 giochi attivi -->
+  <script src="js/giochi/dattilo.js?v=9"></script>
+  <script src="js/giochi/riflessi.js?v=9"></script>
+  <script src="js/giochi/calcolo.js?v=9"></script>
+  <script src="js/giochi/anagrammi.js?v=9"></script>
+  <script src="js/giochi/sequenza.js?v=9"></script>
+  <script src="js/giochi/bersagli.js?v=9"></script>
+  <script src="js/giochi/intruso.js?v=9"></script>
+  <script src="js/giochi/stroop.js?v=9"></script>
+  <script src="js/giochi/ordine.js?v=9"></script>
+  <script src="js/giochi/memory.js?v=9"></script>
+  <script src="js/giochi/tris.js?v=9"></script>
+  <script src="js/giochi/fune.js?v=9"></script>
+  <script src="js/giochi/sniper.js?v=9"></script>
+  <script src="js/giochi/fotografica.js?v=9"></script>
+  <script src="js/giochi/conta.js?v=9"></script>
+  <script src="js/giochi/inverso.js?v=9"></script>
+  <script src="js/giochi/impostore.js?v=9"></script>
+  <script src="js/giochi/yahtzee.js?v=9"></script>
+  <script src="js/giochi/caccia.js?v=9"></script>
+  <script src="js/giochi/scuoti.js?v=9"></script>
+  <script src="js/giochi/urlo.js?v=9"></script>
+  <script src="js/giochi/bomba.js?v=9"></script>
+  <script src="js/giochi/simon.js?v=9"></script>
+  <script src="js/giochi/cronometro.js?v=9"></script>
+  <script src="js/giochi/spam.js?v=9"></script>
+  <script src="js/giochi/equilibrio.js?v=9"></script>
+  <script src="js/giochi/oca.js?v=9"></script>
 
-  <script src="js/tabellone.js?v=8"></script>
-  <script src="js/avvio.js?v=8"></script>
+  <script src="js/tabellone.js?v=9"></script>
+  <script src="js/avvio.js?v=9"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);

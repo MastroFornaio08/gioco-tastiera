@@ -168,6 +168,46 @@ function applicaElenco(lista) {
 
 /* ------------------------------------------------------------ scelta gioco */
 
+/* Mappatura categorie per i 27 giochi attivi */
+const CATEGORIE_MAP = {
+  // ⚡ Azione & Riflessi
+  riflessi: "azione",
+  cronometro: "azione",
+  scuoti: "azione",
+  bomba: "azione",
+  spam: "azione",
+  equilibrio: "azione",
+  fune: "azione",
+
+  // 🧠 Mente & Logica
+  calcolo: "mente",
+  anagrammi: "mente",
+  stroop: "mente",
+  ordine: "mente",
+  memory: "mente",
+  inverso: "mente",
+  sequenza: "mente",
+  simon: "mente",
+  intruso: "mente",
+
+  // 🎯 Precisione & Abilità
+  dattilo: "precisione",
+  sniper: "precisione",
+  bersagli: "precisione",
+  fotografica: "precisione",
+  conta: "precisione",
+  tris: "precisione",
+  yahtzee: "precisione",
+
+  // 🎭 Party & Bluff
+  impostore: "party",
+  caccia: "party",
+  urlo: "party",
+  oca: "party"
+};
+
+let categoriaAttiva = "tutti";
+
 /* Un gioco è disponibile se regge il numero di giocatori presenti
    (e, in allenamento, se ha senso da soli). */
 function motivoBlocco(g) {
@@ -181,19 +221,34 @@ function motivoBlocco(g) {
 }
 
 function disegnaGriglia() {
-  $("lista-giochi").innerHTML = GIOCHI.map(g => {
+  const listaEl = $("lista-giochi");
+  if (!listaEl) return;
+
+  const giochiFiltrati = GIOCHI.filter(g => {
+    if (categoriaAttiva === "tutti") return true;
+    return (CATEGORIE_MAP[g.id] || "party") === categoriaAttiva;
+  });
+
+  if (giochiFiltrati.length === 0) {
+    listaEl.innerHTML = "<p class='muted centrato' style='padding:20px 0;'>Nessun gioco in questa categoria.</p>";
+    return;
+  }
+
+  listaEl.innerHTML = giochiFiltrati.map(g => {
     const blocco = motivoBlocco(g);
-    return "<div class='riga-gioco" + (blocco ? " bloccata" : "") + "' data-gioco='" + g.id + "'>" +
+    const cat = CATEGORIE_MAP[g.id] || "party";
+    const tagCat = cat === "azione" ? "⚡ Azione" : cat === "mente" ? "🧠 Mente" : cat === "precisione" ? "🎯 Abilità" : "🎭 Party";
+    return "<div class='riga-gioco" + (blocco ? " bloccata" : "") + (S.giocoId === g.id ? " scelta" : "") + "' data-gioco='" + g.id + "'>" +
       "<div class='rg-icona'>" + g.icona + "</div>" +
       "<div class='rg-info'>" +
-        "<div class='rg-nome'>" + fuggiHtml(g.nome) + "</div>" +
+        "<div class='rg-nome'>" + fuggiHtml(g.nome) + " <span style='font-size:0.75rem; opacity:0.7; font-weight:normal;'>(" + tagCat + ")</span></div>" +
         "<div class='rg-desc'>" + fuggiHtml(g.desc) + "</div>" +
         (blocco ? "<div class='rg-tag'>" + fuggiHtml(blocco) + "</div>" : "") +
       "</div>" +
       "</div>";
   }).join("");
 
-  $("lista-giochi").querySelectorAll("[data-gioco]").forEach(b => {
+  listaEl.querySelectorAll("[data-gioco]").forEach(b => {
     b.onclick = () => {
       if (S.ruolo === "ospite") { toast("Il gioco lo sceglie l'host."); return; }
       if (b.classList.contains("bloccata")) {
@@ -225,11 +280,202 @@ function selezionaGioco(id) {
 
 function aggiornaTastoInizia() {
   const btn = $("btn-start");
+  if (!btn) return;
   if (S.ruolo === "ospite") { btn.disabled = true; return; }
   const blocco = S.gioco ? motivoBlocco(S.gioco) : "nessun gioco";
   const pochi = S.ruolo !== "solo" && attivi().length < 2;
   btn.disabled = !S.gioco || !!blocco || pochi;
 }
+
+/* -------------------------------------------------- Ruota della Fortuna / Roulette */
+let rouletteInCorso = false;
+function avviaRoulette() {
+  if (rouletteInCorso) return;
+  if (S.ruolo === "ospite") { toast("Solo l'host può attivare la ruota casuale."); return; }
+
+  const validi = GIOCHI.filter(g => !motivoBlocco(g));
+  if (validi.length === 0) { toast("Nessun gioco disponibile."); return; }
+
+  rouletteInCorso = true;
+  let count = 0;
+  const maxSteps = 18 + Math.floor(Math.random() * 8);
+  let delay = 60;
+
+  function step() {
+    const g = validi[count % validi.length];
+    
+    // Evidenzia visivamente nella lista
+    const righe = document.querySelectorAll(".riga-gioco");
+    righe.forEach(el => {
+      el.classList.toggle("roulette-spin", el.dataset.gioco === g.id);
+    });
+
+    if (window.Suoni && Suoni.playRouletteTick) Suoni.playRouletteTick();
+
+    count++;
+    if (count < maxSteps) {
+      delay += 14;
+      setTimeout(step, delay);
+    } else {
+      rouletteInCorso = false;
+      document.querySelectorAll(".riga-gioco").forEach(el => el.classList.remove("roulette-spin"));
+      selezionaGioco(g.id);
+      if (S.ruolo === "host") Rete.invia("scelta", { giocoId: g.id });
+      if (window.Suoni && Suoni.playDing) Suoni.playDing();
+      toast("🎲 Scelto: " + g.nome + "!");
+    }
+  }
+
+  step();
+}
+
+/* -------------------------------------------------- Votazione Democratica Party */
+const Votazione = {
+  attiva: false,
+  timer: null,
+  secondiRimasti: 10,
+  candidati: [],
+  voti: {},
+
+  avviaHost() {
+    if (S.ruolo !== "host") { toast("Solo l'host può avviare la votazione."); return; }
+    const validi = GIOCHI.filter(g => !motivoBlocco(g));
+    if (validi.length < 2) { toast("Troppi pochi giochi disponibili per votare."); return; }
+
+    const candidati = scegliDistinti(validi, Math.min(3, validi.length)).map(g => g.id);
+    this.candidati = candidati;
+    this.voti = {};
+    this.attiva = true;
+    this.secondiRimasti = 10;
+
+    Rete.invia("votoInizia", { candidati: this.candidati, durata: 10 });
+    this.mostraModale(this.candidati, 10);
+    this.avviaTimerHost();
+  },
+
+  avviaTimerHost() {
+    clearInterval(this.timer);
+    this.timer = setInterval(() => {
+      this.secondiRimasti--;
+      const timerEl = $("voto-timer");
+      if (timerEl) timerEl.textContent = this.secondiRimasti + "s";
+      Rete.invia("votoTick", { secondi: this.secondiRimasti });
+
+      if (this.secondiRimasti <= 0) {
+        clearInterval(this.timer);
+        this.concludiHost();
+      }
+    }, 1000);
+  },
+
+  registraVoto(daId, candidatoId) {
+    if (!this.attiva) return;
+    this.voti[daId] = candidatoId;
+    if (S.ruolo === "host") {
+      Rete.invia("votoAggiorna", { voti: this.voti });
+      this.aggiornaUI();
+    }
+  },
+
+  concludiHost() {
+    this.attiva = false;
+    clearInterval(this.timer);
+
+    const conteggi = {};
+    this.candidati.forEach(c => conteggi[c] = 0);
+    Object.values(this.voti).forEach(c => {
+      if (conteggi[c] !== undefined) conteggi[c]++;
+    });
+
+    let vincitore = this.candidati[0];
+    let maxVoti = -1;
+    this.candidati.forEach(c => {
+      if (conteggi[c] > maxVoti) {
+        maxVoti = conteggi[c];
+        vincitore = c;
+      }
+    });
+
+    Rete.invia("votoFine", { vincitoreId: vincitore });
+    this.mostraVincitore(vincitore);
+  },
+
+  mostraModale(candidati, durata) {
+    this.candidati = candidati;
+    this.attiva = true;
+    const timerEl = $("voto-timer");
+    if (timerEl) timerEl.textContent = durata + "s";
+    const statusEl = $("voto-status");
+    if (statusEl) statusEl.textContent = "";
+
+    const opzioniEl = $("voto-opzioni");
+    if (!opzioniEl) return;
+
+    opzioniEl.innerHTML = candidati.map(id => {
+      const g = trovaGioco(id);
+      return `
+        <div class="voto-card" data-voto="${id}">
+          <div class="voto-barra" id="voto-bar-${id}" style="width: 0%"></div>
+          <div class="voto-icona">${g ? g.icona : "🎮"}</div>
+          <div class="voto-info">
+            <div class="voto-nome">${fuggiHtml(g ? g.nome : id)}</div>
+            <small class="muted">${fuggiHtml(g ? g.desc : "")}</small>
+          </div>
+          <div class="voto-voti" id="voto-cnt-${id}">0</div>
+        </div>
+      `;
+    }).join("");
+
+    opzioniEl.querySelectorAll(".voto-card").forEach(card => {
+      card.onclick = () => {
+        const id = card.dataset.voto;
+        opzioniEl.querySelectorAll(".voto-card").forEach(c => c.classList.remove("scelto"));
+        card.classList.add("scelto");
+
+        if (window.Suoni && Suoni.playClick) Suoni.playClick();
+        if (S.ruolo === "host") {
+          this.registraVoto(S.io, id);
+        } else {
+          Rete.invia("votoScelta", { sceltaId: id });
+        }
+      };
+    });
+
+    const modal = $("modal-voto");
+    if (modal) modal.style.display = "flex";
+  },
+
+  aggiornaUI() {
+    const totaleVoti = Object.keys(this.voti).length || 1;
+    const conteggi = {};
+    this.candidati.forEach(c => conteggi[c] = 0);
+    Object.values(this.voti).forEach(c => {
+      if (conteggi[c] !== undefined) conteggi[c]++;
+    });
+
+    this.candidati.forEach(c => {
+      const cntEl = $("voto-cnt-" + c);
+      const barEl = $("voto-bar-" + c);
+      if (cntEl) cntEl.textContent = conteggi[c];
+      if (barEl) barEl.style.width = Math.round((conteggi[c] / totaleVoti) * 100) + "%";
+    });
+  },
+
+  mostraVincitore(vincitoreId) {
+    const g = trovaGioco(vincitoreId);
+    const statusEl = $("voto-status");
+    if (statusEl) statusEl.innerHTML = `🎉 Vincitore: <b>${g ? g.nome : vincitoreId}</b>!`;
+    if (window.Suoni && Suoni.playDing) Suoni.playDing();
+
+    setTimeout(() => {
+      const modal = $("modal-voto");
+      if (modal) modal.style.display = "none";
+      selezionaGioco(vincitoreId);
+      if (S.ruolo === "host") Rete.invia("scelta", { giocoId: vincitoreId });
+    }, 2000);
+  }
+};
+
 
 /* --------------------------------------------------------- HUD e barre */
 
@@ -310,6 +556,9 @@ function contoAllaRovescia() {
   let n = 3;
   el.textContent = n;
   el.classList.remove("via");
+  if (window.Suoni && Suoni.playCountdown) Suoni.playCountdown(3);
+  else if (window.Suoni) Suoni.playTick();
+
   clearInterval(S.conto);
   S.conto = setInterval(() => {
     n--;
@@ -318,12 +567,14 @@ function contoAllaRovescia() {
     el.classList.add("battito");
     if (n > 0) {
       el.textContent = n;
-      if (window.Suoni) Suoni.playTick();
+      if (window.Suoni && Suoni.playCountdown) Suoni.playCountdown(n);
+      else if (window.Suoni) Suoni.playTick();
     }
     else if (n === 0) { 
       el.textContent = "VIA!"; 
       el.classList.add("via");
-      if (window.Suoni) Suoni.playDing();
+      if (window.Suoni && Suoni.playCountdown) Suoni.playCountdown(0);
+      else if (window.Suoni) Suoni.playDing();
       if (window.Vibrazione) Vibrazione.successo();
     }
     else {
@@ -565,11 +816,29 @@ function mostraRisultato(tabella) {
 
   if (mia === 0) {
     coriandoli();
-    if (window.Suoni) Suoni.playDing();
+    if (window.Suoni && Suoni.playVittoria) Suoni.playVittoria();
+    else if (window.Suoni) Suoni.playDing();
     if (window.Vibrazione) Vibrazione.successo();
   } else {
-    if (window.Suoni) Suoni.playBuzzer();
+    if (window.Suoni && Suoni.playSconfitta) Suoni.playSconfitta();
+    else if (window.Suoni) Suoni.playBuzzer();
     if (window.Vibrazione) Vibrazione.errore();
+  }
+
+  // Verifica sblocco trofei e traguardi
+  if (mia !== -1 && window.Trofei) {
+    Trofei.incrementaContatore("partite", 10, "vita_party");
+    const mr = tabella[mia];
+    if (mr) {
+      if (S.giocoId === "dattilo" && mr.guadagno >= 280) Trofei.sblocca("dita_fuoco");
+      if ((S.giocoId === "riflessi" || S.giocoId === "cronometro") && mr.tempo <= 0.25) Trofei.sblocca("riflessi_lampo");
+      if (S.giocoId === "calcolo" && mr.guadagno >= 500) Trofei.sblocca("cervellone");
+      if ((S.giocoId === "bersagli" || S.giocoId === "sniper") && mr.guadagno >= 400) Trofei.sblocca("cecchino");
+      if (S.giocoId === "stroop" && mr.guadagno >= 450) Trofei.sblocca("stroop_master");
+      if (S.giocoId === "simon" && mr.guadagno >= 600) Trofei.sblocca("cyborg_simon");
+      if (S.giocoId === "bomba" && mr.guadagno > 0) Trofei.sblocca("disinnescatore");
+      if (S.giocoId === "tris" && mia === 0) Trofei.sblocca("maestro_tris");
+    }
   }
 
   const ultimo = S.round >= MAX_ROUND - 1;
@@ -669,10 +938,13 @@ function mostraFinale() {
 
   if (mia === 0) {
     coriandoli(90);
-    if (window.Suoni) { Suoni.playDing(); setTimeout(() => Suoni.playDing(), 200); }
+    if (window.Suoni && Suoni.playVittoria) Suoni.playVittoria();
+    else if (window.Suoni) { Suoni.playDing(); setTimeout(() => Suoni.playDing(), 200); }
     if (window.Vibrazione) Vibrazione.successo();
+    if (S.isTorneo && window.Trofei) Trofei.sblocca("campione_torneo");
   } else {
-    if (window.Suoni) Suoni.playBuzzer();
+    if (window.Suoni && Suoni.playSconfitta) Suoni.playSconfitta();
+    else if (window.Suoni) Suoni.playBuzzer();
   }
 
   const rematch = $("btn-rematch");
@@ -788,6 +1060,13 @@ function collegaRete() {
     aggiungiGiocatore("p0", S.nome);
     disegnaSalaAttesa();
     stato("host-status", "Stanza aperta. Aspetto i giocatori…");
+
+    // Genera QR Code per accesso immediato da cellulare
+    const qrContainer = $("host-qrcode");
+    if (qrContainer && window.GeneratoreQR) {
+      const url = location.origin + location.pathname + "?s=" + codice;
+      qrContainer.innerHTML = GeneratoreQR.creaSVG(url, { dimensione: 140 });
+    }
   });
 
   // l'ospite, appena il canale si apre, si presenta
@@ -897,6 +1176,31 @@ function collegaRete() {
       case "reazione":
         mostraReazione(m.emoji, m.da);
         break;
+
+      case "votoInizia":
+        Votazione.mostraModale(m.candidati, m.durata);
+        break;
+
+      case "votoTick":
+        if ($("voto-timer")) $("voto-timer").textContent = m.secondi + "s";
+        break;
+
+      case "votoScelta":
+        if (S.ruolo === "host") Votazione.registraVoto(m.da, m.sceltaId);
+        break;
+
+      case "votoAggiorna":
+        Votazione.voti = m.voti;
+        Votazione.aggiornaUI();
+        break;
+
+      case "votoFine":
+        Votazione.mostraVincitore(m.vincitoreId);
+        break;
+
+      case "chatMsg":
+        mostraBollaChat(m.testo, m.autore, m.avatar, m.colore);
+        break;
     }
   });
 
@@ -1000,7 +1304,7 @@ function tornaAlMenu() {
   mostra("screen-menu");
 }
 
-/* ------------------------------------------------------- reazioni rapide */
+/* ------------------------------------------------------- reazioni rapide & chat */
 function mostraReazione(emoji, daId) {
   const layer = $("reactions-layer");
   if (!layer) return;
@@ -1008,20 +1312,76 @@ function mostraReazione(emoji, daId) {
   const div = document.createElement("div");
   div.className = "floating-reaction";
   div.textContent = emoji;
-  const x = 10 + Math.random() * 80; // tra il 10% e il 90% della larghezza
+  const x = 10 + Math.random() * 80;
   div.style.left = x + "%";
   if (g) div.style.textShadow = "0 0 15px " + g.colore;
   layer.appendChild(div);
   setTimeout(() => { if (div.parentNode) div.parentNode.removeChild(div); }, 3000);
 }
 
+function inviaQuickChat(testo) {
+  const mioG = gioc(S.io);
+  const autore = mioG ? mioG.nome : S.nome || "Io";
+  const avatar = mioG ? (mioG.avatar || "🦁") : S.avatar || "🦁";
+  const colore = mioG ? mioG.colore : "#0ea5e9";
+
+  mostraBollaChat(testo, autore, avatar, colore);
+  if (S.ruolo !== "solo") {
+    Rete.invia("chatMsg", { testo, autore, avatar, colore });
+  }
+  if (window.Trofei) Trofei.incrementaContatore("social", 5, "socialite");
+}
+
+function mostraBollaChat(testo, autore, avatar, colore) {
+  const layer = $("reactions-layer");
+  if (!layer) return;
+  const div = document.createElement("div");
+  div.className = "floating-bubble";
+  div.style.borderColor = colore;
+  div.innerHTML = `<small style="color:${colore}">${avatar} ${fuggiHtml(autore)}</small>${fuggiHtml(testo)}`;
+  const x = 12 + Math.random() * 65;
+  div.style.left = x + "%";
+  layer.appendChild(div);
+  setTimeout(() => { if (div.parentNode) div.parentNode.removeChild(div); }, 3500);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".reaction-bar button").forEach(b => {
+  // Reazioni Emoji
+  document.querySelectorAll(".reaction-emoji-btn").forEach(b => {
     b.onclick = () => {
       const emoji = b.textContent;
       mostraReazione(emoji, S.io);
       if (S.ruolo !== "solo") Rete.invia("reazione", { emoji: emoji });
       if (window.Suoni) Suoni.playClick();
+      if (window.Trofei) Trofei.incrementaContatore("social", 5, "socialite");
+    };
+  });
+
+  // Toggle drawer frasi rapide
+  const btnToggleChat = $("btn-toggle-chat");
+  const drawerChat = $("quick-chat-drawer");
+  if (btnToggleChat && drawerChat) {
+    btnToggleChat.onclick = (e) => {
+      e.stopPropagation();
+      drawerChat.classList.toggle("is-open");
+      if (window.Suoni) Suoni.playClick();
+    };
+
+    document.addEventListener("click", (e) => {
+      if (!drawerChat.contains(e.target) && e.target !== btnToggleChat) {
+        drawerChat.classList.remove("is-open");
+      }
+    });
+  }
+
+  // Click su pillole di frase rapida
+  document.querySelectorAll(".chat-pill-btn").forEach(b => {
+    b.onclick = () => {
+      const testo = b.textContent;
+      inviaQuickChat(testo);
+      if (drawerChat) drawerChat.classList.remove("is-open");
+      if (window.Suoni) Suoni.playClick();
     };
   });
 });
+

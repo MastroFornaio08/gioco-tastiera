@@ -1,10 +1,12 @@
-const CACHE_NAME = 'sfidaparty-v1';
+const CACHE_NAME = 'sfidaparty-v2';
 const ASSETS = [
   './',
   './index.html',
   './css/style.css',
   './css/giochi.css',
-  './css/anima.css'
+  './css/anima.css',
+  './js/qrcode.js',
+  './js/obiettivi.js'
 ];
 
 self.addEventListener('install', (e) => {

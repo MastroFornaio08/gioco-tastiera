@@ -74,6 +74,9 @@ function collegaInterfaccia() {
 
   $("btn-records").onclick = () => {
     mostra("screen-records");
+    // Tab attiva di default: Record
+    if ($("tab-btn-records")) $("tab-btn-records").click();
+
     let records = {};
     try { records = JSON.parse(localStorage.getItem("dd-records") || "{}"); } catch (e) {}
     const html = GIOCHI.filter(g => records[g.id]).sort((a,b) => records[b.id] - records[a.id]).map(g =>
@@ -85,6 +88,82 @@ function collegaInterfaccia() {
     ).join("");
     $("records-table").innerHTML = html || "<tr><td colspan='3' class='muted'>Nessun record ancora registrato. Inizia a giocare!</td></tr>";
   };
+
+  // Tabs della schermata Record & Trofei
+  const tabBtnRecords = $("tab-btn-records");
+  const tabBtnTrofei = $("tab-btn-trofei");
+  const tabContentRecords = $("tab-content-records");
+  const tabContentTrofei = $("tab-content-trofei");
+
+  if (tabBtnRecords && tabBtnTrofei) {
+    tabBtnRecords.onclick = () => {
+      tabBtnRecords.style.background = "var(--primario)";
+      tabBtnRecords.style.color = "#fff";
+      tabBtnRecords.style.border = "none";
+
+      tabBtnTrofei.style.background = "var(--bg-soft-2)";
+      tabBtnTrofei.style.color = "var(--testo)";
+      tabBtnTrofei.style.border = "2px solid var(--linea)";
+
+      if (tabContentRecords) tabContentRecords.style.display = "block";
+      if (tabContentTrofei) tabContentTrofei.style.display = "none";
+      if (window.Suoni) Suoni.playClick();
+    };
+
+    tabBtnTrofei.onclick = () => {
+      tabBtnTrofei.style.background = "var(--primario)";
+      tabBtnTrofei.style.color = "#fff";
+      tabBtnTrofei.style.border = "none";
+
+      tabBtnRecords.style.background = "var(--bg-soft-2)";
+      tabBtnRecords.style.color = "var(--testo)";
+      tabBtnRecords.style.border = "2px solid var(--linea)";
+
+      if (tabContentRecords) tabContentRecords.style.display = "none";
+      if (tabContentTrofei) tabContentTrofei.style.display = "block";
+      if (window.Trofei) Trofei.renderLista($("trofei-container"));
+      if (window.Suoni) Suoni.playClick();
+    };
+  }
+
+  // Filtri Categorie Lobby
+  document.querySelectorAll(".lobby-filtri .filtro-btn").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll(".lobby-filtri .filtro-btn").forEach(b => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      categoriaAttiva = btn.dataset.cat || "tutti";
+      disegnaGriglia();
+      if (window.Suoni) Suoni.playClick();
+    };
+  });
+
+  // Roulette casuale e Votazione party
+  const btnRoulette = $("btn-roulette");
+  if (btnRoulette) {
+    btnRoulette.onclick = () => avviaRoulette();
+  }
+  const btnStartVote = $("btn-start-vote");
+  if (btnStartVote) {
+    btnStartVote.onclick = () => Votazione.avviaHost();
+  }
+
+  // Bottone Schermo Intero (Fullscreen)
+  const btnFs = $("btn-fullscreen");
+  if (btnFs) {
+    btnFs.onclick = () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+        btnFs.textContent = "🗗";
+      } else {
+        document.exitFullscreen().catch(() => {});
+        btnFs.textContent = "⛶";
+      }
+      if (window.Suoni) Suoni.playClick();
+    };
+    document.addEventListener("fullscreenchange", () => {
+      btnFs.textContent = document.fullscreenElement ? "🗗" : "⛶";
+    });
+  }
 
   // dalla sala d'attesa si passa alla scelta del gioco quando l'host decide
   $("btn-host-start").onclick = () => entraInLobby();

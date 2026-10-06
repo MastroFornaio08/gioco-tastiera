@@ -347,6 +347,7 @@ function concludiTurnoBoard(tiratoreId, posFinale, dado, ultimoId) {
   if (posFinale >= OBIETTIVO_TABELLONE) {
     S.posizioni[tiratoreId] = OBIETTIVO_TABELLONE;
     aggiornaPedine();
+    if (tiratoreId === S.io && window.Trofei) Trofei.sblocca("re_oca");
     if (status) status.textContent = `🏆 ${nomeDi(tiratoreId)} ha raggiunto il TRAGUARDO e VINCE LA PARTITA!`;
     if (res) res.textContent = "VITTORIA!";
     if (S.ruolo === "host") Rete.invia("finale", {});

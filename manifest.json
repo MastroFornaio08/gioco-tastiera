@@ -1,7 +1,7 @@
 {
   "name": "Sfida Party",
   "short_name": "SfidaParty",
-  "description": "Ventiquattro giochi lampo da sfidare fino in sei, direttamente dal browser.",
+  "description": "Ventisette giochi lampo da sfidare fino in sei, direttamente dal browser.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#111827",
