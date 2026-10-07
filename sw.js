@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sfidaparty-v3';
+const CACHE_NAME = 'zaltergames-v1';
 const ASSETS = [
   './',
   './index.html',

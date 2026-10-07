@@ -163,14 +163,22 @@
 
 /* ------------------------------------------------------- bottone in attesa */
 
-/* Il tasto principale "chiama" con una pulsazione, ma solo se è premibile. */
-.btn-primary:not(:disabled) { animation: pulsaOmbra 2.6s ease-in-out infinite; }
+/* Il tasto principale "chiama" con una pulsazione neon, ma solo se è premibile. */
+.btn-primary:not(:disabled) { animation: pulsaOmbra 2.2s ease-in-out infinite; }
 
 @keyframes pulsaOmbra {
-  0%, 100% { box-shadow: 0 4px 10px rgba(14, 165, 233, 0.25), 0 0 0 0 rgba(14, 165, 233, .45); }
-  50%      { box-shadow: 0 4px 10px rgba(14, 165, 233, 0.25), 0 0 0 12px rgba(14, 165, 233, 0); }
+  0%, 100% { box-shadow: 0px 5px 0px #C7B300, 0 0 0 0 rgba(255, 230, 0, .5); }
+  50%      { box-shadow: 0px 5px 0px #C7B300, 0 0 0 10px rgba(255, 230, 0, 0); }
 }
 .btn-primary:active:not(:disabled) { animation: none; }
+
+/* Pulsazione ad alta frequenza (2Hz) per timer critico < 3s */
+.hud-timer.urgente { animation: heartbeat 0.5s ease-in-out infinite; }
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.18); }
+}
 
 /* ------------------------------------------------------- barre a strisce */
 

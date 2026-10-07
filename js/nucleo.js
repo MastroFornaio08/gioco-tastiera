@@ -39,8 +39,8 @@ const $ = (id) => document.getElementById(id);
 const MAX_ROUND = 3;
 const BONUS_PRIMO = 100;   // a chi finisce per primo, nei giochi di velocità
 
-/* Un colore per posto: serve a riconoscersi a colpo d'occhio fra sei. */
-const COLORI = ["#ff3b6b", "#2dd4ff", "#ffd23b", "#5cff8f", "#c46bff", "#ff9a3b"];
+/* 6 colori neon per slot giocatore (Ciano, Fucsia, Giallo, Verde, Viola, Arancio) */
+const COLORI = ["#00F0FF", "#FF0055", "#FFE600", "#00FF66", "#B026FF", "#FF7A00"];
 const ID_FANTASMA = "gh";
 
 /* ------------------------------------------------------------------ stato */
@@ -270,10 +270,8 @@ function selezionaGioco(id) {
   $("lista-giochi").querySelectorAll("[data-gioco]").forEach(b =>
     b.classList.toggle("scelta", b.dataset.gioco === id));
 
-  $("scheda-gioco").innerHTML =
-    "<div class='sg-testa'>" + g.icona + " <b>" + fuggiHtml(g.nome) + "</b></div>" +
-    "<p class='sg-desc'>" + fuggiHtml(g.desc) + "</p>" +
-    "<ul class='sg-regole'>" + g.regole.map(r => "<li>" + r + "</li>").join("") + "</ul>";
+  const sg = $("scheda-gioco");
+  if (sg) sg.innerHTML = "";
 
   aggiornaTastoInizia();
 }
@@ -595,7 +593,7 @@ function iniziaRound() {
   S.tick = setInterval(() => {
     const t = (performance.now() - S.t0) / 1000;
     $("hud-timer").textContent = t.toFixed(1) + "s";
-    $("hud-timer").classList.toggle("urgente", g.durata - t <= 5);
+    $("hud-timer").classList.toggle("urgente", g.durata - t <= 3);
   }, 100);
 
   S.scadenza = setTimeout(() => {

@@ -4,15 +4,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Sfida Party — 27 giochi rapidi da 2 a 6 giocatori</title>
+  <title>Zaltergames — Neo-Arcade Party Game (2-6 Giocatori)</title>
   <meta name="description"
-    content="Ventisette giochi lampo da sfidare fino in sei, direttamente dal browser. Niente account, niente installazioni.">
+    content="Ventisette giochi lampo Neo-Arcade da 2 a 6 giocatori, direttamente dal browser. Latenza zero, niente account, pura competizione.">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#ff3b6b">
+  <meta name="theme-color" content="#0D0E15">
   <link rel="icon" href="img/panda.jpg">
-  <link rel="stylesheet" href="css/style.css?v=10">
-  <link rel="stylesheet" href="css/giochi.css?v=10">
-  <link rel="stylesheet" href="css/anima.css?v=10">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,700;1,800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=12">
+  <link rel="stylesheet" href="css/giochi.css?v=12">
+  <link rel="stylesheet" href="css/anima.css?v=12">
 </head>
 
 <body>
@@ -37,11 +40,9 @@
     <!-- ============ MENU ============ -->
     <section class="screen is-active" id="screen-menu">
       <h1 class="logo">
-        <img src="img/panda.jpg" alt="Panda Logo"
-          style="width: 1em; height: 1em; vertical-align: middle; border-radius: 50%; margin-right: 10px;">
-        Sfida<span>Party</span>
+        ZALTER<span>GAMES</span>
       </h1>
-      <p class="tagline">Ventisette giochi lampo. Da 2 a 6 giocatori. Tre round e si vede chi comanda.</p>
+      <p class="tagline">Ventisette giochi lampo Neo-Arcade. Da 2 a 6 giocatori. Tre round e si vede chi comanda.</p>
 
       <label class="field">
         <span>Il tuo nome</span>
@@ -51,21 +52,20 @@
       <label class="field">
         <span>Il tuo Avatar</span>
         <div class="avatar-selector" id="avatar-selector">
-          <button class="avatar-btn scelto">🦁</button>
-          <button class="avatar-btn">🦄</button>
-          <button class="avatar-btn">👽</button>
-          <button class="avatar-btn">👻</button>
-          <button class="avatar-btn">🤖</button>
-          <button class="avatar-btn">🤠</button>
-          <button class="avatar-btn">🦖</button>
-          <button class="avatar-btn">🦊</button>
+          <button class="avatar-btn scelto" title="Cyber Rabbit">🐰</button>
+          <button class="avatar-btn" title="Neon Fox">🦊</button>
+          <button class="avatar-btn" title="Turbo Sloth">🦥</button>
+          <button class="avatar-btn" title="Giga Bear">🐻</button>
+          <button class="avatar-btn" title="Robo Lion">🦁</button>
+          <button class="avatar-btn" title="Cyber Bot">🤖</button>
+          <button class="avatar-btn" title="Alien">👽</button>
+          <button class="avatar-btn" title="Mecha Dino">🦖</button>
         </div>
       </label>
 
       <div class="menu-actions">
-        <button class="btn btn-primary" id="btn-create">Crea una partita<small>sei tu l'host, fino a 6
-            giocatori</small></button>
-        <button class="btn" id="btn-join-screen">Entra con codice<small>ti serve il codice dell'host</small></button>
+        <button class="btn btn-primary" id="btn-create">Crea Stanza<small>sei tu l'host, fino a 6 giocatori</small></button>
+        <button class="btn" id="btn-join-screen">Entra con Codice<small>ti serve il codice dell'host</small></button>
         <button class="btn btn-ghost" id="btn-solo">Allenamento<small>da solo, contro un fantasma</small></button>
         <button class="btn btn-ghost" id="btn-records">🏆 Record & Trofei<small>punteggi e badge sbloccati</small></button>
       </div>
@@ -148,8 +148,6 @@
       </div>
 
       <div class="lista-giochi" id="lista-giochi"></div>
-
-      <div class="scheda-gioco" id="scheda-gioco"></div>
 
       <!-- Azioni extra: Roulette casuale e Votazione democratica -->
       <div class="lobby-extra-actions" style="display: flex; gap: 8px; margin-top: 12px;">

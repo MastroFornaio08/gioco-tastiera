@@ -33,14 +33,22 @@ const Suoni = {
     osc.stop(this.ctx.currentTime + duration);
   },
 
-  playClick() { this._suona(600, 'sine', 0.1, 0.05); },
+  playClick() { 
+    this._suona(600, 'sine', 0.1, 0.05); 
+    if (window.Vibrazione) Vibrazione.click();
+  },
   playDing() { this._suona(880, 'sine', 0.3, 0.1); this._suona(1108, 'sine', 0.3, 0.1); },
-  playBuzzer() { this._suona(150, 'sawtooth', 0.4, 0.1); },
+  playBuzzer() { 
+    this._suona(150, 'sawtooth', 0.4, 0.1); 
+    if (window.Vibrazione) Vibrazione.errore();
+  },
   playTick() { this._suona(1000, 'square', 0.05, 0.02); },
   playRouletteTick() { this._suona(900 + Math.random() * 200, 'triangle', 0.04, 0.05); },
   
   // Conto alla rovescia progressivo (3, 2, 1, VIA!)
   playCountdown(step) {
+    if (step > 0 && window.Vibrazione) Vibrazione.tick();
+    else if (step === 0 && window.Vibrazione) Vibrazione.successo();
     if (!this.attivo || !this.ctx) return;
     if (step === 3) {
       this._suona(523.25, 'sine', 0.18, 0.08); // Do5
@@ -146,9 +154,10 @@ const Suoni = {
 };
 
 const Vibrazione = {
-  click() { if (navigator.vibrate) navigator.vibrate(20); },
-  successo() { if (navigator.vibrate) navigator.vibrate([50, 50, 50]); },
-  errore() { if (navigator.vibrate) navigator.vibrate([100, 50, 100]); }
+  click() { if (navigator.vibrate) navigator.vibrate(15); },
+  successo() { if (navigator.vibrate) navigator.vibrate([30, 20, 30, 20, 80]); },
+  errore() { if (navigator.vibrate) navigator.vibrate([50, 30, 50]); },
+  tick() { if (navigator.vibrate) navigator.vibrate(25); }
 };
 
 // --- Sintetizzatore procedurale Party/Lo-Fi (Fallback offline/online 100% garantito) ---

@@ -110,6 +110,28 @@ function popolaSceltaGiochi() {
   });
 }
 
+function botSceglieGiocoBoard() {
+  const status = $("board-status");
+  const chooseArea = $("board-choose-area");
+  if (chooseArea) chooseArea.style.display = "none";
+  if (status) status.textContent = "👻 Fantasma sta scegliendo il prossimo minigioco...";
+
+  setTimeout(() => {
+    const sc = $("screen-board");
+    if (!sc || !sc.classList.contains("is-active")) return;
+    const giochiValidi = GIOCHI.filter(g => !motivoBlocco(g));
+    if (giochiValidi.length > 0) {
+      const scelto = giochiValidi[Math.floor(Math.random() * giochiValidi.length)];
+      if (status) status.textContent = `👻 Fantasma ha scelto: ${scelto.nome}! Preparati...`;
+      setTimeout(() => {
+        const sc2 = $("screen-board");
+        if (!sc2 || !sc2.classList.contains("is-active")) return;
+        lanciaSfidaBoard(scelto.id);
+      }, 1200);
+    }
+  }, 1500);
+}
+
 function entraInBoard() {
   mostra("screen-board");
   disegnaTabellone();
@@ -152,13 +174,23 @@ function entraInBoard() {
         diceCube.onclick = null;
       }
       if (btnRoll) btnRoll.style.display = "none";
+
+      // Se siamo in solo e il vincitore è il fantasma: lancia automaticamente
+      if (S.ruolo === "solo" && (S.boardVincitore === "gh" || S.boardVincitore === ID_FANTASMA)) {
+        setTimeout(() => {
+          const sc = $("screen-board");
+          if (!sc || !sc.classList.contains("is-active") || S.boardVincitore !== "gh") return;
+          const dado = Math.floor(Math.random() * 6) + 1;
+          animaLancioBoard("gh", dado, S.boardUltimo);
+        }, 1200);
+      }
     }
   } 
   // Fase 2: Scelta del gioco (chi è arrivato ultimo nel minigioco sceglie la prossima sfida)
   else if (S.boardUltimo) {
     if (S.io === S.boardUltimo) {
       if (S.ruolo === "solo") {
-        if (status) status.textContent = "🎯 Scegli tu il prossimo minigioco:";
+        if (status) status.textContent = "🎯 Hai perso la sfida: scegli tu il prossimo minigioco per rimontare!";
       } else {
         if (status) status.textContent = "🎮 Hai perso la sfida precedente: tocca a te scegliere il prossimo gioco per rimontare!";
       }
@@ -167,6 +199,11 @@ function entraInBoard() {
     } else {
       if (status) status.textContent = `⏳ In attesa che ${nomeDi(S.boardUltimo)} scelga il prossimo gioco...`;
       if (chooseArea) chooseArea.style.display = "none";
+
+      // In modalità solo, se tocca al fantasma scegliere
+      if (S.ruolo === "solo" && (S.boardUltimo === "gh" || S.boardUltimo === ID_FANTASMA)) {
+        botSceglieGiocoBoard();
+      }
     }
   } 
   // Avvio iniziale (prima del round 1)
@@ -377,9 +414,13 @@ function concludiTurnoBoard(tiratoreId, posFinale, dado, ultimoId) {
     if (diceArea) diceArea.style.display = "none";
     
     if (S.ruolo === "solo") {
-      if (status) status.textContent = `🎯 Sei alla casella ${posFinale}! Scegli il prossimo gioco per continuare:`;
-      if (chooseArea) chooseArea.style.display = "block";
-      popolaSceltaGiochi();
+      if (ultimoId === "gh" || ultimoId === ID_FANTASMA) {
+        botSceglieGiocoBoard();
+      } else {
+        if (status) status.textContent = `🎯 Sei alla casella ${posFinale}! Scegli il prossimo gioco per continuare:`;
+        if (chooseArea) chooseArea.style.display = "block";
+        popolaSceltaGiochi();
+      }
     } else {
       if (S.io === S.boardUltimo) {
         if (status) status.textContent = `🎮 Hai perso la sfida precedente: scegli il prossimo gioco per recuperare!`;
