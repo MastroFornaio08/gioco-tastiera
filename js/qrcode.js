@@ -433,31 +433,36 @@
   root.GeneratoreQR = {
     creaSVG: function(testo, opzioni) {
       opzioni = opzioni || {};
-      var dimensione = opzioni.dimensione || 180;
-      var margine = opzioni.margine || 2;
-      var coloreScuro = opzioni.coloreScuro || "#0f172a";
+      var dimensione = opzioni.dimensione || 160;
+      var margine = typeof opzioni.margine === "number" ? opzioni.margine : 4; // Quiet zone standard 4 moduli per scansione ottica immediata
+      var coloreScuro = opzioni.coloreScuro || "#000000";
       var coloreChiaro = opzioni.coloreChiaro || "#ffffff";
       
-      var qr = new QRCodeModel(0, 1); // Livello L per compatezza
-      qr.addData(testo);
-      qr.make();
-      
-      var count = qr.getModuleCount();
-      var sizeWithMargin = count + margine * 2;
-      var rects = [];
-      
-      for (var r = 0; r < count; r++) {
-        for (var c = 0; c < count; c++) {
-          if (qr.isDark(r, c)) {
-            rects.push('<rect x="' + (c + margine) + '" y="' + (r + margine) + '" width="1" height="1" fill="' + coloreScuro + '" />');
+      try {
+        var qr = new QRCodeModel(0, 1); // Livello L per compatezza
+        qr.addData(testo);
+        qr.make();
+        
+        var count = qr.getModuleCount();
+        var sizeWithMargin = count + margine * 2;
+        var rects = [];
+        
+        for (var r = 0; r < count; r++) {
+          for (var c = 0; c < count; c++) {
+            if (qr.isDark(r, c)) {
+              rects.push('<rect x="' + (c + margine) + '" y="' + (r + margine) + '" width="1" height="1" fill="' + coloreScuro + '" shape-rendering="crispEdges" />');
+            }
           }
         }
+        
+        return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + sizeWithMargin + ' ' + sizeWithMargin + '" width="' + dimensione + '" height="' + dimensione + '" style="border-radius:10px; display:block; margin:0 auto; background:' + coloreChiaro + '; padding:4px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">' +
+               '<rect width="' + sizeWithMargin + '" height="' + sizeWithMargin + '" fill="' + coloreChiaro + '"/>' +
+               rects.join('') +
+               '</svg>';
+      } catch (err) {
+        console.warn("Errore generazione QR SVG:", err);
+        return null;
       }
-      
-      return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + sizeWithMargin + ' ' + sizeWithMargin + '" width="' + dimensione + '" height="' + dimensione + '" style="border-radius:12px; display:block; margin:0 auto; background:' + coloreChiaro + '; padding:6px; box-shadow:0 4px 15px rgba(0,0,0,0.12);">' +
-             '<rect width="100%" height="100%" fill="' + coloreChiaro + '"/>' +
-             rects.join('') +
-             '</svg>';
     }
   };
 })(typeof window !== "undefined" ? window : this);

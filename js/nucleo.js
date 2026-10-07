@@ -1060,12 +1060,41 @@ function collegaRete() {
     stato("host-status", "Stanza aperta. Aspetto i giocatori…");
 
     // Genera QR Code per accesso immediato da cellulare
-    const qrContainer = $("host-qrcode");
-    if (qrContainer && window.GeneratoreQR) {
-      const url = location.origin + location.pathname + "?s=" + codice;
-      qrContainer.innerHTML = GeneratoreQR.creaSVG(url, { dimensione: 140 });
-    }
+    aggiornaQRCodeStanza(codice);
   });
+
+function aggiornaQRCodeStanza(codice) {
+  const qrContainer = $("host-qrcode");
+  if (!qrContainer) return;
+
+  if (location.protocol === "file:") {
+    qrContainer.innerHTML = `
+      <div style="background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.4); color: #fde047; padding: 10px; border-radius: 12px; font-size: 0.82rem; text-align: center; max-width: 200px; line-height: 1.4;">
+        ⚠️ <b>Sei su file:// locale</b><br>
+        I telefoni non possono aprire file del PC.<br>
+        Inserisci dal telefono il codice a mano:<br>
+        <b style="font-size: 1.25rem; color: #fff; letter-spacing: 2px;">${codice}</b>
+      </div>
+    `;
+    return;
+  }
+
+  const url = location.origin + location.pathname + "?s=" + codice;
+  if (window.GeneratoreQR) {
+    const svg = GeneratoreQR.creaSVG(url, { dimensione: 160, margine: 4 });
+    if (svg) {
+      qrContainer.innerHTML = svg;
+      if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+        const info = document.createElement("div");
+        info.style.cssText = "font-size: 0.75rem; color: #94a3b8; margin-top: 6px; text-align: center; max-width: 200px; line-height: 1.3;";
+        info.innerHTML = `💡 Se il cellulare è sulla stessa Wi-Fi, apri il sito con l'IP locale del PC o digita il codice <b>${codice}</b>!`;
+        qrContainer.appendChild(info);
+      }
+    } else {
+      qrContainer.innerHTML = `<b style="font-size: 1.2rem; color: #ffd23b;">Codice: ${codice}</b>`;
+    }
+  }
+}
 
   // l'ospite, appena il canale si apre, si presenta
   Rete.on("connesso", () => {

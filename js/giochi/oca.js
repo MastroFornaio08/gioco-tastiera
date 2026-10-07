@@ -1,37 +1,57 @@
-/* 🪿 Gioco dell'Oca — Minigioco Classico con dadi, 30 caselle, rimbalzo al traguardo ed effetti a catena! */
+/* 🪿 Gioco dell'Oca — Minigioco Classico: Partita Singola a 50 caselle con Rimbalzo e Bonus/Malus Bilanciati */
 
 const CASELLE_MINI_OCA = [
   { n: 0, nome: "Partenza", icona: "🚩", tipo: "start", colore: "linear-gradient(135deg, #2563eb, #1d4ed8)" },
   { n: 1, nome: "Prato", icona: "🌱", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
   { n: 2, nome: "Sentiero", icona: "🌿", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
-  { n: 3, nome: "Turbo Razzo", icona: "🚀", tipo: "turbo", delta: 3, desc: "+3 caselle!", colore: "linear-gradient(135deg, #0284c7, #0369a1)" },
+  { n: 3, nome: "Radura", icona: "🌼", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
   { n: 4, nome: "Boschetto", icona: "🌲", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
-  { n: 5, nome: "Oca Magica", icona: "🪿", tipo: "oca", desc: "Raddoppia i passi!", colore: "linear-gradient(135deg, #10b981, #047857)" },
-  { n: 6, nome: "Ponte Turbo", icona: "🌉", tipo: "turbo", delta: 3, desc: "+3 caselle!", colore: "linear-gradient(135deg, #0284c7, #0369a1)" },
-  { n: 7, nome: "Scivolo Banana", icona: "🍌", tipo: "malus", delta: -2, desc: "-2 caselle!", colore: "linear-gradient(135deg, #ef4444, #b91c1c)" },
-  { n: 8, nome: "Fiume", icona: "🌊", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
-  { n: 9, nome: "Oca Reale", icona: "🪿", tipo: "oca", desc: "Raddoppia i passi!", colore: "linear-gradient(135deg, #10b981, #047857)" },
-  { n: 10, nome: "Mulino", icona: "🌾", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
-  { n: 11, nome: "Super Turbo", icona: "🚀", tipo: "turbo", delta: 3, desc: "+3 caselle!", colore: "linear-gradient(135deg, #0284c7, #0369a1)" },
-  { n: 12, nome: "Dado Extra", icona: "🎲", tipo: "extra", desc: "Tira di nuovo!", colore: "linear-gradient(135deg, #8b5cf6, #6d28d9)" },
-  { n: 13, nome: "Pozzo Buio", icona: "🕳️", tipo: "trappola", delta: -3, desc: "-3 caselle!", colore: "linear-gradient(135deg, #b91c1c, #7f1d1d)" },
-  { n: 14, nome: "Oca Dorata", icona: "🪿", tipo: "oca", desc: "Raddoppia i passi!", colore: "linear-gradient(135deg, #10b981, #047857)" },
-  { n: 15, nome: "Castello", icona: "🏰", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
-  { n: 16, nome: "Buccia Banana", icona: "🍌", tipo: "malus", delta: -2, desc: "-2 caselle!", colore: "linear-gradient(135deg, #ef4444, #b91c1c)" },
-  { n: 17, nome: "Labirinto", icona: "🧭", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
-  { n: 18, nome: "Oca Alata", icona: "🪿", tipo: "oca", desc: "Raddoppia i passi!", colore: "linear-gradient(135deg, #10b981, #047857)" },
-  { n: 19, nome: "Turbo Stellare", icona: "🚀", tipo: "turbo", delta: 3, desc: "+3 caselle!", colore: "linear-gradient(135deg, #0284c7, #0369a1)" },
-  { n: 20, nome: "Giardino Fiorito", icona: "🌻", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
-  { n: 21, nome: "Pozzo Profondo", icona: "🕳️", tipo: "trappola", delta: -3, desc: "-3 caselle!", colore: "linear-gradient(135deg, #b91c1c, #7f1d1d)" },
-  { n: 22, nome: "Super Salto", icona: "⚡", tipo: "turbo", delta: 3, desc: "+3 caselle!", colore: "linear-gradient(135deg, #0284c7, #0369a1)" },
-  { n: 23, nome: "Oca Mistica", icona: "🪿", tipo: "oca", desc: "Raddoppia i passi!", colore: "linear-gradient(135deg, #10b981, #047857)" },
-  { n: 24, nome: "Scivolo Fango", icona: "🍌", tipo: "malus", delta: -2, desc: "-2 caselle!", colore: "linear-gradient(135deg, #ef4444, #b91c1c)" },
-  { n: 25, nome: "Dado Extra", icona: "🎲", tipo: "extra", desc: "Tira di nuovo!", colore: "linear-gradient(135deg, #8b5cf6, #6d28d9)" },
-  { n: 26, nome: "Vento Rapido", icona: "🌪️", tipo: "turbo", delta: 2, desc: "+2 caselle!", colore: "linear-gradient(135deg, #0284c7, #0369a1)" },
-  { n: 27, nome: "Oca Suprema", icona: "🪿", tipo: "oca", desc: "Raddoppia i passi!", colore: "linear-gradient(135deg, #10b981, #047857)" },
-  { n: 28, nome: "Trappola Ragnatela", icona: "🕸️", tipo: "trappola", delta: -3, desc: "-3 caselle!", colore: "linear-gradient(135deg, #b91c1c, #7f1d1d)" },
-  { n: 29, nome: "Ultimo Balzo", icona: "✨", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
-  { n: 30, nome: "TRAGUARDO", icona: "🏆", tipo: "traguardo", desc: "Numero esatto!", colore: "linear-gradient(135deg, #f59e0b, #d97706)" }
+  { n: 5, nome: "Ruscello", icona: "💧", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 6, nome: "Turbo Razzo", icona: "🚀", tipo: "turbo", delta: 3, desc: "+3 caselle!", colore: "linear-gradient(135deg, #0284c7, #0369a1)" }, // -> 9 (sicura)
+  { n: 7, nome: "Ponte di Legno", icona: "🪵", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 8, nome: "Collina", icona: "⛰️", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 9, nome: "Mulino Antico", icona: "🌾", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 10, nome: "Scivolo Fango", icona: "🍌", tipo: "malus", delta: -2, desc: "-2 caselle!", colore: "linear-gradient(135deg, #ef4444, #b91c1c)" }, // -> 8 (sicura)
+  { n: 11, nome: "Pianura", icona: "🌾", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 12, nome: "Fiume Blu", icona: "🌊", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 13, nome: "Oca Magica", icona: "🪿", tipo: "oca", desc: "Raddoppia i passi!", colore: "linear-gradient(135deg, #10b981, #047857)" }, // +1..6 -> 14..19 (tutte sicure!)
+  { n: 14, nome: "Radura Verde", icona: "🌱", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 15, nome: "Frutteto", icona: "🍎", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 16, nome: "Stagno", icona: "🐸", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 17, nome: "Cascata", icona: "💧", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 18, nome: "Sorgente", icona: "✨", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 19, nome: "Sentiero Pietre", icona: "🪨", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 20, nome: "Pozzo Buio", icona: "🕳️", tipo: "trappola", delta: -3, desc: "-3 caselle!", colore: "linear-gradient(135deg, #b91c1c, #7f1d1d)" }, // -> 17 (sicura)
+  { n: 21, nome: "Valle Quieta", icona: "🍃", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 22, nome: "Dado Extra", icona: "🎲", tipo: "extra", desc: "Tira di nuovo!", colore: "linear-gradient(135deg, #8b5cf6, #6d28d9)" },
+  { n: 23, nome: "Radura Soleggiata", icona: "☀️", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 24, nome: "Super Turbo", icona: "🚀", tipo: "turbo", delta: 4, desc: "+4 caselle!", colore: "linear-gradient(135deg, #0284c7, #0369a1)" }, // -> 28 (sicura)
+  { n: 25, nome: "Bosco di Pini", icona: "🌲", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 26, nome: "Passo Roccioso", icona: "🧗", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 27, nome: "Rifugio Alpino", icona: "🏡", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 28, nome: "Valico del Vento", icona: "🌬️", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 29, nome: "Buccia Banana", icona: "🍌", tipo: "malus", delta: -2, desc: "-2 caselle!", colore: "linear-gradient(135deg, #ef4444, #b91c1c)" }, // -> 27 (sicura)
+  { n: 30, nome: "Castello di Pietra", icona: "🏰", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 31, nome: "Ponte Levatoio", icona: "🌉", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 32, nome: "Oca Reale", icona: "🪿", tipo: "oca", desc: "Raddoppia i passi!", colore: "linear-gradient(135deg, #10b981, #047857)" }, // +1..6 -> 33..38 (tutte sicure!)
+  { n: 33, nome: "Corte Reale", icona: "👑", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 34, nome: "Giardino Reale", icona: "🌷", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 35, nome: "Fontana Magica", icona: "⛲", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 36, nome: "Labirinto", icona: "🧭", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 37, nome: "Viale degli Olmi", icona: "🌳", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 38, nome: "Arco Antico", icona: "🏛️", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 39, nome: "Trappola Ragnatela", icona: "🕸️", tipo: "trappola", delta: -3, desc: "-3 caselle!", colore: "linear-gradient(135deg, #b91c1c, #7f1d1d)" }, // -> 36 (sicura)
+  { n: 40, nome: "Colle Ventoso", icona: "🪁", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 41, nome: "Dado d'Oro", icona: "🎲", tipo: "extra", desc: "Tira di nuovo!", colore: "linear-gradient(135deg, #8b5cf6, #6d28d9)" },
+  { n: 42, nome: "Oca Dorata", icona: "🪿", tipo: "oca", desc: "Raddoppia i passi!", colore: "linear-gradient(135deg, #10b981, #047857)" }, // +1..6 -> 43..48 (tutte sicure o turbo 45!)
+  { n: 43, nome: "Torre di Guardia", icona: "🗼", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 44, nome: "Sentiero di Notte", icona: "🌙", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 45, nome: "Turbo Finale", icona: "🚀", tipo: "turbo", delta: 3, desc: "+3 caselle!", colore: "linear-gradient(135deg, #0284c7, #0369a1)" }, // -> 48 (sicura)
+  { n: 46, nome: "Piazza d'Onore", icona: "⭐", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 47, nome: "Porta Trionfale", icona: "🚪", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 48, nome: "Viale dei Campioni", icona: "🏆", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 49, nome: "Ultimo Balzo", icona: "✨", tipo: "normale", colore: "linear-gradient(135deg, #334155, #1e293b)" },
+  { n: 50, nome: "TRAGUARDO", icona: "🏆", tipo: "traguardo", desc: "Numero esatto!", colore: "linear-gradient(135deg, #f59e0b, #d97706)" }
 ];
 
 const FACCE_OCA = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
@@ -40,28 +60,29 @@ GIOCHI.push({
   id: "oca",
   nome: "Gioco dell'Oca",
   icona: "🪿",
-  desc: "Lancia i dadi, sfrutta le caselle speciali e sfreccia verso il traguardo a 30 caselle!",
+  desc: "Partita secca a 50 caselle: lancia i dadi, sfrutta bonus rari e centra il traguardo!",
   regole: [
-    "A turno: <b>lancia il dado</b> per avanzare sul percorso verso la casella 30.",
-    "🎯 <b>Numero esatto per vincere</b>: per vincere devi atterrare esattamente sul 30! Se superi il traguardo, <b>rimbalzi indietro</b> delle caselle in eccesso!",
-    "🪿 <b>Effetti a Catena</b>: se atterri su caselle speciali consecutive (Oca, Turbo, Scivoli), gli effetti continuano a moltiplicarsi e concatenarsi!",
-    "🪿 <b>Oca (5, 9, 14, 18, 23, 27)</b>: Raddoppia i passi e salta ancora avanti!",
-    "🚀 <b>Turbo</b>: Scatto propulsivo in avanti.",
-    "🍌 <b>Banana & Trappola</b>: Scivoli indietro!",
-    "🎲 <b>Dado Extra (12, 25)</b>: Tiro bonus immediato!",
-    "Chi taglia per primo il <b>Traguardo</b> vince <b>500 punti</b>!"
+    "🏆 <b>Partita Secca</b>: un solo round unico fino alla casella 50!",
+    "🎯 <b>Numero esatto per vincere</b>: devi centrare esattamente il 50! Se superi il traguardo, <b>rimbalzi indietro</b> delle caselle in eccesso!",
+    "🛡️ <b>Bonus Equi & Protetti</b>: i bonus sono rari e non ti faranno MAI finire direttamente su un malus!",
+    "🔁 <b>Una sola volta</b>: se dopo un bonus o rimbalzo torni indietro su una casella speciale, non si riattiva due volte nello stesso turno!",
+    "🪿 <b>Oca (13, 32, 42)</b>: Raddoppia i passi del dado e salta avanti!",
+    "🚀 <b>Turbo (6, 24, 45)</b>: Scatto propulsivo verso caselle sicure.",
+    "🍌 <b>Scivoli & Trappole (10, 20, 29, 39)</b>: Fango o pozzo, arretri di poche caselle.",
+    "🎲 <b>Dado Extra (22, 41)</b>: Ottieni un tiro immediato aggiuntivo!",
+    "Chi taglia per primo il <b>Traguardo (50)</b> vince <b>500 punti</b>!"
   ],
   gara: false,
   solo: true,
   maxGiocatori: 6,
-  durata: 85,
+  durata: 120, // 2 minuti abbondanti per 50 caselle
 
   generaPartita() {
-    return Array.from({ length: typeof MAX_ROUND !== 'undefined' ? MAX_ROUND : 3 }, () => ({}));
+    return [{}]; // Solo 1 round unico! Partita secca!
   },
 
   fantasma() {
-    return { punti: 350, dettaglio: "Casella 27/30", tempo: 42 };
+    return { punti: 350, dettaglio: "Casella 45/50", tempo: 55 };
   },
 
   crea(api) {
@@ -81,6 +102,9 @@ GIOCHI.push({
     let inAnimazione = false;
     let timeoutBot = null;
 
+    // Traccia delle caselle speciali già attivate durante la mossa del turno corrente (per evitare attivazioni doppie se si torna indietro)
+    const caselleUsateNelTurno = new Set();
+
     const posizioni = new Array(n).fill(0);
 
     // Costruzione UI Arena
@@ -92,18 +116,18 @@ GIOCHI.push({
             <span>Tocca a:</span> <span id="oca-turno-nome" style="color: #ffd23b;">...</span>
           </div>
           <div id="oca-pos-badge" style="font-size: 0.95rem; opacity: 0.9;">
-            Tua casella: <b id="oca-mia-pos" style="color: #38bdf8;">0</b>/30
+            Tua casella: <b id="oca-mia-pos" style="color: #38bdf8;">0</b>/50
           </div>
         </div>
 
         <!-- Banner Notifica Eventi Casella -->
-        <div id="oca-event-banner" style="min-height: 40px; font-weight: bold; font-size: 1.05rem; text-align: center; color: #fff; padding: 6px 12px; border-radius: 10px; margin-bottom: 8px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; transition: all 0.3s;">
-          Benvenuto al Gioco dell'Oca! Raggiungi il 30 esatto!
+        <div id="oca-event-banner" style="min-height: 40px; font-weight: bold; font-size: 1.02rem; text-align: center; color: #fff; padding: 6px 12px; border-radius: 10px; margin-bottom: 8px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; transition: all 0.3s;">
+          Partita Secca a 50 caselle! Centra il 50 esatto!
         </div>
 
         <!-- Plancia / Percorso Caselle -->
-        <div class="oca-track-wrapper" style="flex: 1; overflow-y: auto; padding: 6px 4px; margin-bottom: 10px; max-height: 46vh; border-radius: 14px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05);">
-          <div id="oca-track" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 6px; padding: 4px;">
+        <div class="oca-track-wrapper" style="flex: 1; overflow-y: auto; padding: 6px 4px; margin-bottom: 10px; max-height: 48vh; border-radius: 14px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05);">
+          <div id="oca-track" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 6px; padding: 4px;">
             <!-- generato da js -->
           </div>
         </div>
@@ -127,11 +151,11 @@ GIOCHI.push({
     const elDiceCube = api.arena.querySelector("#oca-dice-cube");
     const btnRoll = api.arena.querySelector("#oca-roll-btn");
 
-    // Disegna tutte le 31 caselle (da 0 a 30)
+    // Disegna tutte le 51 caselle (da 0 a 50)
     function disegnaPercorso() {
       elTrack.innerHTML = "";
       CASELLE_MINI_OCA.forEach(c => {
-        const isEnd = c.n === 30;
+        const isEnd = c.n === 50;
         const isOca = c.tipo === "oca";
         const isTurbo = c.tipo === "turbo";
         const isBad = c.tipo === "malus" || c.tipo === "trappola";
@@ -142,7 +166,7 @@ GIOCHI.push({
 
         elTrack.innerHTML += `
           <div class="oca-tile" id="oca-tile-${c.n}" style="
-            min-height: 70px; border-radius: 12px;
+            min-height: 68px; border-radius: 12px;
             background: ${c.colore}; color: #fff;
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
             padding: 5px 3px; position: relative; border: 2.5px solid ${border};
@@ -152,7 +176,7 @@ GIOCHI.push({
               <span style="border-radius: 4px; padding: 1px 4px; ${badgeColor}">#${c.n}</span>
               <span style="font-size: 1.1rem; line-height: 1;">${c.icona}</span>
             </div>
-            <div class="oca-tile-slot" id="oca-slot-${c.n}" style="display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; min-height: 24px; width: 100%; align-items: center; pointer-events: none;"></div>
+            <div class="oca-tile-slot" id="oca-slot-${c.n}" style="display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; min-height: 22px; width: 100%; align-items: center; pointer-events: none;"></div>
             <div style="font-size: 0.68rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; opacity: 0.95;">
               ${c.nome}
             </div>
@@ -163,21 +187,21 @@ GIOCHI.push({
 
     // Aggiorna pedine sulle caselle
     function aggiornaPedine() {
-      for (let i = 0; i <= 30; i++) {
+      for (let i = 0; i <= 50; i++) {
         const slot = api.arena.querySelector("#oca-slot-" + i);
         if (slot) slot.innerHTML = "";
       }
 
       giocatori.forEach((g, idx) => {
-        const pos = Math.min(Math.max(posizioni[idx] || 0, 0), 30);
+        const pos = Math.min(Math.max(posizioni[idx] || 0, 0), 50);
         const slot = api.arena.querySelector("#oca-slot-" + pos);
         if (slot) {
-          slot.innerHTML += `<div style="font-size: 1.5rem; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.8)); margin-top: -3px;" title="${g.nome}">${g.avatar}</div>`;
+          slot.innerHTML += `<div style="font-size: 1.45rem; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.8)); margin-top: -3px;" title="${g.nome}">${g.avatar}</div>`;
         }
       });
 
       if (elMiaPos) elMiaPos.textContent = posizioni[mioIndice] || 0;
-      api.avanzo((posizioni[mioIndice] || 0) / 30);
+      api.avanzo((posizioni[mioIndice] || 0) / 50);
 
       // Scroll verso la casella del turno corrente
       const targetTile = api.arena.querySelector("#oca-tile-" + (posizioni[turno] || 0));
@@ -223,6 +247,7 @@ GIOCHI.push({
       inAnimazione = true;
       btnRoll.disabled = true;
       btnRoll.style.opacity = "0.5";
+      caselleUsateNelTurno.clear(); // Reset caselle speciali per questo nuovo lancio
 
       const g = giocatori[giocatoreIdx];
       elEventBanner.textContent = `${g.nome} sta lanciando il dado...`;
@@ -244,7 +269,7 @@ GIOCHI.push({
 
           elEventBanner.innerHTML = `🎲 <b>${g.nome}</b> ha ottenuto un <b>${dado}</b>!`;
 
-          // 2. Movimento passo-passo con rimbalzo al traguardo
+          // 2. Movimento passo-passo con rimbalzo esatto a 50
           setTimeout(() => {
             muoviPassi(giocatoreIdx, dado, 1, () => {
               applicaEffettoCasella(giocatoreIdx, dado, 0);
@@ -254,7 +279,7 @@ GIOCHI.push({
       }, 75);
     }
 
-    // Movimento passo-passo universale con rimbalzo esatto dal 30
+    // Movimento passo-passo universale con rimbalzo esatto dal 50
     function muoviPassi(giocatoreIdx, quantiPassi, versoIniziale, callback) {
       let passi = quantiPassi;
       let verso = versoIniziale; // 1 = avanti, -1 = indietro
@@ -263,13 +288,13 @@ GIOCHI.push({
       const timerPassi = setInterval(() => {
         if (passi > 0) {
           if (verso === 1) {
-            if (posizioni[giocatoreIdx] < 30) {
+            if (posizioni[giocatoreIdx] < 50) {
               posizioni[giocatoreIdx]++;
             } else {
-              // Ha toccato il 30 ma ha ancora passi: RIMBALZO INDIETRO!
+              // Ha toccato il 50 ma ha ancora passi: RIMBALZO INDIETRO!
               verso = -1;
               posizioni[giocatoreIdx]--;
-              elEventBanner.innerHTML = `↩️ <b>RIMBALZO!</b> Superato il 30! ${g.nome} torna indietro!`;
+              elEventBanner.innerHTML = `↩️ <b>RIMBALZO!</b> Superato il 50! ${g.nome} torna indietro!`;
               if (window.Suoni && Suoni.playSbagliato) Suoni.playSbagliato();
               if (window.Vibrazione) Vibrazione.errore();
             }
@@ -296,8 +321,14 @@ GIOCHI.push({
       const casella = CASELLE_MINI_OCA[pos] || CASELLE_MINI_OCA[0];
 
       // Ha raggiunto il traguardo con il numero esatto?
-      if (pos === 30) {
+      if (pos === 50) {
         terminaGioco(giocatoreIdx);
+        return;
+      }
+
+      // Regola: dopo aver preso un bonus/malus una volta, se torni indietro non funziona due volte (solo prima volta che ci passi)
+      if (caselleUsateNelTurno.has(pos)) {
+        chiudiTurno(giocatoreIdx, false);
         return;
       }
 
@@ -311,21 +342,22 @@ GIOCHI.push({
 
       // 🪿 Casella Oca: raddoppia i passi del dado e continua a saltare
       if (casella.tipo === "oca") {
+        caselleUsateNelTurno.add(pos);
         elEventBanner.innerHTML = `${comboText}🪿 <b>OCA!</b> ${g.nome} raddoppia il lancio: salta avanti di <b>+${dadoLanciato}</b> passi!`;
         if (window.Suoni) Suoni.playDing();
         if (window.Vibrazione) Vibrazione.successo();
 
         setTimeout(() => {
           muoviPassi(giocatoreIdx, dadoLanciato, 1, () => {
-            // Rilancia la verifica sulla nuova casella raggiunta (concatenazione a catena!)
             applicaEffettoCasella(giocatoreIdx, dadoLanciato, catena + 1);
           });
         }, 700);
         return;
       }
 
-      // 🚀 Turbo Razzo: avanza di delta e concatena se atterra su altra speciale
+      // 🚀 Turbo Razzo: avanza di delta (garantito su casella sicura)
       if (casella.tipo === "turbo") {
+        caselleUsateNelTurno.add(pos);
         const delta = casella.delta || 3;
         elEventBanner.innerHTML = `${comboText}🚀 <b>TURBO!</b> ${g.nome} scatta avanti di <b>+${delta}</b> caselle!`;
         if (window.Suoni) Suoni.playDing();
@@ -340,8 +372,9 @@ GIOCHI.push({
 
       // 🍌 Scivolo Banana (Malus indietro)
       if (casella.tipo === "malus") {
+        caselleUsateNelTurno.add(pos);
         const delta = Math.abs(casella.delta || 2);
-        elEventBanner.innerHTML = `${comboText}🍌 <b>BUCCIA DI BANANA!</b> ${g.nome} scivola indietro di <b>-${delta}</b> caselle!`;
+        elEventBanner.innerHTML = `${comboText}🍌 <b>SCIVOLO!</b> ${g.nome} scivola indietro di <b>-${delta}</b> caselle!`;
         if (window.Suoni && Suoni.playSbagliato) Suoni.playSbagliato();
         if (window.Vibrazione) Vibrazione.errore();
 
@@ -355,6 +388,7 @@ GIOCHI.push({
 
       // 🕳️ Pozzo / Trappola (Malus indietro)
       if (casella.tipo === "trappola") {
+        caselleUsateNelTurno.add(pos);
         const delta = Math.abs(casella.delta || 3);
         elEventBanner.innerHTML = `${comboText}🕳️ <b>TRAPPOLA!</b> ${g.nome} cade e arretra di <b>-${delta}</b> caselle!`;
         if (window.Suoni && Suoni.playSbagliato) Suoni.playSbagliato();
@@ -370,6 +404,7 @@ GIOCHI.push({
 
       // 🎲 Dado Extra (Rilancia subito)
       if (casella.tipo === "extra") {
+        caselleUsateNelTurno.add(pos);
         elEventBanner.innerHTML = `${comboText}🎲 <b>DADO EXTRA!</b> ${g.nome} ottiene un tiro bonus immediato!`;
         if (window.Suoni) Suoni.playDing();
         setTimeout(() => {
@@ -386,6 +421,7 @@ GIOCHI.push({
     function chiudiTurno(giocatoreIdx, tiraAncora) {
       if (concluso) return;
       inAnimazione = false;
+      caselleUsateNelTurno.clear();
 
       if (!tiraAncora) {
         turno = (turno + 1) % n;
@@ -404,7 +440,7 @@ GIOCHI.push({
       eseguiMossaConAnimazione(turno, dado);
     }
 
-    // Fine partita: vittoria traguardo a 30 con numero esatto
+    // Fine partita: vittoria traguardo a 50 con numero esatto
     function terminaGioco(vincitoreIdx) {
       if (concluso) return;
       concluso = true;
@@ -414,7 +450,7 @@ GIOCHI.push({
       const vincitore = giocatori[vincitoreIdx];
       const sonoIoVincitore = vincitoreIdx === mioIndice;
 
-      elEventBanner.innerHTML = `🏆 <b>${vincitore.nome} TAGLIA IL TRAGUARDO SUL 30 E VINCE!</b>`;
+      elEventBanner.innerHTML = `🏆 <b>${vincitore.nome} TAGLIA IL TRAGUARDO SUL 50 E VINCE LA PARTITA!</b>`;
       if (sonoIoVincitore) {
         if (window.Suoni) Suoni.playVittoria && Suoni.playVittoria();
         if (window.Vibrazione) Vibrazione.successo();
@@ -426,7 +462,7 @@ GIOCHI.push({
           puntiMiei = 500;
         } else {
           // Punti proporzionali alla casella raggiunta (fino a 350)
-          puntiMiei = Math.round((posizioni[mioIndice] / 30) * 350);
+          puntiMiei = Math.round((posizioni[mioIndice] / 50) * 350);
         }
 
         if (isSolo) {
@@ -434,8 +470,8 @@ GIOCHI.push({
           const posGh = ghIdx >= 0 ? posizioni[ghIdx] : 0;
           const sonoGhVincitore = vincitoreIdx === ghIdx;
           S.fantasmaDati = {
-            punti: sonoGhVincitore ? 500 : Math.round((posGh / 30) * 350),
-            dettaglio: sonoGhVincitore ? "1° al Traguardo! 🏆" : `Casella ${posGh}/30`,
+            punti: sonoGhVincitore ? 500 : Math.round((posGh / 50) * 350),
+            dettaglio: sonoGhVincitore ? "1° al Traguardo! 🏆" : `Casella ${posGh}/50`,
             tempo: api.tempo ? api.tempo() : 30
           };
           S.esiti[ID_FANTASMA] = S.fantasmaDati;
@@ -443,7 +479,7 @@ GIOCHI.push({
 
         api.finito({
           punti: puntiMiei,
-          dettaglio: sonoIoVincitore ? "1° al Traguardo! 🏆" : `Casella ${posizioni[mioIndice]}/30`
+          dettaglio: sonoIoVincitore ? "1° al Traguardo (50)! 🏆" : `Casella ${posizioni[mioIndice]}/50`
         });
       }, 1800);
     }
@@ -456,15 +492,15 @@ GIOCHI.push({
 
       const maxPos = Math.max(...posizioni);
       const sonoPrimo = posizioni[mioIndice] === maxPos && maxPos > 0;
-      const punti = sonoPrimo ? 400 : Math.round((posizioni[mioIndice] / 30) * 300);
+      const punti = sonoPrimo ? 400 : Math.round((posizioni[mioIndice] / 50) * 300);
 
       if (isSolo) {
         const ghIdx = giocatori.findIndex(g => g.id === "gh" || g.id === "bot");
         const posGh = ghIdx >= 0 ? posizioni[ghIdx] : 0;
         const ghPrimo = posGh === maxPos && maxPos > 0;
         S.fantasmaDati = {
-          punti: ghPrimo ? 400 : Math.round((posGh / 30) * 300),
-          dettaglio: `Casella ${posGh}/30`,
+          punti: ghPrimo ? 400 : Math.round((posGh / 50) * 300),
+          dettaglio: `Casella ${posGh}/50`,
           tempo: api.tempo ? api.tempo() : 30
         };
         S.esiti[ID_FANTASMA] = S.fantasmaDati;
@@ -472,7 +508,7 @@ GIOCHI.push({
 
       api.finito({
         punti: punti,
-        dettaglio: `Tempo scaduto (Casella ${posizioni[mioIndice]}/30)`
+        dettaglio: `Tempo scaduto (Casella ${posizioni[mioIndice]}/50)`
       });
     }
 
