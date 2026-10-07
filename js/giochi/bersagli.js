@@ -82,7 +82,7 @@ GIOCHI.push({
 
     function avviaRound() {
       cycleTime = api.dati[roundCorrente].cycleTime;
-      infoRound.textContent = \`Round \${roundCorrente + 1} / \${ROUND_BERSAGLIO}\`;
+      infoRound.textContent = "Round " + (roundCorrente + 1) + " / " + ROUND_BERSAGLIO;
       risultato.textContent = "Preparati...";
       btn.disabled = false;
       startTime = Date.now();
@@ -116,7 +116,7 @@ GIOCHI.push({
         risultato.textContent = "PERFETTO! +100";
         risultato.style.color = "#ffeb3b";
       } else if (puntiRound > 0) {
-        risultato.textContent = \`Colpito! +\${puntiRound}\`;
+        risultato.textContent = "Colpito! +" + puntiRound;
         risultato.style.color = "var(--primario)";
       } else {
         risultato.textContent = "Mancato! +0";

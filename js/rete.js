@@ -137,6 +137,7 @@ const Rete = {
      Se il codice è già occupato, ne genera un altro (max 5 tentativi). */
   creaStanza(tentativi = 5) {
     this.chiudi();
+    this._chiusuraVoluta = false;
     const codice = codiceCasuale();
     this.ruolo = "host";
     this.io = "p0";
@@ -173,8 +174,9 @@ const Rete = {
     });
 
     peer.on("disconnected", () => {
+      if (this._chiusuraVoluta || !peer || peer.destroyed) return;
       console.warn("[Rete] Host disconnesso temporaneamente dal broker. Riconnetto...");
-      try { if (!peer.destroyed) peer.reconnect(); } catch (e) {}
+      try { peer.reconnect(); } catch (e) {}
     });
 
     peer.on("error", (err) => {
@@ -191,6 +193,7 @@ const Rete = {
   /* Ospite: si collega all'host. L'id definitivo glielo comunica l'host. */
   entraStanza(codice) {
     this.chiudi();
+    this._chiusuraVoluta = false;
     codice = (codice || "").trim().toUpperCase();
     if (codice.length < 3) { this._emit("errore", { messaggio: "Codice troppo corto." }); return; }
 
@@ -204,7 +207,6 @@ const Rete = {
 
     let connesso = false;
     let timerTimeout = null;
-    let timerRetry = null;
     let conn = null;
 
     const targetId = PREFISSO_ID + codice;
@@ -216,17 +218,15 @@ const Rete = {
       }
     }, 12000);
 
-    const avviaConnessione = () => {
-      if (connesso || peer.destroyed) return;
-      console.log("[Rete] Ospite connette a:", targetId);
-      conn = peer.connect(targetId);
+    peer.on("open", (mioPeerId) => {
+      console.log("[Rete] Ospite registrato (" + mioPeerId + ") -> connessione a:", targetId);
+      conn = peer.connect(targetId, { serialization: "json" });
       this._collegaConn("p0", conn);
 
       const onAperto = () => {
         if (connesso) return;
         connesso = true;
         if (timerTimeout) { clearTimeout(timerTimeout); timerTimeout = null; }
-        if (timerRetry) { clearTimeout(timerRetry); timerRetry = null; }
         console.log("[Rete] Connessione P2P riuscita con l'host!");
       };
 
@@ -234,19 +234,6 @@ const Rete = {
       else conn.on("open", onAperto);
 
       conn.on("error", (err) => console.warn("[Rete] Errore conn:", err));
-    };
-
-    peer.on("open", (mioPeerId) => {
-      console.log("[Rete] Ospite registrato (" + mioPeerId + ") -> connessione a:", targetId);
-      avviaConnessione();
-
-      // Retry dopo 4.5s se la prima offerta ICE non è andata a segno
-      timerRetry = setTimeout(() => {
-        if (!connesso && (!conn || !conn.open)) {
-          console.log("[Rete] Rinnovo handshake con l'host...");
-          avviaConnessione();
-        }
-      }, 4500);
 
       timerTimeout = setTimeout(() => {
         if (!connesso && (!conn || !conn.open)) {
@@ -261,14 +248,14 @@ const Rete = {
     });
 
     peer.on("disconnected", () => {
+      if (this._chiusuraVoluta || !peer || peer.destroyed) return;
       console.warn("[Rete] Ospite disconnesso temporaneamente dal broker. Riconnetto...");
-      try { if (!peer.destroyed) peer.reconnect(); } catch (e) {}
+      try { peer.reconnect(); } catch (e) {}
     });
 
     peer.on("error", (err) => {
       console.warn("[Rete] Errore peer ospite:", err);
       if (timerTimeout) { clearTimeout(timerTimeout); timerTimeout = null; }
-      if (timerRetry) { clearTimeout(timerRetry); timerRetry = null; }
       if (err.type === "peer-unavailable") {
         this._emit("errore", {
           messaggio: "Nessuna stanza attiva trovata con il codice '" + codice + "'. Assicurati che l'host abbia già creato la stanza e sia nella Sala d'attesa!"
@@ -287,6 +274,7 @@ const Rete = {
   },
 
   chiudi() {
+    this._chiusuraVoluta = true;
     if (this._heartbeatInterval) {
       clearInterval(this._heartbeatInterval);
       this._heartbeatInterval = null;
