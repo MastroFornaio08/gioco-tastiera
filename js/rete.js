@@ -20,7 +20,7 @@ const PREFISSO_ID = "dattiloduello-v1-";
 const ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // niente I/O/0/1, si confondono
 const MAX_GIOCATORI = 6;
 
-// Configurazione WebRTC con molteplici server STUN pubblici per oltrepassare NAT e reti mobili
+// Configurazione WebRTC con server STUN veloci
 const PEER_OPTS = {
   debug: 0,
   config: {
@@ -28,11 +28,8 @@ const PEER_OPTS = {
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
       { urls: "stun:stun2.l.google.com:19302" },
-      { urls: "stun:stun3.l.google.com:19302" },
-      { urls: "stun:stun4.l.google.com:19302" },
-      { urls: "stun:global.stun.twilio.com:3478" }
-    ],
-    sdpSemantics: "unified-plan"
+      { urls: "stun:stun.cloudflare.com:3478" }
+    ]
   }
 };
 
@@ -55,6 +52,7 @@ const Rete = {
   io: null,             // il proprio id di giocatore
   conns: new Map(),     // idGiocatore -> connessione   (l'ospite ha solo 'p0')
   handlers: {},
+  _heartbeatInterval: null,
 
   on(tipo, fn) { this.handlers[tipo] = fn; return this; },
 
@@ -110,15 +108,22 @@ const Rete = {
       this._emit("messaggio", msg);
     });
 
-    conn.on("open", () => {
+    const notificaAperto = () => {
+      if (eraAperto) return;
       eraAperto = true;
+      console.log("[Rete] Canale dati aperto con:", id);
       this._emit("connesso", { id });
-    });
+    };
+
+    if (conn.open) {
+      notificaAperto();
+    } else {
+      conn.on("open", notificaAperto);
+    }
 
     const addio = () => {
       if (this.conns.get(id) === conn) {
         this.conns.delete(id);
-        // Emette disconnesso solo se la connessione era stata effettivamente stabilita
         if (eraAperto) {
           this._emit("disconnesso", { id });
         }
@@ -141,22 +146,35 @@ const Rete = {
     const peer = new Peer(PREFISSO_ID + codice, PEER_OPTS);
     this.peer = peer;
 
+    // Heartbeat ogni 12 secondi per evitare che il broker chiuda il WebSocket
+    this._heartbeatInterval = setInterval(() => {
+      if (this.peer && !this.peer.destroyed && this.peer.socket && this.peer.socket._ws && this.peer.socket._ws.readyState === 1) {
+        try { this.peer.socket.send({ type: "HEARTBEAT" }); } catch (e) {}
+      }
+    }, 12000);
+
     peer.on("open", (id) => {
       console.log("[Rete] Host registrato con id:", id);
       this._emit("stanzaPronta", { codice });
     });
 
     peer.on("connection", (conn) => {
-      console.log("[Rete] Richiesta di connessione ricevuta da:", conn.peer);
+      console.log("[Rete] Host ha ricevuto richiesta da:", conn.peer);
       const id = this._slotLibero();
       if (!id) {
-        conn.on("open", () => {
+        const rifiuta = () => {
           try { conn.send({ tipo: "pieno" }); } catch (e) {}
           setTimeout(() => { try { conn.close(); } catch (e) {} }, 300);
-        });
+        };
+        if (conn.open) rifiuta(); else conn.on("open", rifiuta);
         return;
       }
       this._collegaConn(id, conn);
+    });
+
+    peer.on("disconnected", () => {
+      console.warn("[Rete] Host disconnesso temporaneamente dal broker. Riconnetto...");
+      try { if (!peer.destroyed) peer.reconnect(); } catch (e) {}
     });
 
     peer.on("error", (err) => {
@@ -186,33 +204,71 @@ const Rete = {
 
     let connesso = false;
     let timerTimeout = null;
+    let timerRetry = null;
+    let conn = null;
 
-    peer.on("open", (mioPeerId) => {
-      console.log("[Rete] Ospite registrato (" + mioPeerId + ") -> connessione a: " + PREFISSO_ID + codice);
-      const conn = peer.connect(PREFISSO_ID + codice, { reliable: true });
+    const targetId = PREFISSO_ID + codice;
+
+    // Heartbeat per mantenere attiva la connessione con il broker
+    this._heartbeatInterval = setInterval(() => {
+      if (this.peer && !this.peer.destroyed && this.peer.socket && this.peer.socket._ws && this.peer.socket._ws.readyState === 1) {
+        try { this.peer.socket.send({ type: "HEARTBEAT" }); } catch (e) {}
+      }
+    }, 12000);
+
+    const avviaConnessione = () => {
+      if (connesso || peer.destroyed) return;
+      console.log("[Rete] Ospite connette a:", targetId);
+      conn = peer.connect(targetId);
       this._collegaConn("p0", conn);
 
-      conn.on("open", () => {
+      const onAperto = () => {
+        if (connesso) return;
         connesso = true;
         if (timerTimeout) { clearTimeout(timerTimeout); timerTimeout = null; }
-        console.log("[Rete] Connessione riuscita con l'host!");
-      });
+        if (timerRetry) { clearTimeout(timerRetry); timerRetry = null; }
+        console.log("[Rete] Connessione P2P riuscita con l'host!");
+      };
+
+      if (conn.open) onAperto();
+      else conn.on("open", onAperto);
+
+      conn.on("error", (err) => console.warn("[Rete] Errore conn:", err));
+    };
+
+    peer.on("open", (mioPeerId) => {
+      console.log("[Rete] Ospite registrato (" + mioPeerId + ") -> connessione a:", targetId);
+      avviaConnessione();
+
+      // Retry dopo 4.5s se la prima offerta ICE non è andata a segno
+      timerRetry = setTimeout(() => {
+        if (!connesso && (!conn || !conn.open)) {
+          console.log("[Rete] Rinnovo handshake con l'host...");
+          avviaConnessione();
+        }
+      }, 4500);
 
       timerTimeout = setTimeout(() => {
         if (!connesso && (!conn || !conn.open)) {
           console.warn("[Rete] Timeout connessione stanza:", codice);
           this._emit("errore", {
-            messaggio: "Stanza non trovata. Verifica che chi ha creato la stanza sia fermo nella schermata 'Sala d'attesa' e che il codice sia " + codice + "."
+            messaggio: "Impossibile collegarsi alla stanza " + codice + ". Assicurati che l'host sia nella schermata 'Sala d'attesa' e riprova!"
           });
-          try { conn.close(); } catch (e) {}
+          try { if (conn) conn.close(); } catch (e) {}
           try { peer.destroy(); } catch (e) {}
         }
       }, 16000);
     });
 
+    peer.on("disconnected", () => {
+      console.warn("[Rete] Ospite disconnesso temporaneamente dal broker. Riconnetto...");
+      try { if (!peer.destroyed) peer.reconnect(); } catch (e) {}
+    });
+
     peer.on("error", (err) => {
       console.warn("[Rete] Errore peer ospite:", err);
       if (timerTimeout) { clearTimeout(timerTimeout); timerTimeout = null; }
+      if (timerRetry) { clearTimeout(timerRetry); timerRetry = null; }
       if (err.type === "peer-unavailable") {
         this._emit("errore", {
           messaggio: "Nessuna stanza attiva trovata con il codice '" + codice + "'. Assicurati che l'host abbia già creato la stanza e sia nella Sala d'attesa!"
@@ -231,6 +287,10 @@ const Rete = {
   },
 
   chiudi() {
+    if (this._heartbeatInterval) {
+      clearInterval(this._heartbeatInterval);
+      this._heartbeatInterval = null;
+    }
     this.conns.forEach(conn => { try { conn.close(); } catch (e) {} });
     this.conns.clear();
     try { if (this.peer) this.peer.destroy(); } catch (e) {}
