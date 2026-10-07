@@ -20,6 +20,22 @@ const PREFISSO_ID = "dattiloduello-v1-";
 const ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // niente I/O/0/1, si confondono
 const MAX_GIOCATORI = 6;
 
+// Configurazione WebRTC con molteplici server STUN pubblici per oltrepassare NAT e reti mobili
+const PEER_OPTS = {
+  debug: 0,
+  config: {
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" },
+      { urls: "stun:stun3.l.google.com:19302" },
+      { urls: "stun:stun4.l.google.com:19302" },
+      { urls: "stun:global.stun.twilio.com:3478" }
+    ],
+    sdpSemantics: "unified-plan"
+  }
+};
+
 /* Messaggi che riguardano solo l'arbitro: non vanno rilanciati agli altri.
    "gp" è il canale privato dei giochi (parole segrete, voti): deve restare
    fra un giocatore e l'arbitro, altrimenti basterebbe guardare i messaggi
@@ -83,6 +99,7 @@ const Rete = {
 
   _collegaConn(id, conn) {
     this.conns.set(id, conn);
+    let eraAperto = false;
 
     conn.on("data", (msg) => {
       if (!msg || !msg.tipo) return;
@@ -93,12 +110,18 @@ const Rete = {
       this._emit("messaggio", msg);
     });
 
-    conn.on("open", () => this._emit("connesso", { id }));
+    conn.on("open", () => {
+      eraAperto = true;
+      this._emit("connesso", { id });
+    });
 
     const addio = () => {
       if (this.conns.get(id) === conn) {
         this.conns.delete(id);
-        this._emit("disconnesso", { id });
+        // Emette disconnesso solo se la connessione era stata effettivamente stabilita
+        if (eraAperto) {
+          this._emit("disconnesso", { id });
+        }
       }
     };
     conn.on("close", addio);
@@ -108,21 +131,25 @@ const Rete = {
   /* Host: registra un id ricavato da un codice casuale.
      Se il codice è già occupato, ne genera un altro (max 5 tentativi). */
   creaStanza(tentativi = 5) {
+    this.chiudi();
     const codice = codiceCasuale();
     this.ruolo = "host";
     this.io = "p0";
     this.codice = codice;
     this.conns = new Map();
 
-    const peer = new Peer(PREFISSO_ID + codice, { debug: 0 });
+    const peer = new Peer(PREFISSO_ID + codice, PEER_OPTS);
     this.peer = peer;
 
-    peer.on("open", () => this._emit("stanzaPronta", { codice }));
+    peer.on("open", (id) => {
+      console.log("[Rete] Host registrato con id:", id);
+      this._emit("stanzaPronta", { codice });
+    });
 
     peer.on("connection", (conn) => {
+      console.log("[Rete] Richiesta di connessione ricevuta da:", conn.peer);
       const id = this._slotLibero();
       if (!id) {
-        // stanza piena: lo diciamo e chiudiamo, senza lasciarlo in attesa
         conn.on("open", () => {
           try { conn.send({ tipo: "pieno" }); } catch (e) {}
           setTimeout(() => { try { conn.close(); } catch (e) {} }, 300);
@@ -133,6 +160,7 @@ const Rete = {
     });
 
     peer.on("error", (err) => {
+      console.warn("[Rete] Errore peer host:", err);
       if (err.type === "unavailable-id" && tentativi > 0) {
         try { peer.destroy(); } catch (e) {}
         this.creaStanza(tentativi - 1);
@@ -144,6 +172,7 @@ const Rete = {
 
   /* Ospite: si collega all'host. L'id definitivo glielo comunica l'host. */
   entraStanza(codice) {
+    this.chiudi();
     codice = (codice || "").trim().toUpperCase();
     if (codice.length < 3) { this._emit("errore", { messaggio: "Codice troppo corto." }); return; }
 
@@ -152,22 +181,42 @@ const Rete = {
     this.codice = codice;
     this.conns = new Map();
 
-    const peer = new Peer(undefined, { debug: 0 });
+    const peer = new Peer(undefined, PEER_OPTS);
     this.peer = peer;
 
-    peer.on("open", () => {
+    let connesso = false;
+    let timerTimeout = null;
+
+    peer.on("open", (mioPeerId) => {
+      console.log("[Rete] Ospite registrato (" + mioPeerId + ") -> connessione a: " + PREFISSO_ID + codice);
       const conn = peer.connect(PREFISSO_ID + codice, { reliable: true });
       this._collegaConn("p0", conn);
-      setTimeout(() => {
-        if (!conn.open) {
-          this._emit("errore", { messaggio: "Stanza non trovata. Controlla il codice." });
+
+      conn.on("open", () => {
+        connesso = true;
+        if (timerTimeout) { clearTimeout(timerTimeout); timerTimeout = null; }
+        console.log("[Rete] Connessione riuscita con l'host!");
+      });
+
+      timerTimeout = setTimeout(() => {
+        if (!connesso && (!conn || !conn.open)) {
+          console.warn("[Rete] Timeout connessione stanza:", codice);
+          this._emit("errore", {
+            messaggio: "Stanza non trovata. Verifica che chi ha creato la stanza sia fermo nella schermata 'Sala d'attesa' e che il codice sia " + codice + "."
+          });
+          try { conn.close(); } catch (e) {}
+          try { peer.destroy(); } catch (e) {}
         }
-      }, 12000);
+      }, 16000);
     });
 
     peer.on("error", (err) => {
+      console.warn("[Rete] Errore peer ospite:", err);
+      if (timerTimeout) { clearTimeout(timerTimeout); timerTimeout = null; }
       if (err.type === "peer-unavailable") {
-        this._emit("errore", { messaggio: "Nessuna stanza con questo codice." });
+        this._emit("errore", {
+          messaggio: "Nessuna stanza attiva trovata con il codice '" + codice + "'. Assicurati che l'host abbia già creato la stanza e sia nella Sala d'attesa!"
+        });
       } else {
         this._emit("errore", { messaggio: descriviErrore(err) });
       }
@@ -189,13 +238,18 @@ const Rete = {
   }
 };
 
+window.addEventListener("beforeunload", () => {
+  try { Rete.chiudi(); } catch (e) {}
+});
+
 function descriviErrore(err) {
   switch (err && err.type) {
-    case "network":        return "Problema di rete verso il server di collegamento.";
-    case "server-error":   return "Il server di collegamento non risponde. Riprova tra poco.";
+    case "network":        return "Problema di rete verso il server PeerJS. Controlla la connessione internet.";
+    case "server-error":   return "Il server di collegamento non risponde. Riprova tra pochi secondi.";
     case "browser-incompatible": return "Questo browser non supporta WebRTC.";
-    case "webrtc":         return "Connessione diretta fallita (firewall o rete restrittiva).";
-    case "disconnected":   return "Connessione interrotta.";
-    default:               return "Errore di connessione: " + ((err && err.type) || "sconosciuto");
+    case "webrtc":         return "Connessione diretta fallita (blocco NAT/firewall o rete restrittiva).";
+    case "disconnected":   return "Connessione al server interrotta.";
+    case "peer-unavailable": return "Stanza non trovata. L'host potrebbe aver chiuso o il codice è errato.";
+    default:               return "Errore di connessione: " + ((err && err.type) || "impossibile connettersi");
   }
 }

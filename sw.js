@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zaltergames-v2';
+const CACHE_NAME = 'zaltergames-v3';
 const ASSETS = [
   './',
   './index.html',

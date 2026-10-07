@@ -1063,39 +1063,6 @@ function collegaRete() {
     aggiornaQRCodeStanza(codice);
   });
 
-function aggiornaQRCodeStanza(codice) {
-  const qrContainer = $("host-qrcode");
-  if (!qrContainer) return;
-
-  if (location.protocol === "file:") {
-    qrContainer.innerHTML = `
-      <div style="background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.4); color: #fde047; padding: 10px; border-radius: 12px; font-size: 0.82rem; text-align: center; max-width: 200px; line-height: 1.4;">
-        ⚠️ <b>Sei su file:// locale</b><br>
-        I telefoni non possono aprire file del PC.<br>
-        Inserisci dal telefono il codice a mano:<br>
-        <b style="font-size: 1.25rem; color: #fff; letter-spacing: 2px;">${codice}</b>
-      </div>
-    `;
-    return;
-  }
-
-  const url = location.origin + location.pathname + "?s=" + codice;
-  if (window.GeneratoreQR) {
-    const svg = GeneratoreQR.creaSVG(url, { dimensione: 160, margine: 4 });
-    if (svg) {
-      qrContainer.innerHTML = svg;
-      if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
-        const info = document.createElement("div");
-        info.style.cssText = "font-size: 0.75rem; color: #94a3b8; margin-top: 6px; text-align: center; max-width: 200px; line-height: 1.3;";
-        info.innerHTML = `💡 Se il cellulare è sulla stessa Wi-Fi, apri il sito con l'IP locale del PC o digita il codice <b>${codice}</b>!`;
-        qrContainer.appendChild(info);
-      }
-    } else {
-      qrContainer.innerHTML = `<b style="font-size: 1.2rem; color: #ffd23b;">Codice: ${codice}</b>`;
-    }
-  }
-}
-
   // l'ospite, appena il canale si apre, si presenta
   Rete.on("connesso", () => {
     if (S.ruolo === "ospite") Rete.invia("ciao", { nome: S.nome, avatar: S.avatar });
@@ -1263,7 +1230,41 @@ function aggiornaQRCodeStanza(codice) {
 
   Rete.on("errore", ({ messaggio }) => {
     stato(S.ruolo === "host" ? "host-status" : "join-status", messaggio, "err");
+    if ($("btn-join")) $("btn-join").disabled = false;
   });
+}
+
+function aggiornaQRCodeStanza(codice) {
+  const qrContainer = $("host-qrcode");
+  if (!qrContainer) return;
+
+  if (location.protocol === "file:") {
+    qrContainer.innerHTML = `
+      <div style="background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.4); color: #fde047; padding: 10px; border-radius: 12px; font-size: 0.82rem; text-align: center; max-width: 200px; line-height: 1.4;">
+        ⚠️ <b>Sei su file:// locale</b><br>
+        I telefoni non possono aprire file del PC.<br>
+        Inserisci dal telefono il codice a mano:<br>
+        <b style="font-size: 1.25rem; color: #fff; letter-spacing: 2px;">${codice}</b>
+      </div>
+    `;
+    return;
+  }
+
+  const url = location.origin + location.pathname + "?s=" + codice;
+  if (window.GeneratoreQR) {
+    const svg = GeneratoreQR.creaSVG(url, { dimensione: 160, margine: 4 });
+    if (svg) {
+      qrContainer.innerHTML = svg;
+      if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+        const info = document.createElement("div");
+        info.style.cssText = "font-size: 0.75rem; color: #94a3b8; margin-top: 6px; text-align: center; max-width: 200px; line-height: 1.3;";
+        info.innerHTML = `💡 Se il cellulare è sulla stessa Wi-Fi, apri il sito con l'IP locale del PC o digita il codice <b>${codice}</b>!`;
+        qrContainer.appendChild(info);
+      }
+    } else {
+      qrContainer.innerHTML = `<b style="font-size: 1.2rem; color: #ffd23b;">Codice: ${codice}</b>`;
+    }
+  }
 }
 
 function misuraLatenza() {
@@ -1373,40 +1374,73 @@ function mostraBollaChat(testo, autore, avatar, colore) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Reazioni Emoji
-  document.querySelectorAll(".reaction-emoji-btn").forEach(b => {
-    b.onclick = () => {
-      const emoji = b.textContent;
-      mostraReazione(emoji, S.io);
-      if (S.ruolo !== "solo") Rete.invia("reazione", { emoji: emoji });
-      if (window.Suoni) Suoni.playClick();
-      if (window.Trofei) Trofei.incrementaContatore("social", 5, "socialite");
-    };
-  });
+  // Setup Menu a Tendina Chat & Reazioni
+  const btnChatToggle = $("btn-chat-toggle");
+  const chatDropdown = $("chat-dropdown");
+  const btnChatClose = $("btn-chat-close");
 
-  // Toggle drawer frasi rapide
-  const btnToggleChat = $("btn-toggle-chat");
-  const drawerChat = $("quick-chat-drawer");
-  if (btnToggleChat && drawerChat) {
-    btnToggleChat.onclick = (e) => {
+  const chiudiChatDropdown = () => {
+    if (chatDropdown) {
+      chatDropdown.classList.remove("is-open");
+      chatDropdown.setAttribute("aria-hidden", "true");
+    }
+    if (btnChatToggle) {
+      const freccia = btnChatToggle.querySelector(".chat-pill-arrow");
+      if (freccia) freccia.textContent = "▲";
+    }
+  };
+
+  const apriChatDropdown = () => {
+    if (chatDropdown) {
+      chatDropdown.classList.add("is-open");
+      chatDropdown.setAttribute("aria-hidden", "false");
+    }
+    if (btnChatToggle) {
+      const freccia = btnChatToggle.querySelector(".chat-pill-arrow");
+      if (freccia) freccia.textContent = "▼";
+    }
+  };
+
+  if (btnChatToggle && chatDropdown) {
+    btnChatToggle.onclick = (e) => {
       e.stopPropagation();
-      drawerChat.classList.toggle("is-open");
+      const isOpen = chatDropdown.classList.contains("is-open");
+      if (isOpen) chiudiChatDropdown();
+      else apriChatDropdown();
       if (window.Suoni) Suoni.playClick();
     };
+
+    if (btnChatClose) {
+      btnChatClose.onclick = (e) => {
+        e.stopPropagation();
+        chiudiChatDropdown();
+      };
+    }
 
     document.addEventListener("click", (e) => {
-      if (!drawerChat.contains(e.target) && e.target !== btnToggleChat) {
-        drawerChat.classList.remove("is-open");
+      if (!chatDropdown.contains(e.target) && !btnChatToggle.contains(e.target)) {
+        chiudiChatDropdown();
       }
     });
   }
 
-  // Click su pillole di frase rapida
+  // Click su Emoji di reazione rapida
+  document.querySelectorAll(".reaction-emoji-btn").forEach(b => {
+    b.onclick = (e) => {
+      e.stopPropagation();
+      const emoji = b.textContent.trim();
+      inviaReazione(emoji);
+      chiudiChatDropdown();
+    };
+  });
+
+  // Click su pillole di frasi rapide
   document.querySelectorAll(".chat-pill-btn").forEach(b => {
-    b.onclick = () => {
-      const testo = b.textContent;
+    b.onclick = (e) => {
+      e.stopPropagation();
+      const testo = b.textContent.trim();
       inviaQuickChat(testo);
-      if (drawerChat) drawerChat.classList.remove("is-open");
+      chiudiChatDropdown();
       if (window.Suoni) Suoni.playClick();
     };
   });

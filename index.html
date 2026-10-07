@@ -13,9 +13,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,700;1,800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=12">
-  <link rel="stylesheet" href="css/giochi.css?v=12">
-  <link rel="stylesheet" href="css/anima.css?v=12">
+  <link rel="stylesheet" href="css/style.css?v=13">
+  <link rel="stylesheet" href="css/giochi.css?v=13">
+  <link rel="stylesheet" href="css/anima.css?v=13">
 </head>
 
 <body>
@@ -122,13 +122,25 @@
     <!-- ============ JOIN ============ -->
     <section class="screen" id="screen-join">
       <h2>Entra in partita</h2>
+      
+      <label class="field">
+        <span>Il tuo nome</span>
+        <input id="input-name-join" maxlength="14" placeholder="Es. Marco" autocomplete="nickname">
+      </label>
+
       <label class="field">
         <span>Codice della stanza</span>
         <input id="input-code" maxlength="5" placeholder="ABCD" autocapitalize="characters" autocomplete="off"
-          spellcheck="false">
+          spellcheck="false" style="font-size: 1.4rem; letter-spacing: 4px; text-transform: uppercase; text-align: center;">
       </label>
+
       <button class="btn btn-primary" id="btn-join">Connetti</button>
       <p class="status" id="join-status"></p>
+      
+      <div style="font-size: 0.8rem; color: var(--muto); text-align: center; margin: 10px auto 4px; line-height: 1.4; max-width: 300px;">
+        💡 <b>Nota:</b> Chi ha creato la stanza deve tenere aperta la schermata "Sala d'attesa" mentre ti colleghi!
+      </div>
+
       <button class="btn btn-ghost btn-small" data-back>Indietro</button>
     </section>
 
@@ -260,25 +272,45 @@
 
   </div>
 
-  <!-- Reazioni ed Quick Chat Floating -->
+  <!-- Reazioni Floating ed Effetti a Schermo -->
   <div id="reactions-layer" class="reactions-layer"></div>
   
-  <div id="quick-chat-drawer" class="quick-chat-drawer">
-    <button class="chat-pill-btn">Bella giocata! 👏</button>
-    <button class="chat-pill-btn">Vendetta! ⚔️</button>
-    <button class="chat-pill-btn">Che fortuna! 🍀</button>
-    <button class="chat-pill-btn">Rigiochiamo! 🔄</button>
-    <button class="chat-pill-btn">Non vale! 🙈</button>
-    <button class="chat-pill-btn">GG a tutti! 🎉</button>
-  </div>
+  <!-- Menu a Tendina Flottante: Chat & Reazioni -->
+  <div id="chat-widget" class="chat-widget">
+    <button id="btn-chat-toggle" class="btn-chat-pill" title="Chat e Reazioni rapide">
+      <span class="chat-pill-icon">💬</span>
+      <span class="chat-pill-label">Reazioni</span>
+      <span class="chat-pill-arrow">▲</span>
+    </button>
 
-  <div id="reaction-bar" class="reaction-bar">
-    <button class="reaction-emoji-btn">🔥</button>
-    <button class="reaction-emoji-btn">😂</button>
-    <button class="reaction-emoji-btn">🤬</button>
-    <button class="reaction-emoji-btn">😭</button>
-    <button class="reaction-emoji-btn">👏</button>
-    <button id="btn-toggle-chat" class="btn-chat-toggle" title="Frasi rapide">💬</button>
+    <div id="chat-dropdown" class="chat-dropdown" aria-hidden="true">
+      <div class="chat-dropdown-header">
+        <span class="chat-dropdown-titolo">💬 Reazioni Rapide</span>
+        <button id="btn-chat-close" class="btn-chat-close" title="Chiudi menu">✕</button>
+      </div>
+
+      <!-- Emoji a comparsa -->
+      <div class="chat-emoji-grid">
+        <button class="reaction-emoji-btn" title="Fuoco">🔥</button>
+        <button class="reaction-emoji-btn" title="Risata">😂</button>
+        <button class="reaction-emoji-btn" title="Rabbia">🤬</button>
+        <button class="reaction-emoji-btn" title="Pianto">😭</button>
+        <button class="reaction-emoji-btn" title="Applauso">👏</button>
+        <button class="reaction-emoji-btn" title="Cuore">❤️</button>
+      </div>
+
+      <div class="chat-divider"></div>
+
+      <!-- Frasi Rapide -->
+      <div class="chat-frasi-list">
+        <button class="chat-pill-btn">Bella giocata! 👏</button>
+        <button class="chat-pill-btn">Vendetta! ⚔️</button>
+        <button class="chat-pill-btn">Che fortuna! 🍀</button>
+        <button class="chat-pill-btn">Rigiochiamo! 🔄</button>
+        <button class="chat-pill-btn">Non vale! 🙈</button>
+        <button class="chat-pill-btn">GG a tutti! 🎉</button>
+      </div>
+    </div>
   </div>
 
   <button id="btn-fullscreen" class="btn-fullscreen" title="Schermo Intero">⛶</button>
@@ -290,52 +322,52 @@
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
   <!-- utilità qr code e obiettivi -->
-  <script src="js/qrcode.js?v=9"></script>
-  <script src="js/obiettivi.js?v=9"></script>
+  <script src="js/qrcode.js?v=10"></script>
+  <script src="js/obiettivi.js?v=10"></script>
 
   <!-- dati -->
-  <script src="js/frasi.js?v=9"></script>
-  <script src="js/parole.js?v=9"></script>
-  <script src="js/parole-impostore.js?v=9"></script>
+  <script src="js/frasi.js?v=10"></script>
+  <script src="js/parole.js?v=10"></script>
+  <script src="js/parole-impostore.js?v=10"></script>
 
   <!-- rete, audio, effetti e motore comune -->
-  <script src="js/audio.js?v=9"></script>
-  <script src="js/rete.js?v=9"></script>
-  <script src="js/effetti.js?v=9"></script>
-  <script src="js/nucleo.js?v=9"></script>
+  <script src="js/audio.js?v=10"></script>
+  <script src="js/rete.js?v=10"></script>
+  <script src="js/effetti.js?v=10"></script>
+  <script src="js/nucleo.js?v=10"></script>
 
   <!-- i 27 giochi attivi -->
-  <script src="js/giochi/dattilo.js?v=9"></script>
-  <script src="js/giochi/riflessi.js?v=9"></script>
-  <script src="js/giochi/calcolo.js?v=9"></script>
-  <script src="js/giochi/anagrammi.js?v=9"></script>
-  <script src="js/giochi/sequenza.js?v=9"></script>
-  <script src="js/giochi/bersagli.js?v=9"></script>
-  <script src="js/giochi/intruso.js?v=9"></script>
-  <script src="js/giochi/stroop.js?v=9"></script>
-  <script src="js/giochi/ordine.js?v=9"></script>
-  <script src="js/giochi/memory.js?v=9"></script>
-  <script src="js/giochi/tris.js?v=9"></script>
-  <script src="js/giochi/fune.js?v=9"></script>
-  <script src="js/giochi/sniper.js?v=9"></script>
-  <script src="js/giochi/fotografica.js?v=9"></script>
-  <script src="js/giochi/conta.js?v=9"></script>
-  <script src="js/giochi/inverso.js?v=9"></script>
-  <script src="js/giochi/impostore.js?v=9"></script>
-  <script src="js/giochi/yahtzee.js?v=9"></script>
-  <script src="js/giochi/caccia.js?v=9"></script>
-  <script src="js/giochi/scuoti.js?v=9"></script>
-  <script src="js/giochi/urlo.js?v=9"></script>
-  <script src="js/giochi/bomba.js?v=9"></script>
-  <script src="js/giochi/simon.js?v=9"></script>
-  <script src="js/giochi/cronometro.js?v=9"></script>
-  <script src="js/giochi/spam.js?v=9"></script>
-  <script src="js/giochi/equilibrio.js?v=9"></script>
-  <script src="js/giochi/oca.js?v=9"></script>
-  <script src="js/giochi/escaperoom.js?v=9"></script>
+  <script src="js/giochi/dattilo.js?v=10"></script>
+  <script src="js/giochi/riflessi.js?v=10"></script>
+  <script src="js/giochi/calcolo.js?v=10"></script>
+  <script src="js/giochi/anagrammi.js?v=10"></script>
+  <script src="js/giochi/sequenza.js?v=10"></script>
+  <script src="js/giochi/bersagli.js?v=10"></script>
+  <script src="js/giochi/intruso.js?v=10"></script>
+  <script src="js/giochi/stroop.js?v=10"></script>
+  <script src="js/giochi/ordine.js?v=10"></script>
+  <script src="js/giochi/memory.js?v=10"></script>
+  <script src="js/giochi/tris.js?v=10"></script>
+  <script src="js/giochi/fune.js?v=10"></script>
+  <script src="js/giochi/sniper.js?v=10"></script>
+  <script src="js/giochi/fotografica.js?v=10"></script>
+  <script src="js/giochi/conta.js?v=10"></script>
+  <script src="js/giochi/inverso.js?v=10"></script>
+  <script src="js/giochi/impostore.js?v=10"></script>
+  <script src="js/giochi/yahtzee.js?v=10"></script>
+  <script src="js/giochi/caccia.js?v=10"></script>
+  <script src="js/giochi/scuoti.js?v=10"></script>
+  <script src="js/giochi/urlo.js?v=10"></script>
+  <script src="js/giochi/bomba.js?v=10"></script>
+  <script src="js/giochi/simon.js?v=10"></script>
+  <script src="js/giochi/cronometro.js?v=10"></script>
+  <script src="js/giochi/spam.js?v=10"></script>
+  <script src="js/giochi/equilibrio.js?v=10"></script>
+  <script src="js/giochi/oca.js?v=10"></script>
+  <script src="js/giochi/escaperoom.js?v=10"></script>
 
-  <script src="js/tabellone.js?v=9"></script>
-  <script src="js/avvio.js?v=9"></script>
+  <script src="js/tabellone.js?v=10"></script>
+  <script src="js/avvio.js?v=10"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').then((reg) => {

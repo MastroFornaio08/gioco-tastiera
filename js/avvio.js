@@ -49,11 +49,15 @@ function collegaInterfaccia() {
 
   $("btn-join").onclick = () => {
     const codice = $("input-code").value.trim().toUpperCase();
-    if (codice.length < 4) { stato("join-status", "Il codice ha 4 caratteri.", "err"); return; }
+    if (codice.length < 4) { stato("join-status", "Il codice della stanza ha 4 caratteri.", "err"); return; }
+    if ($("input-name-join") && $("input-name-join").value.trim()) {
+      $("input-name").value = $("input-name-join").value.trim();
+    }
     S.nome = nomeScelto();
     S.avatar = avatarScelto();
     S.ruolo = "ospite";
-    stato("join-status", "Connessione in corso…");
+    $("btn-join").disabled = true;
+    stato("join-status", "🔄 Connessione alla stanza " + codice + "…");
     Rete.entraStanza(codice);
   };
 
@@ -241,18 +245,33 @@ function collegaInterfaccia() {
     };
   });
 
-  // Theme toggle
+  // Theme toggle (Chiaro / Scuro)
   const btnTheme = $("btn-theme");
+  function impostaTema(isLight) {
+    if (isLight) {
+      document.body.classList.add("light-theme");
+      if (btnTheme) btnTheme.textContent = "☀️";
+    } else {
+      document.body.classList.remove("light-theme");
+      if (btnTheme) btnTheme.textContent = "🌙";
+    }
+  }
+
   if (btnTheme) {
     btnTheme.onclick = () => {
-      document.body.classList.toggle("dark-theme");
-      try { localStorage.setItem("dd-theme", document.body.classList.contains("dark-theme") ? "dark" : "light"); } catch(e){}
+      const isLight = !document.body.classList.contains("light-theme");
+      impostaTema(isLight);
+      try { localStorage.setItem("dd-theme", isLight ? "light" : "dark"); } catch(e){}
+      if (window.Suoni) Suoni.playClick();
     };
   }
 
   try {
     const salvato = localStorage.getItem("dd-nome");
-    if (salvato) $("input-name").value = salvato;
+    if (salvato) {
+      $("input-name").value = salvato;
+      if ($("input-name-join")) $("input-name-join").value = salvato;
+    }
     const avatar = localStorage.getItem("dd-avatar");
     if (avatar) {
       avatarBtns.forEach(b => {
@@ -263,12 +282,20 @@ function collegaInterfaccia() {
       });
     }
     const theme = localStorage.getItem("dd-theme");
-    if (theme === "dark") document.body.classList.add("dark-theme");
+    if (theme === "light") {
+      impostaTema(true);
+    } else {
+      impostaTema(false);
+    }
   } catch (e) { /* navigazione privata */ }
 
   const codice = new URLSearchParams(location.search).get("s");
   if (codice) {
     $("input-code").value = codice.toUpperCase().slice(0, 5);
     mostra("screen-join");
+    if ($("input-name-join") && $("input-name").value) {
+      $("input-name-join").value = $("input-name").value;
+    }
+    stato("join-status", "Premi 'Connetti' per entrare nella stanza " + codice.toUpperCase() + "!");
   }
 })();
