@@ -22,7 +22,7 @@ const MAX_GIOCATORI = 6;
 
 // Configurazione WebRTC con server STUN veloci
 const PEER_OPTS = {
-  debug: 0,
+  debug: 1,
   config: {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
@@ -207,6 +207,7 @@ const Rete = {
 
     let connesso = false;
     let timerTimeout = null;
+    let timerRetry = null;
     let conn = null;
 
     const targetId = PREFISSO_ID + codice;
@@ -218,15 +219,17 @@ const Rete = {
       }
     }, 12000);
 
-    peer.on("open", (mioPeerId) => {
-      console.log("[Rete] Ospite registrato (" + mioPeerId + ") -> connessione a:", targetId);
-      conn = peer.connect(targetId, { serialization: "json" });
+    const avviaConnessione = () => {
+      if (connesso || !this.peer || this.peer.destroyed) return;
+      console.log("[Rete] Ospite connette a:", targetId);
+      conn = this.peer.connect(targetId);
       this._collegaConn("p0", conn);
 
       const onAperto = () => {
         if (connesso) return;
         connesso = true;
         if (timerTimeout) { clearTimeout(timerTimeout); timerTimeout = null; }
+        if (timerRetry) { clearTimeout(timerRetry); timerRetry = null; }
         console.log("[Rete] Connessione P2P riuscita con l'host!");
       };
 
@@ -234,6 +237,19 @@ const Rete = {
       else conn.on("open", onAperto);
 
       conn.on("error", (err) => console.warn("[Rete] Errore conn:", err));
+    };
+
+    peer.on("open", (mioPeerId) => {
+      console.log("[Rete] Ospite registrato (" + mioPeerId + ") -> connessione a:", targetId);
+      avviaConnessione();
+
+      // Retry dopo 4.5s se la prima offerta ICE non è andata a segno (es. tra Wi-Fi ed Ethernet)
+      timerRetry = setTimeout(() => {
+        if (!connesso && (!conn || !conn.open)) {
+          console.log("[Rete] Rinnovo handshake con l'host...");
+          avviaConnessione();
+        }
+      }, 4500);
 
       timerTimeout = setTimeout(() => {
         if (!connesso && (!conn || !conn.open)) {
@@ -256,6 +272,7 @@ const Rete = {
     peer.on("error", (err) => {
       console.warn("[Rete] Errore peer ospite:", err);
       if (timerTimeout) { clearTimeout(timerTimeout); timerTimeout = null; }
+      if (timerRetry) { clearTimeout(timerRetry); timerRetry = null; }
       if (err.type === "peer-unavailable") {
         this._emit("errore", {
           messaggio: "Nessuna stanza attiva trovata con il codice '" + codice + "'. Assicurati che l'host abbia già creato la stanza e sia nella Sala d'attesa!"
