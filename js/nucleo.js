@@ -590,17 +590,26 @@ function iniziaRound() {
   S.t0 = performance.now();
   S.attivo = true;
 
-  S.tick = setInterval(() => {
-    const t = (performance.now() - S.t0) / 1000;
-    $("hud-timer").textContent = t.toFixed(1) + "s";
-    $("hud-timer").classList.toggle("urgente", g.durata - t <= 3);
-  }, 100);
+  if (g.senzaTempo) {
+    $("hud-timer").textContent = "0.0s";
+    $("hud-timer").classList.remove("urgente");
+    S.tick = setInterval(() => {
+      const t = (performance.now() - S.t0) / 1000;
+      $("hud-timer").textContent = t.toFixed(1) + "s";
+    }, 100);
+  } else {
+    S.tick = setInterval(() => {
+      const t = (performance.now() - S.t0) / 1000;
+      $("hud-timer").textContent = t.toFixed(1) + "s";
+      $("hud-timer").classList.toggle("urgente", g.durata - t <= 3);
+    }, 100);
 
-  S.scadenza = setTimeout(() => {
-    if (!S.attivo) return;
-    if (S.istanza && S.istanza.scaduto) S.istanza.scaduto();
-    else api.finito({ punti: 0, dettaglio: "tempo scaduto" });
-  }, g.durata * 1000);
+    S.scadenza = setTimeout(() => {
+      if (!S.attivo) return;
+      if (S.istanza && S.istanza.scaduto) S.istanza.scaduto();
+      else api.finito({ punti: 0, dettaglio: "tempo scaduto" });
+    }, g.durata * 1000);
+  }
 
   S.istanza = g.crea(api);
 
