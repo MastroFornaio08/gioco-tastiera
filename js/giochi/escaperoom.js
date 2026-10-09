@@ -1328,9 +1328,13 @@ GIOCHI.push({
     }
 
     // Fuga riuscita: tutte e 7 le stanze completate
-    function trionfoFuga() {
+    function trionfoFuga(notificaSquadra = true) {
       if (concluso) return;
       concluso = true;
+
+      if (notificaSquadra) {
+        api.invia({ tipo: "fugaRiuscita" });
+      }
 
       elRadioBanner.innerHTML = `🎉 <b>FUGA TOTALE RIUSCITA! TUTTE LE 7 STANZE SUPERATE!</b>`;
       elVistaArea.innerHTML = `
@@ -1358,6 +1362,10 @@ GIOCHI.push({
     return {
       messaggio(m, da) {
         if (!m || concluso) return;
+        if (m.tipo === "fugaRiuscita") {
+          trionfoFuga(false);
+          return;
+        }
         if (m.tipo === "stanzaSuperata") {
           stanzaAttualeIdx = m.stanzaIdx + 1;
           indiziUsati = 0;

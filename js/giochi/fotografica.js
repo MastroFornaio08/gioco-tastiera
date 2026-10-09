@@ -42,15 +42,17 @@ GIOCHI.push({
       </div>
     `;
 
-    const grid = $("foto-grid");
-    const msg = $("foto-msg");
-    const celle = grid.querySelectorAll(".foto-cella");
+    const grid = api.arena.querySelector("#foto-grid") || $("foto-grid");
+    const msg = api.arena.querySelector("#foto-msg") || $("foto-msg");
+    const celle = grid ? grid.querySelectorAll(".foto-cella") : [];
 
     // Mostra le celle per 1.5 secondi
     bersagli.forEach(idx => {
-      celle[idx].style.background = "var(--primario)";
-      celle[idx].style.boxShadow = "0 0 15px var(--primario)";
-      celle[idx].style.borderColor = "#fff";
+      if (celle[idx]) {
+        celle[idx].style.background = "var(--primario)";
+        celle[idx].style.boxShadow = "0 0 15px var(--primario)";
+        celle[idx].style.borderColor = "#fff";
+      }
     });
 
     const timeoutMemoria = setTimeout(() => {

@@ -20,12 +20,14 @@ GIOCHI.push({
   durata: 30, // Tempo abbondante, la partita finisce in base ai 5 round
 
   generaPartita() {
-    return Array.from({ length: ROUND_BERSAGLIO }, (_, r) => {
-      // Velocità crescente
-      const cycleTime = 2500 - (r * 400); // 2500, 2100, 1700, 1300, 900 ms per ciclo completo
-      return {
-        cycleTime: Math.max(600, cycleTime)
-      };
+    const rounds = typeof MAX_ROUND !== 'undefined' ? MAX_ROUND : 3;
+    return Array.from({ length: rounds }, (_, r) => {
+      return Array.from({ length: ROUND_BERSAGLIO }, (_, s) => {
+        const cycleTime = 2500 - (s * 350) - (r * 150);
+        return {
+          cycleTime: Math.max(500, cycleTime)
+        };
+      });
     });
   },
 
@@ -45,7 +47,14 @@ GIOCHI.push({
     let inMovimento = false;
     let startTime = 0;
     let animFrame = null;
-    let cycleTime = api.dati[roundCorrente].cycleTime;
+
+    function getCycleTime(r) {
+      if (Array.isArray(api.dati)) {
+        return (api.dati[r] && api.dati[r].cycleTime) ? api.dati[r].cycleTime : 1500;
+      }
+      return (api.dati && api.dati.cycleTime) ? api.dati.cycleTime : 1500;
+    }
+    let cycleTime = getCycleTime(roundCorrente);
 
     api.suggerimento("Premi 'COLPISCI!' quando la freccia è sul giallo.");
 
@@ -81,7 +90,7 @@ GIOCHI.push({
     }
 
     function avviaRound() {
-      cycleTime = api.dati[roundCorrente].cycleTime;
+      cycleTime = getCycleTime(roundCorrente);
       infoRound.textContent = "Round " + (roundCorrente + 1) + " / " + ROUND_BERSAGLIO;
       risultato.textContent = "Preparati...";
       btn.disabled = false;

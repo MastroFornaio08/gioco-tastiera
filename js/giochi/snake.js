@@ -17,7 +17,7 @@ GIOCHI.push({
   durata: 30,
 
   generaPartita() {
-    return { seed: Math.random() };
+    return Array.from({ length: typeof MAX_ROUND !== 'undefined' ? MAX_ROUND : 3 }, () => ({ seed: Math.random() }));
   },
 
   fantasma(dati) {
@@ -136,10 +136,14 @@ GIOCHI.push({
       loopTimeout = setTimeout(step, speed);
     }
 
-    function schianto() {
+    function schianto(immediato = false) {
       concluso = true;
       board.classList.add("sn-dead");
-      setTimeout(() => api.finito({ punti, dettaglio: punti + " mele" }), 1500);
+      if (immediato) {
+        api.finito({ punti, dettaglio: punti + " mele" });
+      } else {
+        setTimeout(() => api.finito({ punti, dettaglio: punti + " mele" }), 1500);
+      }
     }
 
     // Input da tastiera
@@ -173,7 +177,7 @@ GIOCHI.push({
     setTimeout(step, 500);
 
     return {
-      scaduto: schianto,
+      scaduto() { schianto(true); },
       chiudi() { 
         concluso = true;
         clearTimeout(loopTimeout);

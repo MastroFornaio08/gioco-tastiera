@@ -16,7 +16,7 @@ GIOCHI.push({
   durata: 30,
 
   generaPartita() {
-    return { seed: Math.random() };
+    return Array.from({ length: typeof MAX_ROUND !== 'undefined' ? MAX_ROUND : 3 }, () => ({ seed: Math.random() }));
   },
 
   fantasma(dati) {
@@ -138,13 +138,17 @@ GIOCHI.push({
       animFrame = requestAnimationFrame(loop);
     }
 
-    function schianto() {
+    function schianto(immediato = false) {
       if (concluso) return;
       concluso = true;
       cancelAnimationFrame(animFrame);
       ship.style.filter = "grayscale(100%) blur(2px)";
       ship.textContent = "💥";
-      setTimeout(() => api.finito({ punti, dettaglio: punti + " punti" }), 1500);
+      if (immediato) {
+        api.finito({ punti, dettaglio: punti + " punti" });
+      } else {
+        setTimeout(() => api.finito({ punti, dettaglio: punti + " punti" }), 1500);
+      }
     }
 
     // Parte dopo mezzo secondo per non fregare il giocatore
@@ -153,7 +157,7 @@ GIOCHI.push({
     }, 500);
 
     return {
-      scaduto: schianto,
+      scaduto() { schianto(true); },
       chiudi() { 
         concluso = true;
         cancelAnimationFrame(animFrame); 

@@ -16,7 +16,7 @@ GIOCHI.push({
   durata: 30,
 
   generaPartita() {
-    return { seed: Math.random() };
+    return Array.from({ length: typeof MAX_ROUND !== 'undefined' ? MAX_ROUND : 3 }, () => ({ seed: Math.random() }));
   },
 
   fantasma(dati) {
@@ -167,21 +167,25 @@ GIOCHI.push({
       animFrame = requestAnimationFrame(loop);
     }
 
-    function schianto() {
+    function schianto(immediato = false) {
       if (concluso) return;
       concluso = true;
       cancelAnimationFrame(animFrame);
       birdEl.style.filter = "grayscale(100%)";
       jumpBtn.disabled = true;
-      setTimeout(() => {
+      if (immediato) {
         api.finito({ punti, dettaglio: punti + " tubi" });
-      }, 1500);
+      } else {
+        setTimeout(() => {
+          api.finito({ punti, dettaglio: punti + " tubi" });
+        }, 1500);
+      }
     }
 
     loop();
 
     return {
-      scaduto: schianto,
+      scaduto() { schianto(true); },
       chiudi() { 
         concluso = true;
         cancelAnimationFrame(animFrame); 

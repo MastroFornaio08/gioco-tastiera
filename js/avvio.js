@@ -232,9 +232,183 @@ function collegaInterfaccia() {
   });
 }
 
+function inizializzaBotTesterUI() {
+  const modal = $("modal-bot-tester");
+  const btnOpenMenu = $("btn-bot-tester");
+  const btnOpenLobby = $("btn-lobby-bot-tester");
+  const btnClose = $("btn-bot-tester-close");
+  const selectGioco = $("bot-tester-select-gioco");
+  const selectBot = $("bot-tester-select-bot");
+  const selectModo = $("bot-tester-select-modo");
+  const btnRun = $("btn-bot-tester-run");
+  const btnStop = $("btn-bot-tester-stop");
+  const btnCopy = $("btn-bot-tester-copy");
+  const tbody = $("bot-tester-tbody");
+  const cntTot = $("bot-tester-cnt-tot");
+  const cntPass = $("bot-tester-cnt-pass");
+  const cntFail = $("bot-tester-cnt-fail");
+  const statusTxt = $("bot-tester-status-txt");
+  const progressBar = $("bot-tester-progress-bar");
+  const visualArena = $("bot-tester-visual-arena");
+
+  if (!modal || !window.BotTester) return;
+
+  function popolaSelectGiochi() {
+    if (!selectGioco) return;
+    const currVal = selectGioco.value || "tutti";
+    selectGioco.innerHTML = `<option value="tutti">🌟 Tutti i ${GIOCHI.length} Minigiochi</option>`;
+    GIOCHI.forEach(g => {
+      const opt = document.createElement("option");
+      opt.value = g.id;
+      opt.textContent = `${g.icona || "🎮"} ${g.nome} (${g.id})`;
+      selectGioco.appendChild(opt);
+    });
+    selectGioco.value = currVal;
+  }
+
+  function apriModal() {
+    popolaSelectGiochi();
+    modal.style.display = "flex";
+    if (window.Suoni) Suoni.playClick();
+  }
+
+  function chiudiModal() {
+    if (BotTester.inEsecuzione) BotTester.ferma();
+    modal.style.display = "none";
+  }
+
+  if (btnOpenMenu) btnOpenMenu.onclick = apriModal;
+  if (btnOpenLobby) btnOpenLobby.onclick = apriModal;
+  if (btnClose) btnClose.onclick = chiudiModal;
+
+  modal.onclick = (e) => {
+    if (e.target === modal) chiudiModal();
+  };
+
+  BotTester.impostaListener((evt) => {
+    if (evt.tipo === "inizio") {
+      cntTot.textContent = evt.totale;
+      cntPass.textContent = "0";
+      cntFail.textContent = "0";
+      statusTxt.textContent = `Avvio test su ${evt.totale} giochi...`;
+      progressBar.style.width = "0%";
+      tbody.innerHTML = "";
+    } else if (evt.tipo === "giocoInizio") {
+      statusTxt.textContent = `Test in corso: ${evt.nome}...`;
+      const row = document.createElement("tr");
+      row.id = `row-test-${evt.gioco}`;
+      row.style.borderBottom = "1px solid rgba(255,255,255,0.06)";
+      row.innerHTML = `
+        <td style="padding: 6px 4px;"><span style="color:#00f0ff;">⏳ In test...</span></td>
+        <td style="padding: 6px 4px;"><b>${fuggiHtml(evt.nome)}</b></td>
+        <td style="padding: 6px 4px; color: #94a3b8;">—</td>
+        <td style="padding: 6px 4px; color: #94a3b8;">Simulazione bot in corso...</td>
+      `;
+      tbody.appendChild(row);
+      if (typeof row.scrollIntoView === "function") {
+        row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    } else if (evt.tipo === "giocoFine") {
+      const r = evt.risultato;
+      const row = $(`row-test-${r.id}`);
+      const passTot = BotTester.risultati.filter(x => x.pass).length;
+      const failTot = BotTester.risultati.filter(x => !x.pass).length;
+      cntPass.textContent = passTot;
+      cntFail.textContent = failTot;
+
+      const pct = Math.round(((evt.indice + 1) / parseInt(cntTot.textContent || 1, 10)) * 100);
+      progressBar.style.width = `${pct}%`;
+
+      if (row) {
+        const bgBadge = r.pass 
+          ? "background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981;" 
+          : "background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444;";
+        const badgeTxt = r.pass ? "✅ PASS" : "❌ FAIL";
+
+        let esitoHtml = "";
+        if (r.pass) {
+          esitoHtml = `<span style="color:#cbd5e1; font-size:0.8rem;">${r.dettagliBot.join(", ")}</span>`;
+        } else {
+          esitoHtml = `<b style="color:#ef4444;">${fuggiHtml(r.errori.join(" | "))}</b>`;
+        }
+        if (r.avvisi && r.avvisi.length) {
+          esitoHtml += `<br><small style="color:#f59e0b;">⚠️ ${fuggiHtml(r.avvisi.join(" | "))}</small>`;
+        }
+
+        row.innerHTML = `
+          <td style="padding: 6px 4px;"><span style="display:inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; ${bgBadge}">${badgeTxt}</span></td>
+          <td style="padding: 6px 4px;"><span>${r.icona}</span> <b>${fuggiHtml(r.nome)}</b></td>
+          <td style="padding: 6px 4px; font-family: monospace; font-size: 0.8rem;">${r.tempoMs}ms</td>
+          <td style="padding: 6px 4px;">${esitoHtml}</td>
+        `;
+      }
+    } else if (evt.tipo === "completato") {
+      const passTot = evt.risultati.filter(x => x.pass).length;
+      const failTot = evt.risultati.filter(x => !x.pass).length;
+      statusTxt.textContent = failTot === 0 
+        ? `🎉 Perfetto! Tutti i ${passTot} giochi superati senza errori!` 
+        : `⚠️ Completato: ${passTot} superati, ${failTot} con problemi.`;
+      progressBar.style.width = "100%";
+      btnRun.disabled = false;
+      btnStop.style.display = "none";
+      if (visualArena) visualArena.style.display = "none";
+      if (failTot === 0) {
+        if (window.Suoni && Suoni.playVittoria) Suoni.playVittoria();
+        else if (window.Suoni) Suoni.playDing();
+      } else {
+        if (window.Suoni && Suoni.playSconfitta) Suoni.playSconfitta();
+        else if (window.Suoni) Suoni.playBuzzer();
+      }
+    }
+  });
+
+  if (btnRun) {
+    btnRun.onclick = async () => {
+      const gId = selectGioco ? selectGioco.value : "tutti";
+      const numB = parseInt(selectBot ? selectBot.value : "3", 10);
+      const isVisuale = (selectModo ? selectModo.value : "veloce") === "visuale";
+
+      btnRun.disabled = true;
+      btnStop.style.display = "inline-block";
+      if (isVisuale && visualArena) {
+        visualArena.style.display = "block";
+      } else if (visualArena) {
+        visualArena.style.display = "none";
+      }
+
+      await BotTester.avvia({
+        giocoId: gId,
+        numBot: numB,
+        visuale: isVisuale,
+        arenaEl: visualArena
+      });
+
+      btnRun.disabled = false;
+      btnStop.style.display = "none";
+    };
+  }
+
+  if (btnStop) {
+    btnStop.onclick = () => {
+      BotTester.ferma();
+      btnStop.style.display = "none";
+      btnRun.disabled = false;
+      statusTxt.textContent = "Test interrotto dall'utente.";
+    };
+  }
+
+  if (btnCopy) {
+    btnCopy.onclick = () => {
+      const report = BotTester.generaReportTesto();
+      copia(report, "Report dei bot copiato negli appunti!");
+    };
+  }
+}
+
 (function avvio() {
   collegaInterfaccia();
   collegaRete();
+  inizializzaBotTesterUI();
 
   // Avatar selector
   const avatarBtns = document.querySelectorAll(".avatar-btn");

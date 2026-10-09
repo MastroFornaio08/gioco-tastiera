@@ -71,6 +71,7 @@
         <button class="btn" id="btn-join-screen">Entra con Codice<small>ti serve il codice dell'host</small></button>
         <button class="btn btn-ghost" id="btn-solo">Allenamento<small>da solo, contro un fantasma</small></button>
         <button class="btn btn-ghost" id="btn-records">🏆 Record & Trofei<small>punteggi e badge sbloccati</small></button>
+        <button class="btn btn-ghost" id="btn-bot-tester" style="border-color: #00f0ff; color: #00f0ff; box-shadow: 0 0 12px rgba(0,240,255,0.2);">🤖 Bot Tester (Scova Bug)<small>test automatico giochi con 2-6 bot</small></button>
       </div>
 
       <p class="hint">Serve solo il browser. Niente account, niente installazioni.</p>
@@ -164,10 +165,11 @@
 
       <div class="lista-giochi" id="lista-giochi"></div>
 
-      <!-- Azioni extra: Roulette casuale e Votazione democratica -->
+      <!-- Azioni extra: Roulette casuale, Votazione e Bot Test -->
       <div class="lobby-extra-actions" style="display: flex; gap: 8px; margin-top: 12px;">
         <button class="btn btn-ghost" id="btn-roulette" style="flex: 1; border-color: #ffd23b; font-size: 0.95rem;">🎲 Sorpresa!</button>
         <button class="btn btn-ghost" id="btn-start-vote" style="flex: 1; border-color: #a855f7; font-size: 0.95rem;">🗳️ Vota Gioco</button>
+        <button class="btn btn-ghost" id="btn-lobby-bot-tester" style="flex: 1; border-color: #00f0ff; font-size: 0.95rem; color: #00f0ff;">🤖 Bot Test</button>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:10px; margin-top:16px;">
@@ -316,6 +318,102 @@
     </div>
   </div>
 
+  <!-- ============ MODAL BOT TESTER AUTOMATICO ============ -->
+  <div id="modal-bot-tester" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(5, 8, 20, 0.92); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px); padding: 14px;">
+    <div style="background: #0b132b; border: 2px solid #00f0ff; border-radius: 20px; max-width: 650px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0, 240, 255, 0.25); overflow: hidden;">
+      
+      <!-- Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0, 240, 255, 0.05);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.8rem;">🤖</span>
+          <div>
+            <h3 style="margin: 0; color: #00f0ff; font-size: 1.25rem;">Bot Tester Automatico</h3>
+            <small style="color: #94a3b8; font-size: 0.78rem;">Scova bug, freeze o errori simulando partite con bot virtuali</small>
+          </div>
+        </div>
+        <button id="btn-bot-tester-close" class="btn btn-ghost btn-small" style="font-size: 1.1rem; padding: 4px 10px;">✕</button>
+      </div>
+
+      <!-- Controls bar -->
+      <div style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+          <div>
+            <label style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 4px;">Seleziona Gioco</label>
+            <select id="bot-tester-select-gioco" style="width: 100%; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.08); border: 1px solid var(--linea); color: #fff; font-size: 0.88rem;">
+              <option value="tutti">🌟 Tutti i 31 Minigiochi</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 4px;">Numero Bot</label>
+            <select id="bot-tester-select-bot" style="width: 100%; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.08); border: 1px solid var(--linea); color: #fff; font-size: 0.88rem;">
+              <option value="2">2 Bot</option>
+              <option value="3" selected>3 Bot</option>
+              <option value="4">4 Bot</option>
+              <option value="6">6 Bot</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 4px;">Modalità</label>
+            <select id="bot-tester-select-modo" style="width: 100%; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.08); border: 1px solid var(--linea); color: #fff; font-size: 0.88rem;">
+              <option value="veloce" selected>⚡ Veloce</option>
+              <option value="visuale">👁️ Visuale</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button id="btn-bot-tester-run" class="btn btn-primary" style="flex: 2; padding: 10px; font-weight: bold; font-size: 1rem; background: #00f0ff; color: #000; box-shadow: 0 0 15px rgba(0,240,255,0.4);">
+            ▶️ Avvia Test Bot
+          </button>
+          <button id="btn-bot-tester-stop" class="btn btn-ghost" style="flex: 1; padding: 10px; border-color: #ef4444; color: #ef4444; display: none;">
+            ⏹️ Ferma
+          </button>
+          <button id="btn-bot-tester-copy" class="btn btn-ghost btn-small" style="padding: 10px 12px;" title="Copia report negli appunti">
+            📋 Copia Report
+          </button>
+        </div>
+
+        <!-- Indicatori sintetici -->
+        <div style="display: flex; gap: 8px; font-size: 0.82rem; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 6px 12px; border-radius: 8px;">
+          <span>Totale: <b id="bot-tester-cnt-tot">0</b></span>
+          <span style="color: #10b981;">✅ Superati: <b id="bot-tester-cnt-pass">0</b></span>
+          <span style="color: #ef4444;">❌ Falliti: <b id="bot-tester-cnt-fail">0</b></span>
+          <span style="color: #38bdf8;" id="bot-tester-status-txt">Pronto per il test</span>
+        </div>
+
+        <!-- Barra di progresso -->
+        <div style="height: 6px; width: 100%; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+          <div id="bot-tester-progress-bar" style="height: 100%; width: 0%; background: #00f0ff; transition: width 0.2s ease;"></div>
+        </div>
+      </div>
+
+      <!-- Area Visuale Demo (se attiva) -->
+      <div id="bot-tester-visual-arena" style="display: none; height: 160px; background: rgba(0,0,0,0.4); border-bottom: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden; padding: 10px;"></div>
+
+      <!-- Tabella dei risultati -->
+      <div style="flex: 1; overflow-y: auto; padding: 10px 16px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" id="bot-tester-table">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15); text-align: left; color: #94a3b8;">
+              <th style="padding: 6px 4px;">Stato</th>
+              <th style="padding: 6px 4px;">Gioco</th>
+              <th style="padding: 6px 4px;">Tempo</th>
+              <th style="padding: 6px 4px;">Esito Bot</th>
+            </tr>
+          </thead>
+          <tbody id="bot-tester-tbody">
+            <tr>
+              <td colspan="4" style="text-align: center; padding: 24px 0; color: #64748b;">
+                Premi "Avvia Test Bot" per iniziare l'analisi e scovare eventuali bug.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
   <button id="btn-fullscreen" class="btn-fullscreen" title="Schermo Intero">⛶</button>
   <button id="btn-theme" class="btn-theme" title="Tema Scuro/Chiaro">🌙</button>
   <button id="btn-music" class="btn-music" title="Musica On/Off">🔇</button>
@@ -338,6 +436,7 @@
   <script src="js/rete.js?v=13"></script>
   <script src="js/effetti.js?v=13"></script>
   <script src="js/nucleo.js?v=14"></script>
+  <script src="js/bot-tester.js?v=14"></script>
 
   <!-- i 27 giochi attivi -->
   <script src="js/giochi/dattilo.js?v=13"></script>
@@ -367,6 +466,9 @@
   <script src="js/giochi/spam.js?v=13"></script>
   <script src="js/giochi/equilibrio.js?v=13"></script>
   <script src="js/giochi/oca.js?v=13"></script>
+  <script src="js/giochi/dodge.js?v=14"></script>
+  <script src="js/giochi/flappy.js?v=14"></script>
+  <script src="js/giochi/snake.js?v=14"></script>
   <script src="js/giochi/escaperoom.js?v=14"></script>
 
   <script src="js/tabellone.js?v=13"></script>

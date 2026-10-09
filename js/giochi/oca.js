@@ -86,7 +86,7 @@ GIOCHI.push({
   },
 
   crea(api) {
-    const isSolo = S.ruolo === "solo" || api.giocatori.length <= 1 || api.giocatori.some(g => g.id === "gh" || g.id === "bot");
+    const isSolo = (typeof S !== "undefined" && S.ruolo === "solo") || api.giocatori.length <= 1 || api.giocatori.some(g => g.id === "gh" || g.id === "bot");
     let giocatori = api.giocatori.filter(g => g.online);
     if (giocatori.length <= 1) {
       giocatori = [
@@ -205,7 +205,9 @@ GIOCHI.push({
 
       // Scroll verso la casella del turno corrente
       const targetTile = api.arena.querySelector("#oca-tile-" + (posizioni[turno] || 0));
-      if (targetTile) targetTile.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      if (targetTile && typeof targetTile.scrollIntoView === "function") {
+        targetTile.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
     }
 
     // Aggiorna header e stato comandi
@@ -434,7 +436,7 @@ GIOCHI.push({
       if (concluso || inAnimazione) return;
       const dado = Math.floor(Math.random() * 6) + 1;
 
-      if (!isSolo && S.ruolo !== "solo") {
+      if (!isSolo && (typeof S === "undefined" || S.ruolo !== "solo")) {
         api.invia({ tipo: "tiroOca", turno: turno, dado: dado });
       }
       eseguiMossaConAnimazione(turno, dado);
@@ -465,7 +467,7 @@ GIOCHI.push({
           puntiMiei = Math.round((posizioni[mioIndice] / 50) * 350);
         }
 
-        if (isSolo) {
+        if (isSolo && typeof S !== "undefined") {
           const ghIdx = giocatori.findIndex(g => g.id === "gh" || g.id === "bot");
           const posGh = ghIdx >= 0 ? posizioni[ghIdx] : 0;
           const sonoGhVincitore = vincitoreIdx === ghIdx;
@@ -474,7 +476,7 @@ GIOCHI.push({
             dettaglio: sonoGhVincitore ? "1° al Traguardo! 🏆" : `Casella ${posGh}/50`,
             tempo: api.tempo ? api.tempo() : 30
           };
-          S.esiti[ID_FANTASMA] = S.fantasmaDati;
+          if (S.esiti) S.esiti[typeof ID_FANTASMA !== "undefined" ? ID_FANTASMA : "gh"] = S.fantasmaDati;
         }
 
         api.finito({
@@ -494,7 +496,7 @@ GIOCHI.push({
       const sonoPrimo = posizioni[mioIndice] === maxPos && maxPos > 0;
       const punti = sonoPrimo ? 400 : Math.round((posizioni[mioIndice] / 50) * 300);
 
-      if (isSolo) {
+      if (isSolo && typeof S !== "undefined") {
         const ghIdx = giocatori.findIndex(g => g.id === "gh" || g.id === "bot");
         const posGh = ghIdx >= 0 ? posizioni[ghIdx] : 0;
         const ghPrimo = posGh === maxPos && maxPos > 0;
@@ -503,7 +505,7 @@ GIOCHI.push({
           dettaglio: `Casella ${posGh}/50`,
           tempo: api.tempo ? api.tempo() : 30
         };
-        S.esiti[ID_FANTASMA] = S.fantasmaDati;
+        if (S.esiti) S.esiti[typeof ID_FANTASMA !== "undefined" ? ID_FANTASMA : "gh"] = S.fantasmaDati;
       }
 
       api.finito({

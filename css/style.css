@@ -1682,3 +1682,24 @@ kbd {
   font-size: 0.8rem;
   color: #94a3b8;
 }
+
+/* ==================== BOT TESTER STYLES ==================== */
+#modal-bot-tester select option {
+  background: #0f172a;
+  color: #fff;
+}
+#modal-bot-tester table th, #modal-bot-tester table td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+#modal-bot-tester tr:hover td {
+  background: rgba(0, 240, 255, 0.04);
+}
+.arena-test-bot {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}

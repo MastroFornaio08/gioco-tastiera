@@ -72,7 +72,9 @@ GIOCHI.push({
     const io = api.indiceMio;
     const maxTiri = api.dati.tiri;
 
-    let turno = api.round % n;
+    const startOffset = api.round % n;
+    let turniFattiNelRound = 0;
+    let turno = startOffset;
     let dadi = [0, 0, 0, 0, 0];
     let bloccati = [false, false, false, false, false];
     let tiriFatti = 0;
@@ -175,11 +177,12 @@ GIOCHI.push({
     }
 
     function avanzaTurno() {
-      turno++;
+      turniFattiNelRound++;
+      if (turniFattiNelRound >= n) { concludi(); return; }
+      turno = (startOffset + turniFattiNelRound) % n;
       dadi = [0, 0, 0, 0, 0];
       bloccati = [false, false, false, false, false];
       tiriFatti = 0;
-      if (turno >= n) { concludi(); return; }
       disegna();
     }
 

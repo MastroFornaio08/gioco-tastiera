@@ -178,6 +178,8 @@ const CATEGORIE_MAP = {
   spam: "azione",
   equilibrio: "azione",
   fune: "azione",
+  dodge: "azione",
+  flappy: "azione",
 
   // 🧠 Mente & Logica
   calcolo: "mente",
@@ -198,12 +200,14 @@ const CATEGORIE_MAP = {
   conta: "precisione",
   tris: "precisione",
   yahtzee: "precisione",
+  snake: "precisione",
 
   // 🎭 Party & Bluff
   impostore: "party",
   caccia: "party",
   urlo: "party",
-  oca: "party"
+  oca: "party",
+  escaperoom: "party"
 };
 
 let categoriaAttiva = "tutti";
@@ -511,6 +515,7 @@ function preparaRound() {
   fermaOrologi();
   S.esiti = {};
   S.avanzamenti = {};
+  S.codaMessaggi = [];
   S.attivo = false;
   clearInterval(S.fantasma); S.fantasma = null;
   chiudiIstanza();
@@ -612,6 +617,14 @@ function iniziaRound() {
   }
 
   S.istanza = g.crea(api);
+
+  if (S.codaMessaggi && S.codaMessaggi.length && S.istanza && S.istanza.messaggio) {
+    const daSpedire = S.codaMessaggi.slice();
+    S.codaMessaggi = [];
+    daSpedire.forEach(p => {
+      try { S.istanza.messaggio(p.msg, p.da); } catch (e) { console.error(e); }
+    });
+  }
 
   if (S.ruolo === "solo") avviaFantasma();
 }
@@ -1147,7 +1160,12 @@ function collegaRete() {
 
       case "g":   // messaggio interno al gioco, visibile a tutti
       case "gp":  // idem, ma privato fra un giocatore e l'arbitro
-        if (S.istanza && S.istanza.messaggio) S.istanza.messaggio(m.g, m.da);
+        if (S.istanza && S.istanza.messaggio) {
+          S.istanza.messaggio(m.g, m.da);
+        } else {
+          if (!S.codaMessaggi) S.codaMessaggi = [];
+          S.codaMessaggi.push({ msg: m.g, da: m.da });
+        }
         break;
 
       case "fine":                        // solo l'host lo riceve
