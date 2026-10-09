@@ -44,10 +44,10 @@ GIOCHI.push({
       </div>
     `;
 
-    const mod = $("inv-mod");
-    const cmd = $("inv-cmd");
-    const bRosso = $("inv-rosso");
-    const bBlu = $("inv-blu");
+    const mod = api.arena.querySelector("#inv-mod") || $("inv-mod");
+    const cmd = api.arena.querySelector("#inv-cmd") || $("inv-cmd");
+    const bRosso = api.arena.querySelector("#inv-rosso") || $("inv-rosso");
+    const bBlu = api.arena.querySelector("#inv-blu") || $("inv-blu");
 
     function mostraStep() {
       if (curr >= steps.length) {
@@ -58,10 +58,12 @@ GIOCHI.push({
         return;
       }
       const s = steps[curr];
-      mod.textContent = s.inverso ? "INVERSO!" : "";
-      cmd.textContent = s.colore;
-      cmd.style.color = Math.random() < 0.5 ? "#ff4757" : "#1e90ff"; // colore testo casuale per confondere ulteriormente
-      cmd.style.textShadow = `0 0 15px ${cmd.style.color}`;
+      if (mod) mod.textContent = s.inverso ? "INVERSO!" : "";
+      if (cmd) {
+        cmd.textContent = s.colore;
+        cmd.style.color = Math.random() < 0.5 ? "#ff4757" : "#1e90ff"; // colore testo casuale per confondere ulteriormente
+        cmd.style.textShadow = `0 0 15px ${cmd.style.color}`;
+      }
     }
 
     function check(cliccato) {
@@ -85,11 +87,15 @@ GIOCHI.push({
     const mR = (e) => { e.preventDefault(); check("ROSSO"); };
     const mB = (e) => { e.preventDefault(); check("BLU"); };
 
-    bRosso.addEventListener("mousedown", mR);
-    bRosso.addEventListener("touchstart", mR, {passive: false});
+    if (bRosso) {
+      bRosso.addEventListener("mousedown", mR);
+      bRosso.addEventListener("touchstart", mR, {passive: false});
+    }
     
-    bBlu.addEventListener("mousedown", mB);
-    bBlu.addEventListener("touchstart", mB, {passive: false});
+    if (bBlu) {
+      bBlu.addEventListener("mousedown", mB);
+      bBlu.addEventListener("touchstart", mB, {passive: false});
+    }
 
     mostraStep();
 

@@ -57,8 +57,10 @@ GIOCHI.push({
 
     const timeoutMemoria = setTimeout(() => {
       fase = 1;
-      msg.textContent = "RIPETI!";
-      msg.style.color = "var(--testo)";
+      if (msg) {
+        msg.textContent = "RIPETI!";
+        msg.style.color = "var(--testo)";
+      }
       t0 = performance.now();
       
       // Nascondi tutto

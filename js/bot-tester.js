@@ -124,6 +124,14 @@ const BotTester = {
 
       const roundData = matchData[0];
 
+      let sandbox = document.getElementById("bot-tester-sandbox");
+      if (!sandbox && typeof document !== "undefined" && document.body) {
+        sandbox = document.createElement("div");
+        sandbox.id = "bot-tester-sandbox";
+        sandbox.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:800px;height:600px;overflow:hidden;pointer-events:none;opacity:0;";
+        document.body.appendChild(sandbox);
+      }
+
       // 4. Creazione istanze per ciascun bot
       for (let i = 0; i < quanti; i++) {
         const b = bots[i];
@@ -137,6 +145,7 @@ const BotTester = {
         } else {
           arena = document.createElement("div");
           arena.className = "arena-test-bot";
+          if (sandbox) sandbox.appendChild(arena);
         }
 
         const botApi = {
@@ -161,12 +170,14 @@ const BotTester = {
           }
         };
 
+        if (typeof window !== "undefined") window._currentArena = arena;
         const inst = gioco.crea(botApi);
         if (inst) istanze.set(b.id, { inst, arena, api: botApi });
       }
 
       // 5. Azioni simulate dei Bot
       for (const [id, { inst, arena, api }] of istanze.entries()) {
+        if (typeof window !== "undefined") window._currentArena = arena;
         // Interazione simulata bot con input e tasti
         this._simulaAzioniBot(gioco.id, arena, inst, api, roundData);
       }
@@ -177,6 +188,7 @@ const BotTester = {
 
       // 6. Chiusura istanze e test scaduto()
       for (const [id, { inst, arena, api }] of istanze.entries()) {
+        if (typeof window !== "undefined") window._currentArena = arena;
         if (!botFiniti.has(id)) {
           if (inst.scaduto) {
             try { inst.scaduto(); } catch (e) { rep.avvisi.push(`Errore in scaduto() su ${id}: ${e.message}`); }
@@ -189,6 +201,9 @@ const BotTester = {
         }
       }
 
+      if (sandbox) sandbox.innerHTML = "";
+      if (typeof window !== "undefined") window._currentArena = null;
+
       rep.pass = true;
       rep.tempoMs = Math.round(performance.now() - tInizio);
       rep.dettagliBot = bots.map(b => {
@@ -197,6 +212,7 @@ const BotTester = {
       });
 
     } catch (err) {
+      if (typeof window !== "undefined") window._currentArena = null;
       rep.pass = false;
       rep.tempoMs = Math.round(performance.now() - tInizio);
       rep.errori.push(err.message || String(err));

@@ -30,19 +30,21 @@ GIOCHI.push({
       </div>
     `;
 
-    const btn = $("fune-btn");
-    const countDisplay = $("fune-count");
+    const btn = api.arena.querySelector("#fune-btn") || $("fune-btn");
+    const countDisplay = api.arena.querySelector("#fune-count") || $("fune-count");
 
-    // Impedisce lo zoom su mobile facendo tap veloce
-    btn.addEventListener('touchstart', (e) => {
-      e.preventDefault(); // prevents mouse emulation
-      registraClick();
-    }, {passive: false});
+    if (btn) {
+      // Impedisce lo zoom su mobile facendo tap veloce
+      btn.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // prevents mouse emulation
+        registraClick();
+      }, {passive: false});
 
-    btn.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      registraClick();
-    });
+      btn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        registraClick();
+      });
+    }
 
     function registraClick() {
       if (btn.disabled) return;

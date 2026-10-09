@@ -61,10 +61,10 @@ GIOCHI.push({
       </div>
     `;
 
-    const input = $("conta-input");
-    setTimeout(() => input.focus(), 100);
+    const input = api.arena.querySelector("#conta-input") || $("conta-input");
+    if (input) setTimeout(() => input.focus(), 100);
 
-    input.onkeydown = (e) => {
+    if (input) input.onkeydown = (e) => {
       if (finito) return;
       if (e.key === "Enter") {
         const val = parseInt(input.value);

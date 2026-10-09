@@ -39,9 +39,9 @@ GIOCHI.push({
       </div>
     `;
 
-    const cur = $("sniper-cur");
-    const msg = $("sniper-msg");
-    const arena = $("sniper-arena");
+    const cur = api.arena.querySelector("#sniper-cur") || $("sniper-cur");
+    const msg = api.arena.querySelector("#sniper-msg") || $("sniper-msg");
+    const arena = api.arena.querySelector("#sniper-arena") || api.arena;
     let anim;
 
     function loop() {
@@ -90,8 +90,10 @@ GIOCHI.push({
       }, 1000); // 1 secondo di pausa per vedere il risultato
     }
 
-    arena.addEventListener('mousedown', ferma);
-    arena.addEventListener('touchstart', (e) => { e.preventDefault(); ferma(); }, {passive: false});
+    if (arena) {
+      arena.addEventListener('mousedown', ferma);
+      arena.addEventListener('touchstart', (e) => { e.preventDefault(); ferma(); }, {passive: false});
+    }
 
     return {
       messaggio(m) {},
