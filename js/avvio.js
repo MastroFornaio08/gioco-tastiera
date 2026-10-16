@@ -34,6 +34,7 @@ function collegaInterfaccia() {
     S.nome = nomeScelto();
     S.avatar = avatarScelto();
     S.ruolo = "host";
+    S.hostInLobby = false;
     $("room-code").textContent = "·····";
     stato("host-status", "Creazione della stanza…");
     mostra("screen-host");
@@ -56,6 +57,7 @@ function collegaInterfaccia() {
     S.nome = nomeScelto();
     S.avatar = avatarScelto();
     S.ruolo = "ospite";
+    S.hostInLobby = false;
     $("btn-join").disabled = true;
     stato("join-status", "🔄 Connessione alla stanza " + codice + "…");
     Rete.entraStanza(codice);
@@ -67,6 +69,7 @@ function collegaInterfaccia() {
     S.nome = nomeScelto();
     S.avatar = avatarScelto();
     S.ruolo = "solo";
+    S.hostInLobby = true;
     S.io = "p0";
     S.giocatori = [];
     aggiungiGiocatore("p0", S.nome, S.avatar);
@@ -170,7 +173,13 @@ function collegaInterfaccia() {
   }
 
   // dalla sala d'attesa si passa alla scelta del gioco quando l'host decide
-  $("btn-host-start").onclick = () => entraInLobby();
+  $("btn-host-start").onclick = () => {
+    if (S.ruolo === "host") {
+      S.hostInLobby = true;
+      Rete.invia("lobby", {});
+    }
+    entraInLobby();
+  };
 
   $("btn-copy-code").onclick = () => copia($("room-code").textContent, "Codice copiato!");
 
@@ -207,7 +216,10 @@ function collegaInterfaccia() {
 
   $("btn-change").onclick = () => {
     azzera();
-    if (S.ruolo === "host") Rete.invia("lobby", {});
+    if (S.ruolo === "host") {
+      S.hostInLobby = true;
+      Rete.invia("lobby", {});
+    }
     entraInLobby();
   };
 

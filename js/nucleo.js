@@ -62,6 +62,7 @@ const S = {
   storico: [],
   isTorneo: false,
   corone: {}, // id -> numero di vittorie
+  hostInLobby: false,
 
   // round in corso
   t0: 0,
@@ -1077,6 +1078,7 @@ function collegaRete() {
     $("room-code").textContent = codice;
     S.io = "p0";
     S.giocatori = [];
+    S.hostInLobby = false;
     aggiungiGiocatore("p0", S.nome);
     disegnaSalaAttesa();
     stato("host-status", "Stanza aperta. Aspetto i giocatori…");
@@ -1097,10 +1099,15 @@ function collegaRete() {
       case "ciao": {                     // solo l'host lo riceve
         if (S.ruolo !== "host") break;
         aggiungiGiocatore(m.da, (m.nome || "Giocatore").slice(0, 14), m.avatar);
-        Rete.inviaA(m.da, "benvenuto", { tuoId: m.da, giocoId: S.giocoId });
-        Rete.invia("giocatori", { lista: elencoDaSpedire() });
+        const inLobby = !$("screen-host").classList.contains("is-active");
+        Rete.inviaA(m.da, "benvenuto", { tuoId: m.da, giocoId: S.giocoId, inLobby });
+        Rete.invia("giocatori", { lista: elencoDaSpedire(), inLobby });
         disegnaSalaAttesa();
-        entraInLobby();
+        if (inLobby) {
+          entraInLobby();
+        } else {
+          stato("host-status", "Giocatore connesso! Puoi aspettare altri amici o premere il tasto.");
+        }
         toast(nomeDi(m.da) + " è entrato!");
         break;
       }
@@ -1108,12 +1115,32 @@ function collegaRete() {
       case "benvenuto":
         S.io = m.tuoId;
         if (m.giocoId) S.giocoId = m.giocoId;
+        if (m.inLobby !== undefined) S.hostInLobby = !!m.inLobby;
         break;
 
       case "giocatori":
         applicaElenco(m.lista);
+        if (m.inLobby !== undefined) S.hostInLobby = !!m.inLobby;
         if (S.giocoId) selezionaGioco(S.giocoId);
-        entraInLobby();
+        if (S.ruolo === "host") {
+          if ($("screen-host").classList.contains("is-active")) {
+            disegnaSalaAttesa();
+          } else {
+            entraInLobby();
+          }
+        } else {
+          if (S.hostInLobby) {
+            entraInLobby();
+          } else {
+            if (Rete.codice) {
+              $("room-code").textContent = Rete.codice;
+              aggiornaQRCodeStanza(Rete.codice);
+            }
+            disegnaSalaAttesa();
+            stato("host-status", "Connesso! In attesa che l'host avvii la scelta dei giochi…");
+            mostra("screen-host");
+          }
+        }
         break;
 
       case "pieno":
@@ -1178,6 +1205,7 @@ function collegaRete() {
       case "finale": mostraFinale(); break;
 
       case "lobby":
+        S.hostInLobby = true;
         azzera();
         entraInLobby();
         break;
@@ -1242,7 +1270,12 @@ function collegaRete() {
     disegnaPunteggiHud();     // lo si vede subito barrato, senza aspettare il round dopo
 
     if (S.ruolo === "host") {
-      Rete.invia("giocatori", { lista: elencoDaSpedire() });
+      const inLobby = !$("screen-host").classList.contains("is-active");
+      Rete.invia("giocatori", { lista: elencoDaSpedire(), inLobby });
+      if (!inLobby) {
+        disegnaSalaAttesa();
+        return;
+      }
       if (attivi().length < 2) {
         toast("Sei rimasto solo. Torno in sala d'attesa.");
         azzera();
@@ -1318,8 +1351,16 @@ function disegnaSalaAttesa() {
   }
   el.innerHTML = posti.join("");
   const n = S.giocatori.length;
-  $("btn-host-start").disabled = n < 2;
-  $("btn-host-start").textContent = n < 2 ? "Serve almeno un altro giocatore" : "Vai alla scelta del gioco (" + n + ")";
+  const btn = $("btn-host-start");
+  if (btn) {
+    if (S.ruolo === "host") {
+      btn.disabled = n < 2;
+      btn.textContent = n < 2 ? "Serve almeno un altro giocatore" : "Vai alla scelta del gioco (" + n + ")";
+    } else {
+      btn.disabled = true;
+      btn.textContent = "In attesa che l'host avvii la scelta dei giochi…";
+    }
+  }
 }
 
 function entraInLobby() {
@@ -1351,6 +1392,7 @@ function tornaAlMenu() {
   azzera();
   azzeraRete();
   S.ruolo = null;
+  S.hostInLobby = false;
   S.io = "p0";
   S.giocatori = [];
   S.giocoId = null;
