@@ -1,4 +1,4 @@
-/* 🐍 Snake — Il classico serpente arcade */
+/* 🐍 Snake — Il classico serpente arcade 
 
 GIOCHI.push({
   id: "snake",
@@ -186,3 +186,4 @@ GIOCHI.push({
     };
   }
 });
+*/

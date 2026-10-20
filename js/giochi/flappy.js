@@ -1,6 +1,6 @@
 /* 🐦 Flappy — salta tra i tubi! */
 
-GIOCHI.push({
+/*GIOCHI.push({
   id: "flappy",
   nome: "Flappy",
   icona: "🐦",
@@ -193,3 +193,4 @@ GIOCHI.push({
     };
   }
 });
+*/
