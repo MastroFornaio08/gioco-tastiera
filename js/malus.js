@@ -2,10 +2,11 @@
    Zaltergames — Sistema Malus & Vendetta dell'Ultimo (Chaos Modifiers)
    ==========================================================================
    Meccanica di recupero e party chaos:
-   - Se perdi o arrivi ultimo nel round, ricevi la "Vendetta dell'Ultimo"
+   - Se perdi o arrivi ultimo nel round (o in modalità Allenamento per testare),
+     ricevi la "Vendetta dell'Ultimo"
    - Puoi scegliere 1 tra 3 Malus casuali:
-     * Usarlo subito nel round successivo per tutti i giocatori!
-     * Conservarlo nel tuo inventario (fino a max 2 malus accumulati)
+     * 🚀 Usarlo subito nel round successivo per tutti i giocatori!
+     * 🎒 Conservarlo nel tuo inventario (fino a max 2 malus accumulati)
    - Chi ha malus conservati può scagliarli prima di qualsiasi round futuro!
    ========================================================================== */
 
@@ -43,12 +44,12 @@
           const y = clientY - rect.top;
           ctx.save();
           ctx.globalCompositeOperation = 'destination-out';
-          const rad = ctx.createRadialGradient(x, y, 10, x, y, 65);
+          const rad = ctx.createRadialGradient(x, y, 10, x, y, 70);
           rad.addColorStop(0, 'rgba(0,0,0,1)');
           rad.addColorStop(1, 'rgba(0,0,0,0)');
           ctx.fillStyle = rad;
           ctx.beginPath();
-          ctx.arc(x, y, 65, 0, Math.PI * 2);
+          ctx.arc(x, y, 70, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
         };
@@ -192,6 +193,7 @@
   const Malus = {
     MAX_ACCUMULABILI: MAX_MALUS_ACCUMULABILI,
     catalogo: CATALOGO_MALUS,
+    _inventario: [],
 
     trova(id) {
       return CATALOGO_MALUS.find(m => m.id === id) || null;
@@ -204,9 +206,10 @@
 
     /* ------------------------------------------------------------------ Gestione Inventario */
     ottieniInventario() {
-      if (!window.S) return [];
-      if (!Array.isArray(window.S.mieiMalus)) window.S.mieiMalus = [];
-      return window.S.mieiMalus;
+      if (window.S && Array.isArray(window.S.mieiMalus)) {
+        this._inventario = window.S.mieiMalus;
+      }
+      return this._inventario;
     },
 
     aggiungiAInventario(malusId) {
@@ -214,7 +217,10 @@
       if (inv.length >= MAX_MALUS_ACCUMULABILI) return false;
       const m = this.trova(malusId);
       if (!m) return false;
+
+      // Evita duplicati identici se già presente
       inv.push(m);
+      if (window.S) window.S.mieiMalus = inv;
       return true;
     },
 
@@ -223,6 +229,7 @@
       const idx = inv.findIndex(m => m.id === malusId);
       if (idx !== -1) {
         inv.splice(idx, 1);
+        if (window.S) window.S.mieiMalus = inv;
         return true;
       }
       return false;
@@ -233,9 +240,12 @@
       const m = this.trova(malusId);
       if (!m) return;
 
+      const da = daChiId || (window.S && window.S.io) || 'io';
+      const nome = daChiNome || (window.S && window.S.nome) || 'Giocatore';
+
       const payload = {
-        da: daChiId,
-        nome: daChiNome,
+        da: da,
+        nome: nome,
         malus: {
           id: m.id,
           nome: m.nome,
@@ -246,11 +256,13 @@
         }
       };
 
-      if (window.S) window.S.malusInCoda = payload;
+      if (window.S) {
+        window.S.malusInCoda = payload;
+      }
 
-      // Invia via rete a tutti
-      if (window.Rete && typeof window.Rete.invia === 'function') {
-        window.Rete.invia('malus_prenotato', payload);
+      // Se multiplayer, invia via rete
+      if (window.Rete && typeof window.Rete.invia === 'function' && window.S && window.S.ruolo !== 'solo') {
+        try { window.Rete.invia('malus_prenotato', payload); } catch (e) {}
       }
 
       // Feedback sonoro e visivo
@@ -262,7 +274,7 @@
       const banner = document.getElementById('malus-banner-prenotato');
       if (!banner) return;
 
-      const m = payload.malus;
+      const m = payload.malus || payload;
       const eMio = window.S && window.S.io === payload.da;
       const mittente = eMio ? 'Tu' : (payload.nome || 'Un avversario');
 
@@ -272,8 +284,8 @@
           <span class="malus-alert-pulse">🚨</span>
           <div class="malus-alert-text">
             <b>${mittente}</b> ha scagliato il Malus: 
-            <span class="malus-pill" style="border-color:${m.colore}; color:${m.colore}">
-              ${m.icona} ${m.nome}
+            <span class="malus-pill" style="border-color:${m.colore || '#ff0055'}; color:${m.colore || '#ff0055'}">
+              ${m.icona || '⚡'} ${m.nome}
             </span> 
             per il prossimo round!
           </div>
@@ -295,11 +307,11 @@
       }
 
       const inv = this.ottieniInventario();
-      const miaPos = tabella.findIndex(r => r.id === window.S?.io);
+      const miaPos = tabella ? tabella.findIndex(r => r.id === window.S?.io) : -1;
       const isSolo = window.S?.ruolo === 'solo';
       const isUltimo = (miaPos !== -1 && miaPos === tabella.length - 1 && tabella.length > 1) || isSolo;
 
-      // Se c'è già un malus prenotato per il prossimo round, mostralo
+      // Se c'è già un malus prenotato per il prossimo round, mostralo in cima
       if (window.S && window.S.malusInCoda) {
         this.mostraBannerPrenotato(window.S.malusInCoda);
       }
@@ -338,13 +350,13 @@
         <div class="malus-revenge-card">
           <div class="malus-revenge-header">
             <span class="malus-revenge-badge">${titolo}</span>
-            <span class="malus-inv-count">🎒 Inventario: <b>${inv.length}/${MAX_MALUS_ACCUMULABILI}</b></span>
+            <span class="malus-inv-count">🎒 Inventario: <b id="inv-count-display">${inv.length}/${MAX_MALUS_ACCUMULABILI}</b></span>
           </div>
           <p class="malus-revenge-desc">${desc}</p>
           
           <div class="malus-cards-grid">
             ${proposte.map(m => `
-              <div class="malus-pick-card" data-malus-id="${m.id}" style="border-color:${m.colore}">
+              <div class="malus-pick-card" id="card-malus-${m.id}" data-malus-id="${m.id}" style="border-color:${m.colore}">
                 <div class="mp-icon">${m.icona}</div>
                 <div class="mp-info">
                   <div class="mp-nome" style="color:${m.colore}">${m.nome}</div>
@@ -352,11 +364,11 @@
                   <div class="mp-desc">${m.desc}</div>
                 </div>
                 <div class="mp-actions">
-                  <button class="btn btn-small btn-malus-launch" data-launch="${m.id}">
+                  <button type="button" class="btn btn-small btn-malus-launch" data-launch="${m.id}">
                     🚀 Lancia Subito
                   </button>
-                  <button class="btn btn-small btn-ghost btn-malus-keep" data-keep="${m.id}" ${!spazioLibero ? 'disabled title="Inventario pieno (max 2)"' : ''}>
-                    🎒 Conserva (${inv.length}/${MAX_MALUS_ACCUMULABILI})
+                  <button type="button" class="btn btn-small btn-ghost btn-malus-keep" data-keep="${m.id}" ${!spazioLibero ? 'disabled title="Inventario pieno (max 2)"' : ''}>
+                    🎒 Conserva
                   </button>
                 </div>
               </div>
@@ -365,31 +377,50 @@
         </div>
       `;
 
-      // Event listeners sui pulsanti
+      // Event listeners sui pulsanti Lancia Subito
       container.querySelectorAll('[data-launch]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
+          e.preventDefault();
           const malusId = btn.getAttribute('data-launch');
-          this.prenotaMalus(malusId, window.S.io, window.S.nome);
+          const m = this.trova(malusId);
+          this.prenotaMalus(malusId, window.S?.io, window.S?.nome);
           container.style.display = 'none';
         });
       });
 
+      // Event listeners sui pulsanti Conserva
       container.querySelectorAll('[data-keep]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
+          e.preventDefault();
           const malusId = btn.getAttribute('data-keep');
           if (this.aggiungiAInventario(malusId)) {
             if (window.Suoni && Suoni.playClick) Suoni.playClick();
+            const card = container.querySelector('#card-malus-' + malusId);
+            if (card) {
+              card.style.opacity = '0.5';
+              card.style.pointerEvents = 'none';
+            }
+            const cntDisplay = container.querySelector('#inv-count-display');
+            const currentInv = this.ottieniInventario();
+            if (cntDisplay) cntDisplay.textContent = `${currentInv.length}/${MAX_MALUS_ACCUMULABILI}`;
+
             if (window.Trofei && window.Trofei.mostraNotifica) {
               const m = this.trova(malusId);
               window.Trofei.mostraNotifica({
                 icona: '🎒',
                 nome: 'Malus Conservato!',
-                desc: `${m.icona} ${m.nome} aggiunto al tuo zaino (max 2).`
+                desc: `${m.icona} ${m.nome} aggiunto allo zaino (${currentInv.length}/2).`
               });
             }
-            container.style.display = 'none';
+            // Aggiorna stato disabled degli altri bottoni keep
+            if (currentInv.length >= MAX_MALUS_ACCUMULABILI) {
+              container.querySelectorAll('[data-keep]').forEach(b => {
+                b.disabled = true;
+                b.title = 'Inventario pieno (max 2)';
+              });
+            }
           }
         });
       });
@@ -414,7 +445,7 @@
                   <div class="mp-desc">${m.desc}</div>
                 </div>
                 <div class="mp-actions">
-                  <button class="btn btn-small btn-malus-launch" data-launch-inv="${m.id}">
+                  <button type="button" class="btn btn-small btn-malus-launch" data-launch-inv="${m.id}">
                     💥 Scaglia Ora!
                   </button>
                 </div>
@@ -427,42 +458,54 @@
       container.querySelectorAll('[data-launch-inv]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
+          e.preventDefault();
           const malusId = btn.getAttribute('data-launch-inv');
           this.rimuoviDaInventario(malusId);
-          this.prenotaMalus(malusId, window.S.io, window.S.nome);
+          this.prenotaMalus(malusId, window.S?.io, window.S?.nome);
           container.style.display = 'none';
         });
       });
     },
 
     /* ------------------------------------------------------------------ Applicazione nel Round */
-    applicaNelRound(malusObj) {
-      this.rimuoviDalRound();
+    mostraBadgeRound(malusObj) {
       if (!malusObj) return;
-
-      const arena = document.getElementById('arena');
+      const m = this.trova(malusObj.id || malusObj.malusId) || malusObj.malus || malusObj;
       const badge = document.getElementById('modifier-badge');
-      const m = this.trova(malusObj.id || malusObj.malusId) || malusObj;
-
-      if (badge) {
+      if (badge && m) {
         badge.classList.add('is-on', 'malus-badge-on');
         badge.innerHTML = `
           <div class="malus-active-pill">
             <span class="pulse-icon">🚨</span> 
-            <b>MALUS ATTIVO:</b> ${m.icona} <b>${m.nome}</b> — <span>${m.desc}</span> 
+            <b>MALUS ATTIVO:</b> ${m.icona || '⚡'} <b>${m.nome}</b> — <span>${m.desc || ''}</span> 
             <small class="malus-author">Lanciato da: ${malusObj.nome || 'Avversario'}</small>
           </div>
         `;
       }
+      if (window.Suoni && Suoni.playMalus) Suoni.playMalus();
+    },
 
-      if (arena && m && typeof m.attiva === 'function') {
+    applicaEffettiArena(malusObj) {
+      if (!malusObj) return;
+      const arena = document.getElementById('arena');
+      if (!arena) return;
+
+      const m = this.trova(malusObj.id || malusObj.malusId) || malusObj.malus || malusObj;
+      if (!m) return;
+
+      if (typeof m.attiva === 'function') {
         _puliziaMalusCorrente = m.attiva(arena);
       }
 
-      if (window.Suoni && Suoni.playMalus) Suoni.playMalus();
       if (window.Effetti && Effetti.onda) {
-        Effetti.onda(window.innerWidth / 2, window.innerHeight / 3, m.colore || '#ff0055', 150);
+        Effetti.onda(window.innerWidth / 2, window.innerHeight / 3, m.colore || '#ff0055', 140);
       }
+    },
+
+    applicaNelRound(malusObj) {
+      this.rimuoviDalRound();
+      this.mostraBadgeRound(malusObj);
+      this.applicaEffettiArena(malusObj);
     },
 
     rimuoviDalRound() {

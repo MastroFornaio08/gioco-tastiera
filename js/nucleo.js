@@ -78,6 +78,10 @@ const S = {
   malusAttivo: null
 };
 
+if (typeof window !== "undefined") {
+  window.S = S;
+}
+
 /* ------------------------------------------------------- utilità generiche */
 
 function mostra(id) {
@@ -539,7 +543,7 @@ function preparaRound() {
   $("arena").className = "arena arena-" + g.id;
 
   if (S.malusAttivo && window.Malus) {
-    Malus.applicaNelRound(S.malusAttivo);
+    Malus.mostraBadgeRound(S.malusAttivo);
   } else if (window.Malus) {
     Malus.rimuoviDalRound();
   }
@@ -626,6 +630,10 @@ function iniziaRound() {
 
   S.istanza = g.crea(api);
 
+  if (S.malusAttivo && window.Malus) {
+    Malus.applicaEffettiArena(S.malusAttivo);
+  }
+
   if (S.codaMessaggi && S.codaMessaggi.length && S.istanza && S.istanza.messaggio) {
     const daSpedire = S.codaMessaggi.slice();
     S.codaMessaggi = [];
@@ -704,6 +712,8 @@ const api = {
     $("hud-timer").textContent = mio.tempo.toFixed(1) + "s";
 
     if (S.ruolo === "solo") {
+      clearInterval(S.fantasma);
+      S.fantasma = null;
       if (!S.esiti[ID_FANTASMA] && S.fantasmaDati) S.esiti[ID_FANTASMA] = S.fantasmaDati;
       forseChiudiRound();
     } else if (S.ruolo === "host") {
@@ -757,6 +767,9 @@ function forseChiudiRound() {
   const presenti = attivi();
   if (!presenti.every(g => S.esiti[g.id])) return;
 
+  clearInterval(S.fantasma);
+  S.fantasma = null;
+
   // punti grezzi del round
   const tabella = presenti.map(g => ({
     id: g.id,
@@ -807,6 +820,7 @@ function applicaEsitoRemoto(m) {
 function medaglia(i) { return ["🥇", "🥈", "🥉"][i] || ""; }
 
 function mostraRisultato(tabella) {
+  if (window.Malus) Malus.rimuoviDalRound();
   chiudiIstanza();
   disegnaPunteggiHud();
 
