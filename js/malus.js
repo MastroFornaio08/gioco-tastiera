@@ -1,19 +1,17 @@
 /* ==========================================================================
-   Zaltergames — Sistema Malus & Vendetta dell'Ultimo (Chaos Modifiers)
+   Zaltergames — Sistema Malus (Regola della Sfida ad Alto Rischio)
    ==========================================================================
-   Meccanica di recupero e party chaos:
-   - Se perdi o arrivi ultimo nel round (o in modalità Allenamento per testare),
-     ricevi la "Vendetta dell'Ultimo"
-   - Puoi scegliere 1 tra 3 Malus casuali:
-     * 🚀 Usarlo subito nel round successivo per tutti i giocatori!
-     * 🎒 Conservarlo nel tuo inventario (fino a max 2 malus accumulati)
-   - Chi ha malus conservati può scagliarli prima di qualsiasi round futuro!
+   Nuova logica:
+   1. Chi fa il punteggio minore nel round ha diritto a scegliere 1 Malus.
+   2. Niente conservazione: scegli 1 Malus con 1 click e la schermata si chiude subito.
+   3. Se gli avversari ti battono con il Malus attivo, il round vale DOPPIO
+      e porta alla VITTORIA AUTOMATICA della partita per chi ti ha battuto!
+   4. Altrimenti, se perde chi ha subito il malus, il giocatore con il punteggio
+      minore ha a sua volta diritto a scegliere il Malus per il round successivo.
    ========================================================================== */
 
 (function () {
   'use strict';
-
-  const MAX_MALUS_ACCUMULABILI = 2;
 
   const CATALOGO_MALUS = [
     {
@@ -58,7 +56,6 @@
         arena.addEventListener('pointermove', onPointer, { passive: true });
         arena.addEventListener('pointerdown', onPointer, { passive: true });
 
-        // Timer lento che fa richiudere leggermente la nebbia
         const interval = setInterval(() => {
           if (!canvas.parentNode) {
             clearInterval(interval);
@@ -191,9 +188,7 @@
   let _puliziaMalusCorrente = null;
 
   const Malus = {
-    MAX_ACCUMULABILI: MAX_MALUS_ACCUMULABILI,
     catalogo: CATALOGO_MALUS,
-    _inventario: [],
 
     trova(id) {
       return CATALOGO_MALUS.find(m => m.id === id) || null;
@@ -202,37 +197,6 @@
     pescaCasuali(n = 3) {
       const mescolati = CATALOGO_MALUS.slice().sort(() => Math.random() - 0.5);
       return mescolati.slice(0, n);
-    },
-
-    /* ------------------------------------------------------------------ Gestione Inventario */
-    ottieniInventario() {
-      if (window.S && Array.isArray(window.S.mieiMalus)) {
-        this._inventario = window.S.mieiMalus;
-      }
-      return this._inventario;
-    },
-
-    aggiungiAInventario(malusId) {
-      const inv = this.ottieniInventario();
-      if (inv.length >= MAX_MALUS_ACCUMULABILI) return false;
-      const m = this.trova(malusId);
-      if (!m) return false;
-
-      // Evita duplicati identici se già presente
-      inv.push(m);
-      if (window.S) window.S.mieiMalus = inv;
-      return true;
-    },
-
-    rimuoviDaInventario(malusId) {
-      const inv = this.ottieniInventario();
-      const idx = inv.findIndex(m => m.id === malusId);
-      if (idx !== -1) {
-        inv.splice(idx, 1);
-        if (window.S) window.S.mieiMalus = inv;
-        return true;
-      }
-      return false;
     },
 
     /* ------------------------------------------------------------------ Attivazione Malus */
@@ -267,6 +231,12 @@
 
       // Feedback sonoro e visivo
       if (window.Suoni && Suoni.playMalus) Suoni.playMalus();
+
+      // Chiudi subito la schermata di selezione
+      const container = document.getElementById('malus-container');
+      if (container) container.style.display = 'none';
+
+      // Mostra il banner di conferma prenotazione
       this.mostraBannerPrenotato(payload);
     },
 
@@ -283,11 +253,14 @@
         <div class="malus-alert-box">
           <span class="malus-alert-pulse">🚨</span>
           <div class="malus-alert-text">
-            <b>${mittente}</b> ha scagliato il Malus: 
+            <b>${mittente}</b> ha attivato il Malus: 
             <span class="malus-pill" style="border-color:${m.colore || '#ff0055'}; color:${m.colore || '#ff0055'}">
               ${m.icona || '⚡'} ${m.nome}
             </span> 
             per il prossimo round!
+            <div style="font-size:0.78rem; color:#fca5a5; margin-top:2px;">
+              ⚠️ <b>Regola Sfida:</b> Se gli avversari battono chi ha lanciato il Malus, vincono automaticamente la partita!
+            </div>
           </div>
         </div>
       `;
@@ -300,63 +273,52 @@
       if (banner) banner.style.display = 'none';
       if (!container) return;
 
-      // Se è l'ultimo round della partita o torneo finito, niente malus
-      if (window.S && window.S.round >= (window.MAX_ROUND || 3) - 1) {
+      // Se la partita è terminata o c'è stata vittoria automatica, niente malus
+      if (window.S && (window.S.vittoriaAutomatica || window.S.round >= (window.MAX_ROUND || 3) - 1)) {
         container.style.display = 'none';
         return;
       }
 
-      const inv = this.ottieniInventario();
-      const miaPos = tabella ? tabella.findIndex(r => r.id === window.S?.io) : -1;
-      const isSolo = window.S?.ruolo === 'solo';
-      const isUltimo = (miaPos !== -1 && miaPos === tabella.length - 1 && tabella.length > 1) || isSolo;
-
-      // Se c'è già un malus prenotato per il prossimo round, mostralo in cima
+      // Se c'è già un malus prenotato per il prossimo round, mostralo
       if (window.S && window.S.malusInCoda) {
         this.mostraBannerPrenotato(window.S.malusInCoda);
+        container.style.display = 'none';
+        return;
       }
 
-      if (isUltimo) {
-        // Sei ultimo (o in solo): Pesca 3 malus a scelta
-        this._renderPannelloSceltaUltimo(container, inv, isSolo && miaPos === 0);
-      } else if (inv.length > 0) {
-        // Non sei ultimo, ma hai malus salvati nell'inventario
-        this._renderPannelloInventario(container, inv);
+      const miaPos = tabella ? tabella.findIndex(r => r.id === window.S?.io) : -1;
+      const isSolo = window.S?.ruolo === 'solo';
+      
+      // Chi ha fatto il punteggio minore (ultimo in tabella)
+      const ultimoId = (tabella && tabella.length > 0) ? tabella[tabella.length - 1].id : null;
+      const sonoIoUltimo = (window.S && window.S.io === ultimoId);
+
+      if (sonoIoUltimo || isSolo) {
+        // Sei tu ad aver fatto il punteggio minore: scegli 1 Malus con 1 click
+        this._renderPannelloScelta(container, isSolo && miaPos === 0);
       } else {
-        // Mostra pulsante discreto per testare i malus anche se hai vinto
-        container.style.display = 'block';
-        container.innerHTML = `
-          <button class="btn btn-ghost btn-small" id="btn-force-test-malus" style="border-color: #b026ff; color: #b026ff; margin: 6px auto; display: block; font-size: 0.8rem;">
-            🧪 Vuoi provare un Malus? Clicca qui!
-          </button>
-        `;
-        const testBtn = container.querySelector('#btn-force-test-malus');
-        if (testBtn) {
-          testBtn.onclick = () => this._renderPannelloSceltaUltimo(container, inv, false);
-        }
+        container.style.display = 'none';
       }
     },
 
-    _renderPannelloSceltaUltimo(container, inv, isVincitoreSolo = false) {
+    _renderPannelloScelta(container, isVincitoreSolo = false) {
       const proposte = this.pescaCasuali(3);
-      const spazioLibero = inv.length < MAX_MALUS_ACCUMULABILI;
-      const titolo = isVincitoreSolo ? "😈 SFIDA IL FANTASMA!" : "💀 VENDETTA DELL'ULTIMO!";
+      const titolo = isVincitoreSolo ? "😈 SFIDA CON UN MALUS!" : "💀 PUNTEGGIO MINORE: SCEGLI IL MALUS!";
       const desc = isVincitoreSolo 
-        ? "Vuoi rendere il prossimo round più caotico? Scegli un Malus da lanciare o conservare!" 
-        : "Sei arrivato ultimo: scegli un Malus da scagliare su tutti o conservalo!";
+        ? "Scegli un Malus da infliggere al Fantasma per il prossimo round (1 solo click)!" 
+        : "Hai fatto il punteggio minore: clicca 1 Malus per scagliarlo su tutti! <b>Attenzione:</b> se ti battono con il Malus attivo, vincono automaticamente!";
 
       container.style.display = 'block';
       container.innerHTML = `
         <div class="malus-revenge-card">
           <div class="malus-revenge-header">
             <span class="malus-revenge-badge">${titolo}</span>
-            <span class="malus-inv-count">🎒 Inventario: <b id="inv-count-display">${inv.length}/${MAX_MALUS_ACCUMULABILI}</b></span>
           </div>
           <p class="malus-revenge-desc">${desc}</p>
           
           <div class="malus-cards-grid">
             ${proposte.map(m => `
-              <div class="malus-pick-card" id="card-malus-${m.id}" data-malus-id="${m.id}" style="border-color:${m.colore}">
+              <div class="malus-pick-card" id="card-malus-${m.id}" data-malus-id="${m.id}" style="border-color:${m.colore}; cursor:pointer;">
                 <div class="mp-icon">${m.icona}</div>
                 <div class="mp-info">
                   <div class="mp-nome" style="color:${m.colore}">${m.nome}</div>
@@ -365,10 +327,7 @@
                 </div>
                 <div class="mp-actions">
                   <button type="button" class="btn btn-small btn-malus-launch" data-launch="${m.id}">
-                    🚀 Lancia Subito
-                  </button>
-                  <button type="button" class="btn btn-small btn-ghost btn-malus-keep" data-keep="${m.id}" ${!spazioLibero ? 'disabled title="Inventario pieno (max 2)"' : ''}>
-                    🎒 Conserva
+                    ⚡ SCAGLIA MALUS
                   </button>
                 </div>
               </div>
@@ -377,92 +336,18 @@
         </div>
       `;
 
-      // Event listeners sui pulsanti Lancia Subito
-      container.querySelectorAll('[data-launch]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+      // Cliccando su qualsiasi carta o sul bottone SCAGLIA MALUS:
+      // Si attiva subito e la schermata di selezione si toglie all'istante!
+      const attivaScelta = (malusId) => {
+        this.prenotaMalus(malusId, window.S?.io, window.S?.nome);
+      };
+
+      container.querySelectorAll('.malus-pick-card').forEach(card => {
+        card.addEventListener('click', (e) => {
           e.stopPropagation();
           e.preventDefault();
-          const malusId = btn.getAttribute('data-launch');
-          const m = this.trova(malusId);
-          this.prenotaMalus(malusId, window.S?.io, window.S?.nome);
-          container.style.display = 'none';
-        });
-      });
-
-      // Event listeners sui pulsanti Conserva
-      container.querySelectorAll('[data-keep]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          const malusId = btn.getAttribute('data-keep');
-          if (this.aggiungiAInventario(malusId)) {
-            if (window.Suoni && Suoni.playClick) Suoni.playClick();
-            const card = container.querySelector('#card-malus-' + malusId);
-            if (card) {
-              card.style.opacity = '0.5';
-              card.style.pointerEvents = 'none';
-            }
-            const cntDisplay = container.querySelector('#inv-count-display');
-            const currentInv = this.ottieniInventario();
-            if (cntDisplay) cntDisplay.textContent = `${currentInv.length}/${MAX_MALUS_ACCUMULABILI}`;
-
-            if (window.Trofei && window.Trofei.mostraNotifica) {
-              const m = this.trova(malusId);
-              window.Trofei.mostraNotifica({
-                icona: '🎒',
-                nome: 'Malus Conservato!',
-                desc: `${m.icona} ${m.nome} aggiunto allo zaino (${currentInv.length}/2).`
-              });
-            }
-            // Aggiorna stato disabled degli altri bottoni keep
-            if (currentInv.length >= MAX_MALUS_ACCUMULABILI) {
-              container.querySelectorAll('[data-keep]').forEach(b => {
-                b.disabled = true;
-                b.title = 'Inventario pieno (max 2)';
-              });
-            }
-          }
-        });
-      });
-    },
-
-    _renderPannelloInventario(container, inv) {
-      container.style.display = 'block';
-      container.innerHTML = `
-        <div class="malus-revenge-card is-inventory-only">
-          <div class="malus-revenge-header">
-            <span class="malus-revenge-badge" style="background:rgba(176,38,255,0.2); border-color:#b026ff; color:#b026ff;">
-              🎒 I TUOI MALUS ACCUMULATI (${inv.length}/${MAX_MALUS_ACCUMULABILI})
-            </span>
-          </div>
-          <p class="malus-revenge-desc">Vuoi scagliare uno dei tuoi malus conservati per il prossimo round?</p>
-          <div class="malus-cards-grid">
-            ${inv.map(m => `
-              <div class="malus-pick-card" style="border-color:${m.colore}">
-                <div class="mp-icon">${m.icona}</div>
-                <div class="mp-info">
-                  <div class="mp-nome" style="color:${m.colore}">${m.nome}</div>
-                  <div class="mp-desc">${m.desc}</div>
-                </div>
-                <div class="mp-actions">
-                  <button type="button" class="btn btn-small btn-malus-launch" data-launch-inv="${m.id}">
-                    💥 Scaglia Ora!
-                  </button>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-
-      container.querySelectorAll('[data-launch-inv]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          const malusId = btn.getAttribute('data-launch-inv');
-          this.rimuoviDaInventario(malusId);
-          this.prenotaMalus(malusId, window.S?.io, window.S?.nome);
-          container.style.display = 'none';
+          const malusId = card.getAttribute('data-malus-id');
+          attivaScelta(malusId);
         });
       });
     },
@@ -478,7 +363,7 @@
           <div class="malus-active-pill">
             <span class="pulse-icon">🚨</span> 
             <b>MALUS ATTIVO:</b> ${m.icona || '⚡'} <b>${m.nome}</b> — <span>${m.desc || ''}</span> 
-            <small class="malus-author">Lanciato da: ${malusObj.nome || 'Avversario'}</small>
+            <small class="malus-author">Sfidante: ${malusObj.nome || 'Avversario'} · Se battuto: VITTORIA AUTOMATICA!</small>
           </div>
         `;
       }

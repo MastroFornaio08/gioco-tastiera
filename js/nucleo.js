@@ -73,9 +73,10 @@ const S = {
   istanza: null,
   ultimoPong: 0,
   pingInterval: null,
-  mieiMalus: [],
   malusInCoda: null,
-  malusAttivo: null
+  malusAttivo: null,
+  malusNelRoundCorrente: null,
+  vittoriaAutomatica: null
 };
 
 if (typeof window !== "undefined") {
@@ -542,6 +543,8 @@ function preparaRound() {
   $("arena").innerHTML = "";
   $("arena").className = "arena arena-" + g.id;
 
+  S.malusNelRoundCorrente = S.malusAttivo;
+
   if (S.malusAttivo && window.Malus) {
     Malus.mostraBadgeRound(S.malusAttivo);
   } else if (window.Malus) {
@@ -792,16 +795,34 @@ function forseChiudiRound() {
   tabella.forEach(r => { const g = gioc(r.id); if (g) g.punti += r.guadagno; });
   tabella.sort((a, b) => b.guadagno - a.guadagno);
 
+  // Regola Sfida Malus ad Alto Rischio:
+  // Se c'era un Malus attivo e l'avversario ha battuto chi lo ha lanciato,
+  // il round vale doppio e porta alla VITTORIA AUTOMATICA!
+  if (S.malusNelRoundCorrente && tabella.length > 1 && tabella[0]) {
+    const vincitoreRound = tabella[0];
+    const sfidanteId = S.malusNelRoundCorrente.da;
+    if (vincitoreRound.id !== sfidanteId) {
+      const gVincitore = gioc(vincitoreRound.id);
+      if (gVincitore) gVincitore.punti += vincitoreRound.guadagno;
+      vincitoreRound.guadagno *= 2;
+      vincitoreRound.primo = true;
+      S.vittoriaAutomatica = {
+        vincitoreId: vincitoreRound.id,
+        vincitoreNome: nomeDi(vincitoreRound.id),
+        sfidanteNome: S.malusNelRoundCorrente.nome || "Avversario"
+      };
+    }
+  }
+
   S.storico.push(tabella);
 
   if (S.isTorneo && tabella[0]) {
-    // In torneo, il vincitore del round prende una corona
     const vincitoreId = tabella[0].id;
-    S.corone[vincitoreId] = (S.corone[vincitoreId] || 0) + 1;
+    S.corone[vincitoreId] = (S.corone[vincitoreId] || 0) + (S.vittoriaAutomatica ? 2 : 1);
   }
 
   if (S.ruolo === "host") {
-    Rete.invia("esito", { round: S.round, tabella, totali: elencoDaSpedire(), corone: S.corone });
+    Rete.invia("esito", { round: S.round, tabella, totali: elencoDaSpedire(), corone: S.corone, vittoriaAutomatica: S.vittoriaAutomatica });
   }
   mostraRisultato(tabella);
 }
@@ -812,6 +833,7 @@ function applicaEsitoRemoto(m) {
   applicaElenco(m.totali);
   S.storico.push(m.tabella);
   if (m.corone) S.corone = m.corone;
+  S.vittoriaAutomatica = m.vittoriaAutomatica || null;
   mostraRisultato(m.tabella);
 }
 
@@ -885,9 +907,11 @@ function mostraRisultato(tabella) {
     }
   }
 
-  const ultimo = S.round >= MAX_ROUND - 1;
+  const ultimo = S.vittoriaAutomatica || S.round >= MAX_ROUND - 1;
   const btn = $("btn-next");
-  btn.textContent = ultimo ? "Vedi il verdetto" : "Prossimo round";
+  btn.textContent = S.vittoriaAutomatica
+    ? "🏆 Vedi il trionfo (Vittoria Automatica!)"
+    : (ultimo ? "Vedi il verdetto" : "Prossimo round");
 
   if (S.ruolo === "ospite") {
     btn.disabled = true;
@@ -896,13 +920,38 @@ function mostraRisultato(tabella) {
     btn.disabled = false;
     stato("result-status", "");
   }
-  if (window.Malus) Malus.gestisciFineRound(tabella);
+
+  if (S.vittoriaAutomatica) {
+    $("result-title").textContent = "👑 VITTORIA AUTOMATICA!";
+    const banner = document.getElementById("malus-banner-prenotato");
+    if (banner) {
+      banner.style.display = "block";
+      banner.innerHTML = `
+        <div class="malus-alert-box" style="background: rgba(255, 215, 0, 0.2); border-color: #ffd700;">
+          <span class="malus-alert-pulse">👑</span>
+          <div class="malus-alert-text">
+            <b>${fuggiHtml(S.vittoriaAutomatica.vincitoreNome)}</b> ha sconfitto <b>${fuggiHtml(S.vittoriaAutomatica.sfidanteNome)}</b> superando il Malus!<br>
+            <span style="color: #ffd700; font-weight: bold;">Questo round vale DOPPIO: PARTITA VINTA AUTOMATICAMENTE!</span>
+          </div>
+        </div>
+      `;
+    }
+    const container = document.getElementById("malus-container");
+    if (container) container.style.display = "none";
+  } else {
+    if (window.Malus) Malus.gestisciFineRound(tabella);
+  }
   mostra("screen-result");
 }
 
 /* ------------------------------------------------------ avanzamento round */
 
 function avanza() {
+  if (S.vittoriaAutomatica) {
+    if (S.ruolo === "host") Rete.invia("finale", {});
+    mostraFinale();
+    return;
+  }
   if (S.isBoard) {
     if (S.ruolo === "host" || S.ruolo === "solo") {
       preparaTurnoBoard();
@@ -959,6 +1008,10 @@ function avanza() {
 function mostraFinale() {
   chiudiIstanza();
   const classifica = S.giocatori.slice().sort((a, b) => {
+    if (S.vittoriaAutomatica) {
+      if (a.id === S.vittoriaAutomatica.vincitoreId) return -1;
+      if (b.id === S.vittoriaAutomatica.vincitoreId) return 1;
+    }
     if (S.isBoard) return (S.posizioni[b.id] || 0) - (S.posizioni[a.id] || 0);
     if (S.isTorneo) return (S.corone[b.id] || 0) - (S.corone[a.id] || 0);
     return b.punti - a.punti;
@@ -966,7 +1019,7 @@ function mostraFinale() {
   const mia = classifica.findIndex(g => g.id === S.io);
 
   $("final-title").textContent =
-    mia === 0 ? (S.isBoard ? "Vittoria nel Tabellone!" : S.isTorneo ? "Re della Collina!" : "Hai vinto!") : mia === 1 ? "Secondo posto" : "Fine partita";
+    mia === 0 ? (S.vittoriaAutomatica ? "Vittoria Automatica Trionfale!" : S.isBoard ? "Vittoria nel Tabellone!" : S.isTorneo ? "Re della Collina!" : "Hai vinto!") : mia === 1 ? "Secondo posto" : "Fine partita";
   $("final-trophy").textContent = mia === 0 ? "👑" : mia === classifica.length - 1 ? "💀" : "🎖️";
 
   $("final-table").innerHTML =
@@ -979,11 +1032,15 @@ function mostraFinale() {
         "<td class='punti'>" + (S.isBoard ? (S.posizioni[g.id] || 0) : S.isTorneo ? (S.corone[g.id] || 0) + " 👑" : g.punti) + "</td>" +
       "</tr>").join("");
 
-  const vinti = S.storico.filter(t => t.length && t[0].id === S.io).length;
-  $("final-stats").innerHTML = S.isTorneo 
-    ? "Torneo Re della Collina terminato!"
-    : (S.gioco.icona + " " + fuggiHtml(S.gioco.nome) + " · " + S.giocatori.length + " giocatori<br>" +
-       "Round vinti: <b>" + vinti + " su " + S.storico.length + "</b>");
+  if (S.vittoriaAutomatica) {
+    $("final-stats").innerHTML = `👑 <b>Vittoria Automatica:</b> ${fuggiHtml(S.vittoriaAutomatica.vincitoreNome)} ha battuto il Malus di ${fuggiHtml(S.vittoriaAutomatica.sfidanteNome)}! Il round valeva doppio!`;
+  } else {
+    const vinti = S.storico.filter(t => t.length && t[0].id === S.io).length;
+    $("final-stats").innerHTML = S.isTorneo 
+      ? "Torneo Re della Collina terminato!"
+      : (S.gioco.icona + " " + fuggiHtml(S.gioco.nome) + " · " + S.giocatori.length + " giocatori<br>" +
+         "Round vinti: <b>" + vinti + " su " + S.storico.length + "</b>");
+  }
 
   if (mia === 0) {
     if (window.Effetti && Effetti.vittoria) Effetti.vittoria("partita");
@@ -1020,12 +1077,13 @@ function azzera(resetTotale = true) {
   S.avanzamenti = {};
   S.attivo = false;
   S.malusAttivo = null;
+  S.malusNelRoundCorrente = null;
+  S.vittoriaAutomatica = null;
+  S.malusInCoda = null;
   if (resetTotale) {
     S.giocatori.forEach(g => { g.punti = 0; });
     S.corone = {};
     S.isTorneo = false;
-    S.mieiMalus = [];
-    S.malusInCoda = null;
   }
   if (window.Malus) Malus.rimuoviDalRound();
   fermaOrologi();
