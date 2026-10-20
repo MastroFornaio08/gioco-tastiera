@@ -20,7 +20,7 @@ const PREFISSO_ID = "dattiloduello-v1-";
 const ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // niente I/O/0/1, si confondono
 const MAX_GIOCATORI = 6;
 
-// Configurazione WebRTC con server STUN veloci
+// Configurazione WebRTC con server STUN veloci e fallback su porta 80
 const PEER_OPTS = {
   debug: 1,
   config: {
@@ -28,7 +28,8 @@ const PEER_OPTS = {
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
       { urls: "stun:stun2.l.google.com:19302" },
-      { urls: "stun:stun.cloudflare.com:3478" }
+      { urls: "stun:stun.cloudflare.com:3478" },
+      { urls: "stun:openrelay.metered.ca:80" }
     ]
   }
 };
@@ -222,7 +223,7 @@ const Rete = {
     const avviaConnessione = () => {
       if (connesso || !this.peer || this.peer.destroyed) return;
       console.log("[Rete] Ospite connette a:", targetId);
-      conn = this.peer.connect(targetId);
+      conn = this.peer.connect(targetId, { reliable: true });
       this._collegaConn("p0", conn);
 
       const onAperto = () => {

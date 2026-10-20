@@ -417,10 +417,87 @@ function inizializzaBotTesterUI() {
   }
 }
 
+function inizializzaP2PDiagUI() {
+  const modal = $("modal-p2p-diag");
+  const btnClose = $("btn-p2p-diag-close");
+  const btnStart = $("btn-p2p-diag-start");
+  const logEl = $("p2p-diag-log");
+
+  const btnHost = $("btn-test-p2p-host");
+  const btnJoin = $("btn-test-p2p-join");
+  const btnBotTester = $("btn-bot-tester-p2p");
+
+  if (!modal) return;
+
+  function apriModal() {
+    modal.style.display = "flex";
+    if (logEl) {
+      logEl.innerHTML = `<span style="color:#94a3b8">Pronto. Premi <b>Avvia Controllo P2P</b> per testare la connessione WebRTC/PeerJS.</span>`;
+    }
+    if (window.Suoni) Suoni.playClick();
+  }
+
+  function chiudiModal() {
+    modal.style.display = "none";
+  }
+
+  if (btnHost) btnHost.onclick = apriModal;
+  if (btnJoin) btnJoin.onclick = apriModal;
+  if (btnBotTester) btnBotTester.onclick = apriModal;
+  if (btnClose) btnClose.onclick = chiudiModal;
+
+  modal.onclick = (e) => {
+    if (e.target === modal) chiudiModal();
+  };
+
+  if (btnStart) {
+    btnStart.onclick = async () => {
+      if (!window.P2PTester) {
+        if (logEl) logEl.innerHTML = `<span style="color:#f43f5e">Errore: modulo P2PTester non trovato.</span>`;
+        return;
+      }
+      btnStart.disabled = true;
+      btnStart.textContent = "⏳ Controllo in corso…";
+      if (logEl) logEl.innerHTML = `<div style="color:#00f0ff">🚀 Avvio diagnostica P2P in tempo reale...</div>`;
+
+      const res = await window.P2PTester.eseguiTest((evt) => {
+        if (!logEl) return;
+        const colore = evt.stato === 'ok' ? '#10b981' : evt.stato === 'warn' ? '#fbbf24' : evt.stato === 'fail' ? '#f43f5e' : '#38bdf8';
+        const icona = evt.stato === 'ok' ? '✅' : evt.stato === 'warn' ? '⚠️' : evt.stato === 'fail' ? '❌' : '🔄';
+        logEl.innerHTML += `<div style="color:${colore}; margin-top:4px;">${icona} [${evt.step}] ${fuggiHtml(evt.dettaglio)}</div>`;
+        logEl.scrollTop = logEl.scrollHeight;
+      });
+
+      btnStart.disabled = false;
+      btnStart.textContent = "▶️ Riavvia Controllo P2P";
+
+      if (res.successo) {
+        if (logEl) {
+          logEl.innerHTML += `<div style="color:#10b981; font-weight:bold; margin-top:10px; border-top:1px solid rgba(16,185,129,0.3); padding-top:6px;">
+            🎉 RISULTATO: Connessione P2P funzionante! (Latenza: ${res.latenzaMs} ms)
+          </div>`;
+        }
+        if (window.Suoni) Suoni.playVittoria();
+      } else {
+        if (logEl) {
+          logEl.innerHTML += `<div style="color:#f43f5e; font-weight:bold; margin-top:10px; border-top:1px solid rgba(244,63,94,0.3); padding-top:6px;">
+            ⚠️ RISULTATO: Connessione fallita: ${fuggiHtml(res.errore || "Errore sconosciuto")}
+            <div style="font-size:0.75rem; color:#cbd5e1; margin-top:4px;">
+              Suggerimento: Verifica di usare HTTPS (o localhost) e che la rete/firewall non blocchi WebSockets e STUN.
+            </div>
+          </div>`;
+        }
+        if (window.Suoni) Suoni.playErrore();
+      }
+    };
+  }
+}
+
 (function avvio() {
   collegaInterfaccia();
   collegaRete();
   inizializzaBotTesterUI();
+  inizializzaP2PDiagUI();
 
   // Avatar selector
   const avatarBtns = document.querySelectorAll(".avatar-btn");

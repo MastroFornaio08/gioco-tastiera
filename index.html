@@ -120,6 +120,9 @@
 
       <button class="btn btn-primary" id="btn-host-start" disabled>Serve almeno un altro giocatore</button>
       <p class="status" id="host-status">Creazione della stanza…</p>
+      <button type="button" class="btn btn-ghost btn-small" id="btn-test-p2p-host" style="border-color: #00f0ff; color: #00f0ff; margin-bottom: 6px; font-size: 0.8rem;">
+        🤖 Bot Verifica Connessione P2P
+      </button>
       <button class="btn btn-ghost btn-small" data-back>Annulla</button>
     </section>
 
@@ -141,6 +144,10 @@
       <button class="btn btn-primary" id="btn-join">Connetti</button>
       <p class="status" id="join-status"></p>
       
+      <button type="button" class="btn btn-ghost btn-small" id="btn-test-p2p-join" style="border-color: #00f0ff; color: #00f0ff; margin-bottom: 6px; font-size: 0.8rem;">
+        🤖 Bot Verifica Connessione P2P
+      </button>
+
       <div style="font-size: 0.8rem; color: var(--muto); text-align: center; margin: 10px auto 4px; line-height: 1.4; max-width: 300px;">
         💡 <b>Nota:</b> Chi ha creato la stanza deve tenere aperta la schermata "Sala d'attesa" mentre ti colleghi!
       </div>
@@ -322,6 +329,27 @@
     </div>
   </div>
 
+  <!-- Modal Diagnostica P2P WebRTC -->
+  <div id="modal-p2p-diag" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(5, 8, 20, 0.95); z-index: 10001; align-items: center; justify-content: center; backdrop-filter: blur(8px); padding: 14px;">
+    <div style="background: #0d0f1d; border: 2px solid #00f0ff; border-radius: 16px; width: 100%; max-width: 480px; padding: 20px; box-shadow: 0 0 25px rgba(0,240,255,0.3); color: #fff;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h3 style="margin: 0; color: #00f0ff; font-family: 'Chakra Petch', sans-serif;">🤖 Bot Diagnostica Rete P2P</h3>
+        <button id="btn-p2p-diag-close" class="btn btn-ghost btn-small" style="padding: 4px 10px;">✕</button>
+      </div>
+      <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 12px; line-height: 1.4;">
+        Il bot simula in locale un Host e un Ospite WebRTC: controlla i server di segnalazione, l'apertura del DataChannel e lo scambio dati reale con latenza.
+      </p>
+      <div id="p2p-diag-log" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px; font-family: monospace; font-size: 0.82rem; min-height: 140px; max-height: 220px; overflow-y: auto; line-height: 1.5; margin-bottom: 14px;">
+        In attesa di avvio...
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button id="btn-p2p-diag-start" class="btn btn-primary" style="flex: 1; background: #00f0ff; color: #000; font-weight: bold; padding: 10px;">
+          ▶️ Avvia Controllo P2P
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ MODAL BOT TESTER AUTOMATICO ============ -->
   <div id="modal-bot-tester" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(5, 8, 20, 0.92); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px); padding: 14px;">
     <div style="background: #0b132b; border: 2px solid #00f0ff; border-radius: 20px; max-width: 650px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0, 240, 255, 0.25); overflow: hidden;">
@@ -368,6 +396,9 @@
         <div style="display: flex; gap: 8px; align-items: center;">
           <button id="btn-bot-tester-run" class="btn btn-primary" style="flex: 2; padding: 10px; font-weight: bold; font-size: 1rem; background: #00f0ff; color: #000; box-shadow: 0 0 15px rgba(0,240,255,0.4);">
             ▶️ Avvia Test Bot
+          </button>
+          <button type="button" id="btn-bot-tester-p2p" class="btn btn-ghost" style="flex: 1; padding: 10px; border-color: #00f0ff; color: #00f0ff; font-weight: bold; font-size: 0.88rem;">
+            📶 Test P2P
           </button>
           <button id="btn-bot-tester-stop" class="btn btn-ghost" style="flex: 1; padding: 10px; border-color: #ef4444; color: #ef4444; display: none;">
             ⏹️ Ferma
@@ -424,7 +455,7 @@
 
   <canvas id="coriandoli" aria-hidden="true"></canvas>
 
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="js/peerjs.min.js"></script>
 
   <!-- utilità qr code e obiettivi -->
   <script src="js/qrcode.js?v=13"></script>
@@ -441,7 +472,8 @@
   <script src="js/effetti.js?v=15"></script>
   <script src="js/malus.js?v=4"></script>
   <script src="js/nucleo.js?v=21"></script>
-  <script src="js/bot-tester.js?v=14"></script>
+  <script src="js/bot-tester.js?v=15"></script>
+  <script src="js/p2p-tester.js?v=1"></script>
 
   <!-- i 31 giochi attivi -->
   <script src="js/giochi/dattilo.js?v=13"></script>

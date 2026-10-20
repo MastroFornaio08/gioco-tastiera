@@ -1,10 +1,12 @@
-const CACHE_NAME = 'zaltergames-v13';
+const CACHE_NAME = 'zaltergames-v14';
 const ASSETS = [
   './',
   './index.html',
   './css/style.css',
   './css/giochi.css',
   './css/anima.css',
+  './js/peerjs.min.js',
+  './js/p2p-tester.js',
   './js/qrcode.js',
   './js/obiettivi.js',
   './js/malus.js'
