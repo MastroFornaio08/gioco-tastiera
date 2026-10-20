@@ -20,45 +20,18 @@ const PREFISSO_ID = "dattiloduello-v1-";
 const ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // niente I/O/0/1, si confondono
 const MAX_GIOCATORI = 6;
 
-// Configurazione WebRTC con server STUN e TURN (OpenRelay & PeerJS)
-// I server TURN sono indispensabili quando i dispositivi sono su reti diverse (es. 4G/5G, hotspot, Wi-Fi con NAT simmetrico)
+// Configurazione WebRTC con server STUN veloci e verificati
 const PEER_OPTS = {
   debug: 1,
   config: {
     iceServers: [
-      // Server STUN per rilevamento IP pubblico
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
       { urls: "stun:stun2.l.google.com:19302" },
+      { urls: "stun:stun3.l.google.com:19302" },
+      { urls: "stun:stun4.l.google.com:19302" },
       { urls: "stun:stun.cloudflare.com:3478" },
-      { urls: "stun:openrelay.metered.ca:80" },
-
-      // Server TURN OpenRelay (porte 80 e 443 UDP/TCP)
-      {
-        urls: "turn:openrelay.metered.ca:80",
-        username: "openrelayproject",
-        credential: "openrelayproject"
-      },
-      {
-        urls: "turn:openrelay.metered.ca:443",
-        username: "openrelayproject",
-        credential: "openrelayproject"
-      },
-      {
-        urls: "turn:openrelay.metered.ca:443?transport=tcp",
-        username: "openrelayproject",
-        credential: "openrelayproject"
-      },
-
-      // Fallback TURN PeerJS ufficiale
-      {
-        urls: [
-          "turn:eu-0.turn.peerjs.com:3478",
-          "turn:us-0.turn.peerjs.com:3478"
-        ],
-        username: "peerjs",
-        credential: "peerjsp"
-      }
+      { urls: "stun:relay.metered.ca:80" }
     ]
   }
 };
@@ -232,7 +205,8 @@ const Rete = {
     this.codice = codice;
     this.conns = new Map();
 
-    const peer = new Peer(undefined, PEER_OPTS);
+    const guestId = "zg-g-" + Math.floor(Math.random() * 900000 + 100000);
+    const peer = new Peer(guestId, PEER_OPTS);
     this.peer = peer;
 
     let connesso = false;
@@ -338,13 +312,18 @@ window.addEventListener("beforeunload", () => {
 });
 
 function descriviErrore(err) {
-  switch (err && err.type) {
-    case "network":        return "Problema di rete verso il server PeerJS. Controlla la connessione internet.";
-    case "server-error":   return "Il server di collegamento non risponde. Riprova tra pochi secondi.";
+  console.error("[Rete Errore]", err);
+  const tipo = (err && err.type) || "";
+  const msg = (err && err.message) || "";
+  switch (tipo) {
+    case "network": return "Problema di rete verso il server PeerJS. Controlla la connessione internet.";
+    case "server-error": return "Il server di collegamento non risponde. Riprova tra pochi secondi.";
     case "browser-incompatible": return "Questo browser non supporta WebRTC.";
-    case "webrtc":         return "Connessione diretta fallita (blocco NAT/firewall o rete restrittiva).";
-    case "disconnected":   return "Connessione al server interrotta.";
+    case "webrtc": return "Connessione diretta WebRTC non riuscita. Riprova con un altro codice o premi Svuota Cache.";
+    case "disconnected": return "Connessione al server interrotta.";
     case "peer-unavailable": return "Stanza non trovata. L'host potrebbe aver chiuso o il codice è errato.";
-    default:               return "Errore di connessione: " + ((err && err.type) || "impossibile connettersi");
+    case "socket-error":
+    case "socket-closed": return "Connessione al broker interrotta. Riprova.";
+    default: return "Errore di connessione" + (tipo ? " (" + tipo + ")" : "") + (msg ? ": " + msg : "");
   }
 }

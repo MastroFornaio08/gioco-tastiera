@@ -156,7 +156,7 @@
 
         await Promise.all([hostAttendeConnessione, guestAttendeConnessione]);
 
-        const dettaglioICE = (risultato.haTurn ? 'TURN Relay attivo (OK per 4G/Hotspot) | ' : '') + 'DataChannel aperto.';
+        const dettaglioICE = (risultato.haStun ? 'STUN IP Pubblico attivo | ' : '') + 'DataChannel aperto.';
         log(5, 'ok', `Canale dati WebRTC P2P aperto! (${dettaglioICE})`);
         risultato.passaggi.push({ step: 5, nome: 'Handshake WebRTC P2P', stato: 'ok' });
 
