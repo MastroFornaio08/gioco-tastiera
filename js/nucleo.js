@@ -71,10 +71,11 @@ const S = {
   scadenza: null,
   conto: null,
   istanza: null,
-  fantasma: null,
-  fantasmaDati: null,
   ultimoPong: 0,
-  pingInterval: null
+  pingInterval: null,
+  mieiMalus: [],
+  malusInCoda: null,
+  malusAttivo: null
 };
 
 /* ------------------------------------------------------- utilità generiche */
@@ -537,6 +538,12 @@ function preparaRound() {
   $("arena").innerHTML = "";
   $("arena").className = "arena arena-" + g.id;
 
+  if (S.malusAttivo && window.Malus) {
+    Malus.applicaNelRound(S.malusAttivo);
+  } else if (window.Malus) {
+    Malus.rimuoviDalRound();
+  }
+
   mostra("screen-round");
   contoAllaRovescia();
 }
@@ -711,6 +718,7 @@ const api = {
 let ultimoAvanzo = 0;
 
 function chiudiIstanza() {
+  if (window.Malus) Malus.rimuoviDalRound();
   if (S.istanza && S.istanza.chiudi) {
     try { S.istanza.chiudi(); } catch (e) { /* il gioco se n'è già andato */ }
   }
@@ -874,6 +882,7 @@ function mostraRisultato(tabella) {
     btn.disabled = false;
     stato("result-status", "");
   }
+  if (window.Malus) Malus.gestisciFineRound(tabella);
   mostra("screen-result");
 }
 
@@ -920,9 +929,13 @@ function avanza() {
   }
   S.round++;
   if (S.ruolo === "host") {
-    Rete.invia("via", { round: S.round });
+    Rete.invia("via", { round: S.round, malus: S.malusInCoda });
+    S.malusAttivo = S.malusInCoda;
+    S.malusInCoda = null;
     setTimeout(preparaRound, S.latenza);
   } else {
+    S.malusAttivo = S.malusInCoda;
+    S.malusInCoda = null;
     preparaRound();
   }
 }
@@ -992,11 +1005,15 @@ function azzera(resetTotale = true) {
   S.esiti = {};
   S.avanzamenti = {};
   S.attivo = false;
+  S.malusAttivo = null;
   if (resetTotale) {
     S.giocatori.forEach(g => { g.punti = 0; });
     S.corone = {};
     S.isTorneo = false;
+    S.mieiMalus = [];
+    S.malusInCoda = null;
   }
+  if (window.Malus) Malus.rimuoviDalRound();
   fermaOrologi();
   clearInterval(S.fantasma); S.fantasma = null;
   chiudiIstanza();
@@ -1178,8 +1195,18 @@ function collegaRete() {
         S.partita = m.partita;
         break;
 
+      case "malus_prenotato":
+        S.malusInCoda = m.malus;
+        if (S.ruolo === "host") {
+          Rete.invia("malus_prenotato", m);
+        }
+        if (window.Malus) Malus.mostraBannerPrenotato(m);
+        break;
+
       case "via":
         S.round = m.round;
+        S.malusAttivo = m.malus || null;
+        S.malusInCoda = null;
         preparaRound();
         break;
 

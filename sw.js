@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zaltergames-v9';
+const CACHE_NAME = 'zaltergames-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -6,7 +6,8 @@ const ASSETS = [
   './css/giochi.css',
   './css/anima.css',
   './js/qrcode.js',
-  './js/obiettivi.js'
+  './js/obiettivi.js',
+  './js/malus.js'
 ];
 
 // Install: memorizza la cache base e forza l'attivazione immediata

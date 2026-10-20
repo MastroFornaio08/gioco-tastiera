@@ -44,6 +44,15 @@ const Suoni = {
   },
   playTick() { this._suona(1000, 'square', 0.05, 0.02); },
   playRouletteTick() { this._suona(900 + Math.random() * 200, 'triangle', 0.04, 0.05); },
+  playAllerta() {
+    this._suona(440, 'sawtooth', 0.15, 0.12);
+    setTimeout(() => this._suona(880, 'sawtooth', 0.25, 0.14), 150);
+  },
+  playMalus() {
+    this._suona(280, 'sawtooth', 0.18, 0.15);
+    setTimeout(() => this._suona(180, 'sawtooth', 0.35, 0.18), 160);
+    if (window.Vibrazione) Vibrazione.errore();
+  },
   
   // Conto alla rovescia progressivo (3, 2, 1, VIA!)
   playCountdown(step) {
