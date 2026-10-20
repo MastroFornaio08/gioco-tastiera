@@ -99,6 +99,7 @@ const Trofei = {
     } catch (e) {}
 
     // Suono ed effetto
+    if (window.Effetti && Effetti.vittoria) Effetti.vittoria("trofeo");
     if (window.Suoni && Suoni.playAchievement) Suoni.playAchievement();
     if (window.Vibrazione) Vibrazione.successo();
 

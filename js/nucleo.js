@@ -836,7 +836,8 @@ function mostraRisultato(tabella) {
   }
 
   if (mia === 0) {
-    coriandoli();
+    if (window.Effetti && Effetti.vittoria) Effetti.vittoria("round");
+    else coriandoli();
     if (window.Suoni && Suoni.playVittoria) Suoni.playVittoria();
     else if (window.Suoni) Suoni.playDing();
     if (window.Vibrazione) Vibrazione.successo();
@@ -958,7 +959,8 @@ function mostraFinale() {
        "Round vinti: <b>" + vinti + " su " + S.storico.length + "</b>");
 
   if (mia === 0) {
-    coriandoli(90);
+    if (window.Effetti && Effetti.vittoria) Effetti.vittoria("partita");
+    else coriandoli(90);
     if (window.Suoni && Suoni.playVittoria) Suoni.playVittoria();
     else if (window.Suoni) { Suoni.playDing(); setTimeout(() => Suoni.playDing(), 200); }
     if (window.Vibrazione) Vibrazione.successo();
