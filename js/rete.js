@@ -20,16 +20,45 @@ const PREFISSO_ID = "dattiloduello-v1-";
 const ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // niente I/O/0/1, si confondono
 const MAX_GIOCATORI = 6;
 
-// Configurazione WebRTC con server STUN veloci e fallback su porta 80
+// Configurazione WebRTC con server STUN e TURN (OpenRelay & PeerJS)
+// I server TURN sono indispensabili quando i dispositivi sono su reti diverse (es. 4G/5G, hotspot, Wi-Fi con NAT simmetrico)
 const PEER_OPTS = {
   debug: 1,
   config: {
     iceServers: [
+      // Server STUN per rilevamento IP pubblico
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
       { urls: "stun:stun2.l.google.com:19302" },
       { urls: "stun:stun.cloudflare.com:3478" },
-      { urls: "stun:openrelay.metered.ca:80" }
+      { urls: "stun:openrelay.metered.ca:80" },
+
+      // Server TURN OpenRelay (porte 80 e 443 UDP/TCP)
+      {
+        urls: "turn:openrelay.metered.ca:80",
+        username: "openrelayproject",
+        credential: "openrelayproject"
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443",
+        username: "openrelayproject",
+        credential: "openrelayproject"
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443?transport=tcp",
+        username: "openrelayproject",
+        credential: "openrelayproject"
+      },
+
+      // Fallback TURN PeerJS ufficiale
+      {
+        urls: [
+          "turn:eu-0.turn.peerjs.com:3478",
+          "turn:us-0.turn.peerjs.com:3478"
+        ],
+        username: "peerjs",
+        credential: "peerjsp"
+      }
     ]
   }
 };

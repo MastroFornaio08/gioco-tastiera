@@ -450,6 +450,9 @@ function inizializzaP2PDiagUI() {
     if (e.target === modal) chiudiModal();
   };
 
+  const btnTestRoom = $("btn-p2p-diag-test-room");
+  const inputRoomCode = $("input-p2p-diag-code");
+
   if (btnStart) {
     btnStart.onclick = async () => {
       if (!window.P2PTester) {
@@ -457,8 +460,9 @@ function inizializzaP2PDiagUI() {
         return;
       }
       btnStart.disabled = true;
-      btnStart.textContent = "⏳ Controllo in corso…";
-      if (logEl) logEl.innerHTML = `<div style="color:#00f0ff">🚀 Avvio diagnostica P2P in tempo reale...</div>`;
+      if (btnTestRoom) btnTestRoom.disabled = true;
+      btnStart.textContent = "⏳ Controllo infrastruttura…";
+      if (logEl) logEl.innerHTML = `<div style="color:#00f0ff">🚀 Avvio diagnostica P2P completa (STUN + TURN Relay)...</div>`;
 
       const res = await window.P2PTester.eseguiTest((evt) => {
         if (!logEl) return;
@@ -469,12 +473,13 @@ function inizializzaP2PDiagUI() {
       });
 
       btnStart.disabled = false;
-      btnStart.textContent = "▶️ Riavvia Controllo P2P";
+      if (btnTestRoom) btnTestRoom.disabled = false;
+      btnStart.textContent = "⚡ Riavvia Test WebRTC";
 
       if (res.successo) {
         if (logEl) {
           logEl.innerHTML += `<div style="color:#10b981; font-weight:bold; margin-top:10px; border-top:1px solid rgba(16,185,129,0.3); padding-top:6px;">
-            🎉 RISULTATO: Connessione P2P funzionante! (Latenza: ${res.latenzaMs} ms)
+            🎉 RISULTATO: Infrastruttura WebRTC attiva e pronta! (Latenza test: ${res.latenzaMs} ms)
           </div>`;
         }
         if (window.Suoni) Suoni.playVittoria();
@@ -482,14 +487,51 @@ function inizializzaP2PDiagUI() {
         if (logEl) {
           logEl.innerHTML += `<div style="color:#f43f5e; font-weight:bold; margin-top:10px; border-top:1px solid rgba(244,63,94,0.3); padding-top:6px;">
             ⚠️ RISULTATO: Connessione fallita: ${fuggiHtml(res.errore || "Errore sconosciuto")}
-            <div style="font-size:0.75rem; color:#cbd5e1; margin-top:4px;">
-              Suggerimento: Verifica di usare HTTPS (o localhost) e che la rete/firewall non blocchi WebSockets e STUN.
-            </div>
           </div>`;
         }
         if (window.Suoni) Suoni.playErrore();
       }
     };
+  }
+
+  if (btnTestRoom && inputRoomCode) {
+    const avviaVerificaStanza = async () => {
+      const codice = inputRoomCode.value.trim().toUpperCase();
+      if (!codice || codice.length < 3) {
+        if (logEl) logEl.innerHTML = `<div style="color:#f43f5e">⚠️ Inserisci prima il codice a 4 lettere della stanza da testare!</div>`;
+        return;
+      }
+      btnTestRoom.disabled = true;
+      if (btnStart) btnStart.disabled = true;
+      btnTestRoom.textContent = "⏳ Test...";
+      if (logEl) logEl.innerHTML = `<div style="color:#00f0ff">🔍 Verifica della stanza reale '<b>${codice}</b>' in corso...</div>`;
+
+      const res = await window.P2PTester.verificaStanza(codice, (evt) => {
+        if (!logEl) return;
+        const colore = evt.stato === 'ok' ? '#10b981' : evt.stato === 'warn' ? '#fbbf24' : evt.stato === 'fail' ? '#f43f5e' : '#38bdf8';
+        const icona = evt.stato === 'ok' ? '✅' : evt.stato === 'warn' ? '⚠️' : evt.stato === 'fail' ? '❌' : '🔄';
+        logEl.innerHTML += `<div style="color:${colore}; margin-top:4px;">${icona} ${fuggiHtml(evt.dettaglio)}</div>`;
+        logEl.scrollTop = logEl.scrollHeight;
+      });
+
+      btnTestRoom.disabled = false;
+      if (btnStart) btnStart.disabled = false;
+      btnTestRoom.textContent = "🔍 Testa Stanza";
+
+      if (res.successo) {
+        if (logEl) {
+          logEl.innerHTML += `<div style="color:#10b981; font-weight:bold; margin-top:10px; border-top:1px solid rgba(16,185,129,0.3); padding-top:6px;">
+            🎉 Stanza '${codice}' attiva e pronta all'accesso!
+          </div>`;
+        }
+        if (window.Suoni) Suoni.playVittoria();
+      } else {
+        if (window.Suoni) Suoni.playErrore();
+      }
+    };
+
+    btnTestRoom.onclick = avviaVerificaStanza;
+    inputRoomCode.onkeydown = (e) => { if (e.key === "Enter") avviaVerificaStanza(); };
   }
 }
 

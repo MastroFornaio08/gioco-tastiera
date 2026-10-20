@@ -1178,10 +1178,30 @@ function collegaRete() {
     aggiornaQRCodeStanza(codice);
   });
 
-  // l'ospite, appena il canale si apre, si presenta
+  // l'ospite, appena il canale si apre, si presenta con retry automatico finché non viene accolto
+  let timerHandshakeCiao = null;
   Rete.on("connesso", () => {
-    if (S.ruolo === "ospite") Rete.invia("ciao", { nome: S.nome, avatar: S.avatar });
-    else misuraLatenza();
+    if (S.ruolo === "ospite") {
+      let tentativiCiao = 0;
+      const inviaCiao = () => {
+        if (S.io) {
+          if (timerHandshakeCiao) { clearInterval(timerHandshakeCiao); timerHandshakeCiao = null; }
+          return;
+        }
+        tentativiCiao++;
+        console.log(`[Rete] Presentazione ospite ('ciao'), tentativo ${tentativiCiao}...`);
+        Rete.invia("ciao", { nome: S.nome, avatar: S.avatar });
+        if (tentativiCiao >= 5 && timerHandshakeCiao) {
+          clearInterval(timerHandshakeCiao);
+          timerHandshakeCiao = null;
+        }
+      };
+      if (timerHandshakeCiao) clearInterval(timerHandshakeCiao);
+      inviaCiao();
+      timerHandshakeCiao = setInterval(inviaCiao, 1200);
+    } else {
+      misuraLatenza();
+    }
   });
 
   Rete.on("messaggio", (m) => {
@@ -1204,6 +1224,10 @@ function collegaRete() {
       }
 
       case "benvenuto":
+        if (timerHandshakeCiao) {
+          clearInterval(timerHandshakeCiao);
+          timerHandshakeCiao = null;
+        }
         S.io = m.tuoId;
         if (m.giocoId) S.giocoId = m.giocoId;
         if (m.inLobby !== undefined) S.hostInLobby = !!m.inLobby;
