@@ -296,8 +296,8 @@
 
       const inv = this.ottieniInventario();
       const miaPos = tabella.findIndex(r => r.id === window.S?.io);
-      const isUltimo = (miaPos !== -1 && miaPos === tabella.length - 1 && tabella.length > 1) ||
-                       (window.S?.ruolo === 'solo' && (miaPos !== 0 || (tabella[0] && tabella[0].guadagno <= 0)));
+      const isSolo = window.S?.ruolo === 'solo';
+      const isUltimo = (miaPos !== -1 && miaPos === tabella.length - 1 && tabella.length > 1) || isSolo;
 
       // Se c'è già un malus prenotato per il prossimo round, mostralo
       if (window.S && window.S.malusInCoda) {
@@ -305,28 +305,42 @@
       }
 
       if (isUltimo) {
-        // Sei ultimo: Pesca 3 malus a scelta
-        this._renderPannelloSceltaUltimo(container, inv);
+        // Sei ultimo (o in solo): Pesca 3 malus a scelta
+        this._renderPannelloSceltaUltimo(container, inv, isSolo && miaPos === 0);
       } else if (inv.length > 0) {
         // Non sei ultimo, ma hai malus salvati nell'inventario
         this._renderPannelloInventario(container, inv);
       } else {
-        container.style.display = 'none';
+        // Mostra pulsante discreto per testare i malus anche se hai vinto
+        container.style.display = 'block';
+        container.innerHTML = `
+          <button class="btn btn-ghost btn-small" id="btn-force-test-malus" style="border-color: #b026ff; color: #b026ff; margin: 6px auto; display: block; font-size: 0.8rem;">
+            🧪 Vuoi provare un Malus? Clicca qui!
+          </button>
+        `;
+        const testBtn = container.querySelector('#btn-force-test-malus');
+        if (testBtn) {
+          testBtn.onclick = () => this._renderPannelloSceltaUltimo(container, inv, false);
+        }
       }
     },
 
-    _renderPannelloSceltaUltimo(container, inv) {
+    _renderPannelloSceltaUltimo(container, inv, isVincitoreSolo = false) {
       const proposte = this.pescaCasuali(3);
       const spazioLibero = inv.length < MAX_MALUS_ACCUMULABILI;
+      const titolo = isVincitoreSolo ? "😈 SFIDA IL FANTASMA!" : "💀 VENDETTA DELL'ULTIMO!";
+      const desc = isVincitoreSolo 
+        ? "Vuoi rendere il prossimo round più caotico? Scegli un Malus da lanciare o conservare!" 
+        : "Sei arrivato ultimo: scegli un Malus da scagliare su tutti o conservalo!";
 
       container.style.display = 'block';
       container.innerHTML = `
         <div class="malus-revenge-card">
           <div class="malus-revenge-header">
-            <span class="malus-revenge-badge">💀 VENDETTA DELL'ULTIMO!</span>
+            <span class="malus-revenge-badge">${titolo}</span>
             <span class="malus-inv-count">🎒 Inventario: <b>${inv.length}/${MAX_MALUS_ACCUMULABILI}</b></span>
           </div>
-          <p class="malus-revenge-desc">Sei arrivato ultimo: scegli un Malus da scagliare su tutti o conservalo!</p>
+          <p class="malus-revenge-desc">${desc}</p>
           
           <div class="malus-cards-grid">
             ${proposte.map(m => `
