@@ -1,59 +1,21 @@
-const CACHE_NAME = 'zaltergames-v15';
-const ASSETS = [
-  './',
-  './index.html',
-  './css/style.css',
-  './css/giochi.css',
-  './css/anima.css',
-  './js/peerjs.min.js',
-  './js/p2p-tester.js',
-  './js/qrcode.js',
-  './js/obiettivi.js',
-  './js/malus.js'
-];
-
-// Install: memorizza la cache base e forza l'attivazione immediata
+// Self-destruct Service Worker: cancella TUTTE le cache e si disiscrive immediatamente
 self.addEventListener('install', (e) => {
   self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
 });
 
-// Activate: elimina le vecchie versioni della cache e prende il controllo subito
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+      return Promise.all(keys.map((key) => caches.delete(key)));
+    }).then(() => {
+      return self.registration.unregister();
+    }).then(() => {
+      return self.clients.claim();
+    })
   );
 });
 
-// Fetch: strategia Network-First
-// Prova prima a scaricare la versione più recente da internet.
-// Solo se si è offline o la rete fallisce, usa la cache salvata.
-self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET' || !e.request.url.startsWith('http')) return;
-
-  e.respondWith(
-    fetch(e.request)
-      .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(e.request, responseToCache);
-          });
-        }
-        return networkResponse;
-      })
-      .catch(() => {
-        return caches.match(e.request);
-      })
-  );
+// Non intercetta più nulla: tutto viene scaricato direttamente e sempre dalla rete
+self.addEventListener('fetch', () => {
+  // Pass-through diretto alla rete, nessuna cache
 });

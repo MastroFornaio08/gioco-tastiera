@@ -72,6 +72,7 @@
         <button class="btn btn-ghost" id="btn-solo">Allenamento<small>da solo, contro un fantasma</small></button>
         <button class="btn btn-ghost" id="btn-records">🏆 Record & Trofei<small>punteggi e badge sbloccati</small></button>
         <button class="btn btn-ghost" id="btn-bot-tester" style="border-color: #00f0ff; color: #00f0ff; box-shadow: 0 0 12px rgba(0,240,255,0.2);">🤖 Bot Tester (Scova Bug)<small>test automatico giochi con 2-6 bot</small></button>
+        <button type="button" class="btn btn-ghost btn-small" id="btn-purge-cache" style="color: #94a3b8; font-size: 0.8rem; margin-top: 4px; border-color: rgba(255,255,255,0.15);">🧹 Svuota Cache & Aggiorna Gioco</button>
       </div>
 
       <p class="hint">Serve solo il browser. Niente account, niente installazioni.</p>
@@ -523,33 +524,34 @@
   <script src="js/tabellone.js?v=13"></script>
   <script src="js/avvio.js?v=16"></script>
   <script>
-    const isDev = Boolean(
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1' ||
-      window.location.hostname === '[::1]' ||
-      window.location.protocol === 'file:' ||
-      window.location.hostname.endsWith('.local')
-    );
+    // Rimozione immediata di qualsiasi Service Worker attivo e svuotamento completo CacheStorage
+    function svuotaTuttoERicarica(ricarica = false) {
+      const p1 = ('serviceWorker' in navigator)
+        ? navigator.serviceWorker.getRegistrations().then(regs => Promise.all(regs.map(r => r.unregister())))
+        : Promise.resolve();
 
-    if ('serviceWorker' in navigator) {
-      if (isDev) {
-        // In sviluppo: disiscrive tutti i Service Worker e cancella la cache per lavorare sempre sui file aggiornati
-        navigator.serviceWorker.getRegistrations().then((registrations) => {
-          for (const reg of registrations) {
-            reg.unregister();
-          }
-        });
-        if ('caches' in window) {
-          caches.keys().then((keys) => {
-            keys.forEach((key) => caches.delete(key));
-          });
+      const p2 = ('caches' in window)
+        ? caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))))
+        : Promise.resolve();
+
+      Promise.all([p1, p2]).then(() => {
+        console.log("[Cache] Service Worker disiscritto e cache svuotata con successo.");
+        if (ricarica) {
+          window.location.reload(true);
         }
-      } else {
-        // In produzione (es. GitHub Pages): registra il Service Worker per il supporto offline
-        navigator.serviceWorker.register('sw.js').then((reg) => {
-          reg.update();
-        }).catch(console.error);
-      }
+      });
+    }
+
+    // Esegui la rimozione automatica
+    svuotaTuttoERicarica(false);
+
+    const btnPurge = document.getElementById('btn-purge-cache');
+    if (btnPurge) {
+      btnPurge.onclick = () => {
+        btnPurge.textContent = "⏳ Pulizia cache...";
+        btnPurge.disabled = true;
+        svuotaTuttoERicarica(true);
+      };
     }
   </script>
 </body>
