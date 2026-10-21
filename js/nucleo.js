@@ -90,6 +90,8 @@ function mostra(id) {
     document.querySelectorAll(".screen").forEach(s => s.classList.remove("is-active"));
     $(id).classList.add("is-active");
     $("app").classList.toggle("is-wide", id === "screen-round" || id === "screen-lobby");
+    document.body.classList.toggle("in-game", id === "screen-round");
+    $("app").classList.toggle("in-game", id === "screen-round");
   };
 
   if (document.startViewTransition) {
@@ -517,6 +519,126 @@ function aggiornaBarra(id, p) {
 
 /* --------------------------------------------------------------- round */
 
+// Gestione congelamento e pre-caricamento gioco sullo sfondo durante il countdown
+let pendingIntervals = [];
+let pendingTimeouts = [];
+let pendingRAFs = [];
+const origSetInterval = window.setInterval;
+const origClearInterval = window.clearInterval;
+const origSetTimeout = window.setTimeout;
+const origClearTimeout = window.clearTimeout;
+const origRAF = window.requestAnimationFrame;
+const origCancelRAF = window.cancelAnimationFrame;
+
+function annullaCaricamentoSfondo() {
+  S.inCountdown = false;
+  pendingIntervals = [];
+  pendingTimeouts = [];
+  pendingRAFs = [];
+  window.setInterval = origSetInterval;
+  window.clearInterval = origClearInterval;
+  window.setTimeout = origSetTimeout;
+  window.clearTimeout = origClearTimeout;
+  window.requestAnimationFrame = origRAF;
+  window.cancelAnimationFrame = origCancelRAF;
+}
+
+function avviaCaricamentoGiocoSfondo() {
+  annullaCaricamentoSfondo();
+  S.inCountdown = true;
+
+  // Wrap temporaneo di setInterval durante il countdown
+  window.setInterval = function (fn, delay, ...args) {
+    if (S.inCountdown) {
+      const handle = { fn, delay, args, id: null };
+      pendingIntervals.push(handle);
+      return handle;
+    }
+    return origSetInterval.call(window, fn, delay, ...args);
+  };
+
+  window.clearInterval = function (id) {
+    if (id && typeof id === "object" && id.fn) {
+      const idx = pendingIntervals.indexOf(id);
+      if (idx !== -1) pendingIntervals.splice(idx, 1);
+      if (id.id) origClearInterval.call(window, id.id);
+      return;
+    }
+    return origClearInterval.call(window, id);
+  };
+
+  // Wrap temporaneo di setTimeout
+  window.setTimeout = function (fn, delay, ...args) {
+    if (S.inCountdown) {
+      const handle = { fn, delay, args, id: null };
+      pendingTimeouts.push(handle);
+      return handle;
+    }
+    return origSetTimeout.call(window, fn, delay, ...args);
+  };
+
+  window.clearTimeout = function (id) {
+    if (id && typeof id === "object" && id.fn) {
+      const idx = pendingTimeouts.indexOf(id);
+      if (idx !== -1) pendingTimeouts.splice(idx, 1);
+      if (id.id) origClearTimeout.call(window, id.id);
+      return;
+    }
+    return origClearTimeout.call(window, id);
+  };
+
+  // Wrap temporaneo di requestAnimationFrame: esegue solo il 1° frame per renderizzare la scena grafica
+  window.requestAnimationFrame = function (cb) {
+    if (S.inCountdown) {
+      let rendered = false;
+      const wrapped = (time) => {
+        if (!rendered) {
+          rendered = true;
+          try { cb(time); } catch (e) { console.error(e); }
+        }
+      };
+      pendingRAFs.push(cb);
+      return origRAF.call(window, wrapped);
+    }
+    return origRAF.call(window, cb);
+  };
+
+  // Creazione iniziale del gioco: grafica e DOM pronti e visibili sotto il countdown
+  try {
+    S.istanza = S.gioco.crea(api);
+  } catch (err) {
+    console.error("Errore durante pre-caricamento gioco:", err);
+  }
+
+  // Ripristina subito le funzioni native di window
+  window.setInterval = origSetInterval;
+  window.clearInterval = origClearInterval;
+  window.setTimeout = origSetTimeout;
+  window.clearTimeout = origClearTimeout;
+  window.requestAnimationFrame = origRAF;
+  window.cancelAnimationFrame = origCancelRAF;
+}
+
+function sbloccaGiocoAlVia() {
+  S.inCountdown = false;
+  // Avvia tutti i timer che il gioco aveva programmato
+  pendingIntervals.forEach(item => {
+    item.id = origSetInterval.call(window, item.fn, item.delay, ...item.args);
+  });
+  pendingIntervals = [];
+
+  pendingTimeouts.forEach(item => {
+    item.id = origSetTimeout.call(window, item.fn, item.delay, ...item.args);
+  });
+  pendingTimeouts = [];
+
+  // Riattiva i loop grafici continui
+  pendingRAFs.forEach(cb => {
+    origRAF.call(window, cb);
+  });
+  pendingRAFs = [];
+}
+
 function preparaRound() {
   const g = S.gioco;
   fermaOrologi();
@@ -541,7 +663,7 @@ function preparaRound() {
   badge.innerHTML = "";
 
   $("arena").innerHTML = "";
-  $("arena").className = "arena arena-" + g.id;
+  $("arena").className = "arena arena-" + g.id + " arena-pre-game";
 
   S.malusNelRoundCorrente = S.malusAttivo;
 
@@ -552,15 +674,20 @@ function preparaRound() {
   }
 
   mostra("screen-round");
+
+  // Carichiamo subito il gioco sullo sfondo così è visibile sotto il countdown!
+  avviaCaricamentoGiocoSfondo();
+
+  // Avviamo il countdown centrale
   contoAllaRovescia();
 }
 
-/* Ferma gli orologi del round. Il fantasma no: in allenamento deve finire
-   la sua corsa anche se noi abbiamo già consegnato. */
+/* Ferma gli orologi del round. */
 function fermaOrologi() {
   clearInterval(S.conto); S.conto = null;
   clearInterval(S.tick); S.tick = null;
   clearTimeout(S.scadenza); S.scadenza = null;
+  annullaCaricamentoSfondo();
 }
 
 function azzeraRete() {
@@ -570,10 +697,16 @@ function azzeraRete() {
 
 function contoAllaRovescia() {
   const el = $("countdown");
+  const numEl = $("countdown-num");
+  const labelEl = $("countdown-label");
+
   el.classList.add("is-on");
-  let n = 3;
-  el.textContent = n;
   el.classList.remove("via");
+
+  let n = 3;
+  if (numEl) numEl.textContent = n;
+  if (labelEl) labelEl.textContent = "PRONTI?";
+
   if (window.Suoni && Suoni.playCountdown) Suoni.playCountdown(3);
   else if (window.Suoni) Suoni.playTick();
 
@@ -581,15 +714,18 @@ function contoAllaRovescia() {
   S.conto = setInterval(() => {
     n--;
     el.classList.remove("battito");
-    void el.offsetWidth;            // forza il riavvio dell'animazione
+    void el.offsetWidth; // forza il riavvio dell'animazione
     el.classList.add("battito");
+
     if (n > 0) {
-      el.textContent = n;
+      if (numEl) numEl.textContent = n;
+      if (labelEl) labelEl.textContent = "ATTENZIONE...";
       if (window.Suoni && Suoni.playCountdown) Suoni.playCountdown(n);
       else if (window.Suoni) Suoni.playTick();
     }
-    else if (n === 0) { 
-      el.textContent = "VIA!"; 
+    else if (n === 0) {
+      if (numEl) numEl.textContent = "VIA!";
+      if (labelEl) labelEl.textContent = "VAI ORA!";
       el.classList.add("via");
       if (window.Suoni && Suoni.playCountdown) Suoni.playCountdown(0);
       else if (window.Suoni) Suoni.playDing();
@@ -599,6 +735,8 @@ function contoAllaRovescia() {
       clearInterval(S.conto);
       S.conto = null;
       el.classList.remove("is-on", "via", "battito");
+      $("arena").classList.remove("arena-pre-game");
+      sbloccaGiocoAlVia();
       iniziaRound();
     }
   }, 750);
@@ -609,6 +747,15 @@ function iniziaRound() {
   fermaOrologi();
   S.t0 = performance.now();
   S.attivo = true;
+
+  // Fallback se l'istanza non fosse stata creata nel pre-load
+  if (!S.istanza) {
+    try {
+      S.istanza = g.crea(api);
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
   if (g.senzaTempo) {
     $("hud-timer").textContent = "0.0s";
@@ -630,8 +777,6 @@ function iniziaRound() {
       else api.finito({ punti: 0, dettaglio: "tempo scaduto" });
     }, g.durata * 1000);
   }
-
-  S.istanza = g.crea(api);
 
   if (S.malusAttivo && window.Malus) {
     Malus.applicaEffettiArena(S.malusAttivo);
@@ -1580,7 +1725,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (btnChatToggle) {
       const freccia = btnChatToggle.querySelector(".chat-pill-arrow");
-      if (freccia) freccia.textContent = "▲";
+      if (freccia) freccia.textContent = "▶";
     }
   };
 
@@ -1591,7 +1736,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (btnChatToggle) {
       const freccia = btnChatToggle.querySelector(".chat-pill-arrow");
-      if (freccia) freccia.textContent = "▼";
+      if (freccia) freccia.textContent = "◀";
     }
   };
 
@@ -1638,5 +1783,83 @@ document.addEventListener("DOMContentLoaded", () => {
       if (window.Suoni) Suoni.playClick();
     };
   });
+
+  // Setup Tasto Esci a Sud con Long-Press (1.5 secondi)
+  configuraTastoEsciSud();
 });
+
+/* ------------------------------------------------------- Tasto Esci a Sud (Long-Press) */
+function configuraTastoEsciSud() {
+  const btn = $("btn-quit-game");
+  const progressBar = $("esci-progress-bar");
+  const label = $("esci-btn-text");
+  if (!btn) return;
+
+  const DURATA_PRESSIONE = 1500; // 1.5 secondi di pressione continua
+  let startTime = 0;
+  let animFrame = null;
+  let isPressing = false;
+
+  function reset() {
+    isPressing = false;
+    cancelAnimationFrame(animFrame);
+    btn.classList.remove("is-pressing");
+    if (progressBar) progressBar.setAttribute("stroke-dasharray", "0, 100");
+    if (label) label.textContent = "Tieni premuto per uscire";
+  }
+
+  function avviaPressione(e) {
+    if (e.type === "mousedown" && e.button !== 0) return;
+    if (isPressing) return;
+    isPressing = true;
+    startTime = performance.now();
+    btn.classList.add("is-pressing");
+    if (window.Vibrazione) Vibrazione.click();
+
+    function update() {
+      if (!isPressing) return;
+      const trascorso = performance.now() - startTime;
+      const pct = Math.min(100, (trascorso / DURATA_PRESSIONE) * 100);
+      if (progressBar) progressBar.setAttribute("stroke-dasharray", `${pct.toFixed(1)}, 100`);
+
+      const mancanti = Math.max(0, ((DURATA_PRESSIONE - trascorso) / 1000)).toFixed(1);
+      if (label) label.textContent = `Esci tra ${mancanti}s...`;
+
+      if (trascorso < DURATA_PRESSIONE) {
+        animFrame = requestAnimationFrame(update);
+      } else {
+        reset();
+        if (window.Suoni) Suoni.playClick();
+        if (window.Vibrazione) Vibrazione.successo();
+        tornaAlMenu();
+      }
+    }
+
+    animFrame = requestAnimationFrame(update);
+  }
+
+  function annullaPressione(e) {
+    if (!isPressing) return;
+    reset();
+  }
+
+  btn.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  btn.oncontextmenu = (e) => {
+    e.preventDefault();
+  };
+
+  btn.addEventListener("mousedown", avviaPressione);
+  btn.addEventListener("mouseup", annullaPressione);
+  btn.addEventListener("mouseleave", annullaPressione);
+
+  btn.addEventListener("touchstart", (e) => {
+    avviaPressione(e);
+  }, { passive: true });
+  btn.addEventListener("touchend", annullaPressione, { passive: true });
+  btn.addEventListener("touchcancel", annullaPressione, { passive: true });
+}
+
 

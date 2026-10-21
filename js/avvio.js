@@ -233,7 +233,7 @@ function collegaInterfaccia() {
   }
 
   $("btn-quit").onclick = tornaAlMenu;
-  $("btn-quit-game").onclick = tornaAlMenu;
+  if (typeof configuraTastoEsciSud === "function") configuraTastoEsciSud();
   
   // Suono ai click sui bottoni
   document.querySelectorAll(".btn, .riga-gioco").forEach(b => {

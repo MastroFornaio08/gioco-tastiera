@@ -18,7 +18,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,700;1,800&family=Inter:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=15">
+  <link rel="stylesheet" href="css/style.css?v=16">
   <link rel="stylesheet" href="css/giochi.css?v=15">
   <link rel="stylesheet" href="css/anima.css?v=15">
 </head>
@@ -257,24 +257,48 @@
 
     <!-- ============ ROUND ============ -->
     <section class="screen" id="screen-round">
-      <header class="hud">
-        <div class="hud-round">Round <span id="hud-round">1</span>/<span id="hud-round-tot">3</span></div>
-        <div class="hud-timer" id="hud-timer">0.0s</div>
-        <button class="btn-esci" id="btn-quit-game">Esci</button>
+      <!-- HUD A NORD: Timer sempre in alto, orizzontale o verticale -->
+      <header class="hud-nord" id="hud-nord">
+        <div class="hud-nord-pill">
+          <div class="hud-round-badge">
+            <span class="hud-round-lbl">ROUND</span>
+            <span class="hud-round-val"><b id="hud-round">1</b>/<span id="hud-round-tot">3</span></span>
+          </div>
+          <div class="hud-timer" id="hud-timer">0.0s</div>
+        </div>
+
+        <div class="hud-punti" id="hud-punti"></div>
+        <div class="bars" id="bars"></div>
+        <div class="modifier" id="modifier-badge"></div>
       </header>
 
-      <div class="hud-punti" id="hud-punti"></div>
-
-      <div class="modifier" id="modifier-badge"></div>
-
-      <div class="bars" id="bars"></div>
-
-      <div class="arena-wrap">
+      <!-- ARENA CENTRALE: A tutto schermo -->
+      <div class="arena-wrap" id="arena-wrap">
         <div class="arena" id="arena"></div>
-        <div class="countdown" id="countdown"></div>
+        <p class="typing-hint" id="typing-hint"></p>
+
+        <!-- COUNTDOWN AL CENTRO DELLO SCHERMO: Sfondo visibile con gioco caricato sotto -->
+        <div class="countdown" id="countdown">
+          <div class="countdown-card">
+            <div class="countdown-num" id="countdown-num">3</div>
+            <div class="countdown-label" id="countdown-label">PRONTI?</div>
+          </div>
+        </div>
       </div>
 
-      <p class="typing-hint" id="typing-hint"></p>
+      <!-- TASTO ESCI A SUD (LONG-PRESS: tieni premuto per uscire) -->
+      <div class="esci-sud-wrap" id="esci-sud-wrap">
+        <button class="btn-esci-sud" id="btn-quit-game" type="button" aria-label="Tieni premuto per uscire">
+          <div class="esci-svg-wrap">
+            <svg class="esci-circle-svg" viewBox="0 0 36 36">
+              <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path class="circle-progress" id="esci-progress-bar" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            </svg>
+            <span class="esci-btn-icon">✕</span>
+          </div>
+          <span class="esci-btn-text" id="esci-btn-text">Tieni premuto per uscire</span>
+        </button>
+      </div>
     </section>
 
     <!-- ============ RISULTATO ROUND ============ -->
@@ -331,7 +355,7 @@
     <button id="btn-chat-toggle" class="btn-chat-pill" title="Chat e Reazioni rapide">
       <span class="chat-pill-icon">💬</span>
       <span class="chat-pill-label">Reazioni</span>
-      <span class="chat-pill-arrow">▲</span>
+      <span class="chat-pill-arrow">▶</span>
     </button>
 
     <div id="chat-dropdown" class="chat-dropdown" aria-hidden="true">
@@ -543,7 +567,7 @@
   <script src="js/rete.js?v=17"></script>
   <script src="js/effetti.js?v=15"></script>
   <script src="js/malus.js?v=4"></script>
-  <script src="js/nucleo.js?v=22"></script>
+  <script src="js/nucleo.js?v=23"></script>
   <script src="js/bot-tester.js?v=15"></script>
   <script src="js/p2p-tester.js?v=3"></script>
 
@@ -581,7 +605,7 @@
   <script src="js/giochi/escaperoom.js?v=14"></script>
 
   <script src="js/tabellone.js?v=13"></script>
-  <script src="js/avvio.js?v=17"></script>
+  <script src="js/avvio.js?v=18"></script>
   <script>
     // Rimozione immediata di qualsiasi Service Worker attivo e svuotamento completo CacheStorage
     function svuotaTuttoERicarica(ricarica = false) {
