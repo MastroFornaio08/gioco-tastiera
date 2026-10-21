@@ -519,9 +519,132 @@ function aggiornaBarra(id, p) {
 
 /* --------------------------------------------------------------- round */
 
+/* ==========================================================================
+   CONGELAMENTO TIMER PRE-GAME (Il gioco viene disegnato ma i timer partono al VIA!)
+   ========================================================================== */
+let preGameAttivo = false;
+let codaPreGameTimeouts = [];
+let codaPreGameIntervals = [];
+let codaPreGameRAFs = [];
+const mapTimerReal = new Map();
+let nextTimerId = 900000;
+
+const nativeSetTimeout = window.setTimeout;
+const nativeClearTimeout = window.clearTimeout;
+const nativeSetInterval = window.setInterval;
+const nativeClearInterval = window.clearInterval;
+const nativeRAF = window.requestAnimationFrame;
+
+// Intercettiamo globalmente setTimeout
+window.setTimeout = function (fn, delay = 0, ...args) {
+  if (preGameAttivo) {
+    const id = ++nextTimerId;
+    codaPreGameTimeouts.push({ id, fn, delay, args });
+    return id;
+  }
+  return nativeSetTimeout.call(window, fn, delay, ...args);
+};
+
+window.clearTimeout = function (id) {
+  if (preGameAttivo) {
+    const idx = codaPreGameTimeouts.findIndex(t => t.id === id);
+    if (idx !== -1) {
+      codaPreGameTimeouts.splice(idx, 1);
+      return;
+    }
+  }
+  const realId = mapTimerReal.get(id);
+  if (realId) {
+    mapTimerReal.delete(id);
+    nativeClearTimeout.call(window, realId);
+    return;
+  }
+  nativeClearTimeout.call(window, id);
+};
+
+// Intercettiamo globalmente setInterval
+window.setInterval = function (fn, delay = 0, ...args) {
+  if (preGameAttivo) {
+    const id = ++nextTimerId;
+    codaPreGameIntervals.push({ id, fn, delay, args });
+    return id;
+  }
+  return nativeSetInterval.call(window, fn, delay, ...args);
+};
+
+window.clearInterval = function (id) {
+  if (preGameAttivo) {
+    const idx = codaPreGameIntervals.findIndex(t => t.id === id);
+    if (idx !== -1) {
+      codaPreGameIntervals.splice(idx, 1);
+      return;
+    }
+  }
+  const realId = mapTimerReal.get(id);
+  if (realId) {
+    mapTimerReal.delete(id);
+    nativeClearInterval.call(window, realId);
+    return;
+  }
+  nativeClearInterval.call(window, id);
+};
+
+// Intercettiamo requestAnimationFrame (esegue 1 frame di disegno iniziale, poi pausa fino al VIA)
+window.requestAnimationFrame = function (cb) {
+  if (preGameAttivo) {
+    let fatto = false;
+    const wrap = (t) => {
+      if (!fatto) {
+        fatto = true;
+        try { cb(t); } catch (e) { console.error(e); }
+      }
+    };
+    codaPreGameRAFs.push(cb);
+    return nativeRAF.call(window, wrap);
+  }
+  return nativeRAF.call(window, cb);
+};
+
+function sbloccaEAvviaGiocoAlVia() {
+  preGameAttivo = false;
+
+  // Avvia i timeout che il gioco aveva programmato, partendo esattamente da ORA (dal VIA!)
+  codaPreGameTimeouts.forEach(t => {
+    const realId = nativeSetTimeout.call(window, t.fn, t.delay, ...t.args);
+    mapTimerReal.set(t.id, realId);
+  });
+  codaPreGameTimeouts = [];
+
+  // Avvia gli interval che il gioco aveva programmato, partendo dal VIA
+  codaPreGameIntervals.forEach(t => {
+    const realId = nativeSetInterval.call(window, t.fn, t.delay, ...t.args);
+    mapTimerReal.set(t.id, realId);
+  });
+  codaPreGameIntervals = [];
+
+  // Avvia i loop di animazione grafica dal VIA
+  codaPreGameRAFs.forEach(cb => {
+    nativeRAF.call(window, cb);
+  });
+  codaPreGameRAFs = [];
+}
+
+function resetPreGameTimers() {
+  preGameAttivo = false;
+  codaPreGameTimeouts = [];
+  codaPreGameIntervals = [];
+  codaPreGameRAFs = [];
+  mapTimerReal.forEach(realId => {
+    nativeClearTimeout.call(window, realId);
+    nativeClearInterval.call(window, realId);
+  });
+  mapTimerReal.clear();
+}
+
 function preparaRound() {
   const g = S.gioco;
   fermaOrologi();
+  resetPreGameTimers();
   S.esiti = {};
   S.avanzamenti = {};
   S.codaMessaggi = [];
@@ -556,12 +679,14 @@ function preparaRound() {
 
   mostra("screen-round");
 
-  // Creazione iniziale del gioco: grafica e interfaccia pronte e visibili sotto il countdown!
+  // Attiviamo preGameAttivo esclusivamente durante la chiamata g.crea()
+  preGameAttivo = true;
   try {
     S.istanza = g.crea(api);
   } catch (err) {
     console.error("Errore durante pre-caricamento gioco:", err);
   }
+  preGameAttivo = false;
 
   // Avviamo il countdown centrale al centro dello schermo
   contoAllaRovescia();
@@ -572,6 +697,7 @@ function fermaOrologi() {
   clearInterval(S.conto); S.conto = null;
   clearInterval(S.tick); S.tick = null;
   clearTimeout(S.scadenza); S.scadenza = null;
+  resetPreGameTimers();
 }
 
 function azzeraRete() {
@@ -620,6 +746,8 @@ function contoAllaRovescia() {
       S.conto = null;
       el.classList.remove("is-on", "via", "battito");
       $("arena").classList.remove("arena-pre-game");
+      // Sblocchiamo e avviamo i timer e i loop del gioco ESATTAMENTE ADESSO al VIA!
+      sbloccaEAvviaGiocoAlVia();
       iniziaRound();
     }
   }, 750);
@@ -763,6 +891,7 @@ function chiudiIstanza() {
   if (S.istanza && S.istanza.chiudi) {
     try { S.istanza.chiudi(); } catch (e) { /* il gioco se n'è già andato */ }
   }
+  resetPreGameTimers();
   S.istanza = null;
 }
 

@@ -46,7 +46,7 @@ GIOCHI.push({
     }, api.dati.attesa);
 
     function colpisci() {
-      if (concluso) return;
+      if (!S.attivo || concluso) return;
       concluso = true;
       clearTimeout(timer);
 
