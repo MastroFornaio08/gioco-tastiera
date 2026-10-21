@@ -1341,24 +1341,28 @@ function collegaRete() {
     if (S.ruolo === "ospite") {
       let tentativiCiao = 0;
       const inviaCiao = () => {
-        if (S.io) {
+        if (S.io && Rete.io) {
           if (timerHandshakeCiao) { clearInterval(timerHandshakeCiao); timerHandshakeCiao = null; }
           return;
         }
         tentativiCiao++;
         console.log(`[Rete] Presentazione ospite ('ciao'), tentativo ${tentativiCiao}...`);
         Rete.invia("ciao", { nome: S.nome, avatar: S.avatar });
-        if (tentativiCiao >= 5 && timerHandshakeCiao) {
+        if (tentativiCiao >= 8 && timerHandshakeCiao) {
           clearInterval(timerHandshakeCiao);
           timerHandshakeCiao = null;
         }
       };
       if (timerHandshakeCiao) clearInterval(timerHandshakeCiao);
       inviaCiao();
-      timerHandshakeCiao = setInterval(inviaCiao, 1200);
+      timerHandshakeCiao = setInterval(inviaCiao, 1000);
     } else {
       misuraLatenza();
     }
+  });
+
+  Rete.on("stato", ({ messaggio }) => {
+    stato(S.ruolo === "host" ? "host-status" : "join-status", messaggio);
   });
 
   Rete.on("messaggio", (m) => {
@@ -1386,6 +1390,7 @@ function collegaRete() {
           timerHandshakeCiao = null;
         }
         S.io = m.tuoId;
+        Rete.io = m.tuoId;
         if (m.giocoId) S.giocoId = m.giocoId;
         if (m.inLobby !== undefined) S.hostInLobby = !!m.inLobby;
         break;

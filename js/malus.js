@@ -287,26 +287,24 @@
       }
 
       const miaPos = tabella ? tabella.findIndex(r => r.id === window.S?.io) : -1;
-      const isSolo = window.S?.ruolo === 'solo';
       
-      // Chi ha fatto il punteggio minore (ultimo in tabella)
-      const ultimoId = (tabella && tabella.length > 0) ? tabella[tabella.length - 1].id : null;
+      // Chi ha fatto il punteggio minore (ultimo in tabella con almeno 2 partecipanti)
+      const ultimoId = (tabella && tabella.length > 1) ? tabella[tabella.length - 1].id : null;
       const sonoIoUltimo = (window.S && window.S.io === ultimoId);
 
-      if (sonoIoUltimo || isSolo) {
-        // Sei tu ad aver fatto il punteggio minore: scegli 1 Malus con 1 click
-        this._renderPannelloScelta(container, isSolo && miaPos === 0);
+      // Il Malus è la "Vendetta dell'Ultimo": spetta ESCLUSIVAMENTE a chi ha perso / fatto il punteggio minore!
+      // Se hai vinto (miaPos === 0) o non sei ultimo, nessun Malus viene assegnato.
+      if (sonoIoUltimo) {
+        this._renderPannelloScelta(container, false);
       } else {
         container.style.display = 'none';
       }
     },
 
-    _renderPannelloScelta(container, isVincitoreSolo = false) {
+    _renderPannelloScelta(container) {
       const proposte = this.pescaCasuali(3);
-      const titolo = isVincitoreSolo ? "😈 SFIDA CON UN MALUS!" : "💀 PUNTEGGIO MINORE: SCEGLI IL MALUS!";
-      const desc = isVincitoreSolo 
-        ? "Scegli un Malus da infliggere al Fantasma per il prossimo round (1 solo click)!" 
-        : "Hai fatto il punteggio minore: clicca 1 Malus per scagliarlo su tutti! <b>Attenzione:</b> se ti battono con il Malus attivo, vincono automaticamente!";
+      const titolo = "💀 PUNTEGGIO MINORE: SCEGLI IL MALUS!";
+      const desc = "Hai fatto il punteggio minore: clicca 1 Malus per scagliarlo su tutti! <b>Attenzione:</b> se ti battono con il Malus attivo, vincono automaticamente!";
 
       container.style.display = 'block';
       container.innerHTML = `

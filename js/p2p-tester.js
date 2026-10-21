@@ -68,7 +68,7 @@
 
         // Step 3: Connessione Broker Cloud (0.peerjs.com)
         log(3, 'running', 'Connessione al Broker Cloud e registrazione Host...');
-        const testHostId = 'zg-diag-host-' + Math.floor(Math.random() * 900000 + 100000);
+        const testHostId = 'zg-diag-host-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
         const hostOpts = (typeof PEER_OPTS !== 'undefined') ? PEER_OPTS : { debug: 1 };
         hostPeer = new window.Peer(testHostId, hostOpts);
 
@@ -90,7 +90,7 @@
 
         // Step 4: Registrazione Guest Peer
         log(4, 'running', 'Creazione e registrazione del Guest Peer...');
-        const testGuestId = 'zg-diag-guest-' + Math.floor(Math.random() * 900000 + 100000);
+        const testGuestId = 'zg-diag-guest-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
         guestPeer = new window.Peer(testGuestId, hostOpts);
 
         await new Promise((resolve, reject) => {
@@ -234,7 +234,8 @@
 
       try {
         log(1, 'running', `Connessione al Broker per verificare la stanza '${codiceStanza}'...`);
-        probePeer = new window.Peer(undefined, hostOpts);
+        const probeId = 'zg-probe-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
+        probePeer = new window.Peer(probeId, hostOpts);
 
         await new Promise((resolve, reject) => {
           const timeout = setTimeout(() => reject(new Error("Timeout connessione al Broker.")), 8000);
