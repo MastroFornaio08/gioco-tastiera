@@ -1994,6 +1994,57 @@ body.in-game .btn-music:hover {
   color: var(--color-acid-emerald);
 }
 
+/* ---------- SFONDO GIOCO IN ATTESA (PREGAME STAGE) ---------- */
+.pregame-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  padding: 24px;
+  animation: pregameFadeIn 0.35s ease-out;
+  pointer-events: none;
+}
+
+.pregame-stage-icon {
+  font-size: clamp(3.5rem, 8vw, 5.5rem);
+  line-height: 1;
+  margin-bottom: 14px;
+  filter: drop-shadow(0 0 25px rgba(0, 240, 255, 0.4));
+  animation: pregamePulse 1.8s ease-in-out infinite alternate;
+}
+
+.pregame-stage-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 4vw, 2.2rem);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7);
+}
+
+.pregame-stage-desc {
+  font-size: clamp(0.85rem, 2vw, 1.05rem);
+  color: #94a3b8;
+  max-width: 440px;
+  line-height: 1.45;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes pregamePulse {
+  0% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.3)); }
+  100% { transform: scale(1.06); filter: drop-shadow(0 0 30px rgba(0, 240, 255, 0.7)); }
+}
+
+@keyframes pregameFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 /* ---------- TASTO ESCI A SUD (LONG-PRESS) ---------- */
 .esci-sud-wrap {
   position: absolute;
