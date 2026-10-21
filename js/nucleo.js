@@ -519,126 +519,6 @@ function aggiornaBarra(id, p) {
 
 /* --------------------------------------------------------------- round */
 
-// Gestione congelamento e pre-caricamento gioco sullo sfondo durante il countdown
-let pendingIntervals = [];
-let pendingTimeouts = [];
-let pendingRAFs = [];
-const origSetInterval = window.setInterval;
-const origClearInterval = window.clearInterval;
-const origSetTimeout = window.setTimeout;
-const origClearTimeout = window.clearTimeout;
-const origRAF = window.requestAnimationFrame;
-const origCancelRAF = window.cancelAnimationFrame;
-
-function annullaCaricamentoSfondo() {
-  S.inCountdown = false;
-  pendingIntervals = [];
-  pendingTimeouts = [];
-  pendingRAFs = [];
-  window.setInterval = origSetInterval;
-  window.clearInterval = origClearInterval;
-  window.setTimeout = origSetTimeout;
-  window.clearTimeout = origClearTimeout;
-  window.requestAnimationFrame = origRAF;
-  window.cancelAnimationFrame = origCancelRAF;
-}
-
-function avviaCaricamentoGiocoSfondo() {
-  annullaCaricamentoSfondo();
-  S.inCountdown = true;
-
-  // Wrap temporaneo di setInterval durante il countdown
-  window.setInterval = function (fn, delay, ...args) {
-    if (S.inCountdown) {
-      const handle = { fn, delay, args, id: null };
-      pendingIntervals.push(handle);
-      return handle;
-    }
-    return origSetInterval.call(window, fn, delay, ...args);
-  };
-
-  window.clearInterval = function (id) {
-    if (id && typeof id === "object" && id.fn) {
-      const idx = pendingIntervals.indexOf(id);
-      if (idx !== -1) pendingIntervals.splice(idx, 1);
-      if (id.id) origClearInterval.call(window, id.id);
-      return;
-    }
-    return origClearInterval.call(window, id);
-  };
-
-  // Wrap temporaneo di setTimeout
-  window.setTimeout = function (fn, delay, ...args) {
-    if (S.inCountdown) {
-      const handle = { fn, delay, args, id: null };
-      pendingTimeouts.push(handle);
-      return handle;
-    }
-    return origSetTimeout.call(window, fn, delay, ...args);
-  };
-
-  window.clearTimeout = function (id) {
-    if (id && typeof id === "object" && id.fn) {
-      const idx = pendingTimeouts.indexOf(id);
-      if (idx !== -1) pendingTimeouts.splice(idx, 1);
-      if (id.id) origClearTimeout.call(window, id.id);
-      return;
-    }
-    return origClearTimeout.call(window, id);
-  };
-
-  // Wrap temporaneo di requestAnimationFrame: esegue solo il 1° frame per renderizzare la scena grafica
-  window.requestAnimationFrame = function (cb) {
-    if (S.inCountdown) {
-      let rendered = false;
-      const wrapped = (time) => {
-        if (!rendered) {
-          rendered = true;
-          try { cb(time); } catch (e) { console.error(e); }
-        }
-      };
-      pendingRAFs.push(cb);
-      return origRAF.call(window, wrapped);
-    }
-    return origRAF.call(window, cb);
-  };
-
-  // Creazione iniziale del gioco: grafica e DOM pronti e visibili sotto il countdown
-  try {
-    S.istanza = S.gioco.crea(api);
-  } catch (err) {
-    console.error("Errore durante pre-caricamento gioco:", err);
-  }
-
-  // Ripristina subito le funzioni native di window
-  window.setInterval = origSetInterval;
-  window.clearInterval = origClearInterval;
-  window.setTimeout = origSetTimeout;
-  window.clearTimeout = origClearTimeout;
-  window.requestAnimationFrame = origRAF;
-  window.cancelAnimationFrame = origCancelRAF;
-}
-
-function sbloccaGiocoAlVia() {
-  S.inCountdown = false;
-  // Avvia tutti i timer che il gioco aveva programmato
-  pendingIntervals.forEach(item => {
-    item.id = origSetInterval.call(window, item.fn, item.delay, ...item.args);
-  });
-  pendingIntervals = [];
-
-  pendingTimeouts.forEach(item => {
-    item.id = origSetTimeout.call(window, item.fn, item.delay, ...item.args);
-  });
-  pendingTimeouts = [];
-
-  // Riattiva i loop grafici continui
-  pendingRAFs.forEach(cb => {
-    origRAF.call(window, cb);
-  });
-  pendingRAFs = [];
-}
-
 function preparaRound() {
   const g = S.gioco;
   fermaOrologi();
@@ -663,6 +543,7 @@ function preparaRound() {
   badge.innerHTML = "";
 
   $("arena").innerHTML = "";
+  // L'arena in fase pre-game ha i click bloccati finché dura il countdown
   $("arena").className = "arena arena-" + g.id + " arena-pre-game";
 
   S.malusNelRoundCorrente = S.malusAttivo;
@@ -675,10 +556,14 @@ function preparaRound() {
 
   mostra("screen-round");
 
-  // Carichiamo subito il gioco sullo sfondo così è visibile sotto il countdown!
-  avviaCaricamentoGiocoSfondo();
+  // Creazione iniziale del gioco: grafica e interfaccia pronte e visibili sotto il countdown!
+  try {
+    S.istanza = g.crea(api);
+  } catch (err) {
+    console.error("Errore durante pre-caricamento gioco:", err);
+  }
 
-  // Avviamo il countdown centrale
+  // Avviamo il countdown centrale al centro dello schermo
   contoAllaRovescia();
 }
 
@@ -687,7 +572,6 @@ function fermaOrologi() {
   clearInterval(S.conto); S.conto = null;
   clearInterval(S.tick); S.tick = null;
   clearTimeout(S.scadenza); S.scadenza = null;
-  annullaCaricamentoSfondo();
 }
 
 function azzeraRete() {
@@ -736,7 +620,6 @@ function contoAllaRovescia() {
       S.conto = null;
       el.classList.remove("is-on", "via", "battito");
       $("arena").classList.remove("arena-pre-game");
-      sbloccaGiocoAlVia();
       iniziaRound();
     }
   }, 750);
@@ -748,7 +631,7 @@ function iniziaRound() {
   S.t0 = performance.now();
   S.attivo = true;
 
-  // Fallback se l'istanza non fosse stata creata nel pre-load
+  // Fallback se l'istanza non fosse stata creata prima
   if (!S.istanza) {
     try {
       S.istanza = g.crea(api);
