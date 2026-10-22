@@ -1796,23 +1796,254 @@
 }
 
 /* ---------- Gioco dell'Oca Minigame ---------- */
+/* ---------- Gioco dell'Oca ---------- */
 .arena-oca {
   background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
   border-color: #3b82f6;
   padding: 8px;
 }
 
+.oca-arena {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 600px;
+  height: 100%;
+  margin: 0 auto;
+  user-select: none;
+}
+
+.oca-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: rgba(15, 23, 42, .7);
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 12px;
+}
+
+.oca-turno {
+  font-weight: bold;
+  font-size: 1.05rem;
+}
+
+#oca-turno-nome {
+  color: #ffd23b;
+}
+
+.oca-mia-pos {
+  font-size: .95rem;
+  opacity: .9;
+}
+
+.oca-mia-pos b {
+  color: #38bdf8;
+}
+
+.oca-banner {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1.02rem;
+  text-align: center;
+  color: #fff;
+  background: rgba(255, 255, 255, .06);
+}
+
+.oca-track-wrapper {
+  flex: 1;
+  max-height: 48vh;
+  overflow-y: auto;
+  padding: 6px 4px;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, .25);
+  border: 1px solid rgba(255, 255, 255, .05);
+  position: relative;
+  /* serve a offsetTop per lo scroll della plancia */
+}
+
+.oca-track {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  gap: 6px;
+  padding: 4px;
+}
+
+/* Caselle: un colore per tipo, non più ripetuto in ogni riga del JS */
 .oca-tile {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  --oca-bg: linear-gradient(135deg, #334155, #1e293b);
+  --oca-bordo: #475569;
+  --oca-badge: rgba(255, 255, 255, .15);
+  min-height: 68px;
+  padding: 5px 3px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  color: #fff;
+  background: var(--oca-bg);
+  border: 2.5px solid var(--oca-bordo);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, .35);
 }
 
-.oca-tile:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+.oca-tile.tipo-start {
+  --oca-bg: linear-gradient(135deg, #2563eb, #1d4ed8);
 }
 
-#oca-dice-cube:hover {
+.oca-tile.tipo-turbo {
+  --oca-bg: linear-gradient(135deg, #0284c7, #0369a1);
+  --oca-bordo: #38bdf8;
+  --oca-badge: #0284c7;
+}
+
+.oca-tile.tipo-oca {
+  --oca-bg: linear-gradient(135deg, #10b981, #047857);
+  --oca-bordo: #34d399;
+  --oca-badge: #10b981;
+}
+
+.oca-tile.tipo-malus {
+  --oca-bg: linear-gradient(135deg, #ef4444, #b91c1c);
+  --oca-bordo: #f87171;
+  --oca-badge: #ef4444;
+}
+
+.oca-tile.tipo-trappola {
+  --oca-bg: linear-gradient(135deg, #b91c1c, #7f1d1d);
+  --oca-bordo: #f87171;
+  --oca-badge: #ef4444;
+}
+
+.oca-tile.tipo-extra {
+  --oca-bg: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  --oca-bordo: #c084fc;
+  --oca-badge: #8b5cf6;
+}
+
+.oca-tile.tipo-traguardo {
+  --oca-bg: linear-gradient(135deg, #f59e0b, #d97706);
+  --oca-bordo: #fbbf24;
+  --oca-badge: #f59e0b;
+}
+
+.oca-tile.tipo-traguardo .oca-badge {
+  color: #000;
+}
+
+.oca-tile-testa {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 2px;
+  font-size: .72rem;
+  font-weight: bold;
+  opacity: .9;
+}
+
+.oca-badge {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--oca-badge);
+}
+
+.oca-icona {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.oca-tile-slot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 22px;
+  pointer-events: none;
+}
+
+.oca-pedina {
+  font-size: 1.45rem;
+  margin-top: -3px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .8));
+}
+
+.oca-tile-nome {
+  max-width: 100%;
+  font-size: .68rem;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: .95;
+}
+
+.oca-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 8px 0;
+}
+
+/* Dado: niente transform inline dal JS, così l'hover funziona sempre */
+.oca-dado {
+  font-size: 3.8rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5));
+  transition: transform .15s ease;
+}
+
+.oca-dado.attivo {
+  cursor: pointer;
+}
+
+.oca-dado.attivo:hover {
   transform: scale(1.1) rotate(5deg);
+}
+
+.oca-dado.rotola {
+  animation: ocaRotola .3s linear infinite;
+}
+
+@keyframes ocaRotola {
+  0% {
+    transform: rotate(-20deg) scale(1.2);
+  }
+
+  50% {
+    transform: rotate(20deg) scale(1.2);
+  }
+
+  100% {
+    transform: rotate(-20deg) scale(1.2);
+  }
+}
+
+.oca-btn-tira {
+  padding: 12px 24px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #000;
+  background: #eab308;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(234, 179, 8, .4);
+  cursor: pointer;
+}
+
+.oca-btn-tira:disabled {
+  opacity: .5;
+  cursor: default;
 }
 
 /* ==========================================================================
