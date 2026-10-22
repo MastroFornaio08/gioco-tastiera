@@ -248,7 +248,8 @@
 }
 
 /* Bomba / Urlo: colori caldi in tensione */
-.arena-bomba, .arena-urlo {
+.arena-bomba,
+.arena-urlo {
   background: #fee2e2;
   border-color: #ef4444;
   box-shadow: 0 8px 0 #b91c1c;
@@ -1276,11 +1277,25 @@
 }
 
 @keyframes dado-rotola {
-  0% { transform: translateY(0) rotate(0deg) scale(1); }
-  25% { transform: translateY(-25px) rotate(-15deg) scale(1.1); }
-  50% { transform: translateY(-10px) rotate(20deg); }
-  75% { transform: translateY(-20px) rotate(-10deg); }
-  100% { transform: translateY(0) rotate(0deg) scale(1); }
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+
+  25% {
+    transform: translateY(-25px) rotate(-15deg) scale(1.1);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(20deg);
+  }
+
+  75% {
+    transform: translateY(-20px) rotate(-10deg);
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
 }
 
 .ya-dado {
@@ -1492,27 +1507,30 @@
 .arena-flappy {
   background: linear-gradient(180deg, #0b1d42 0%, #1a3673 100%);
   border-color: #2a58b5;
-  box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
 }
 
 /* Yahtzee: tavolo verde da casinò */
 .arena-yahtzee {
   background: radial-gradient(circle at center, #0a4f27 0%, #03210f 100%);
-  border-color: #5c3a21; /* bordo in legno */
-  box-shadow: inset 0 0 50px rgba(0,0,0,0.7), 0 8px 0 #3d2412;
+  border-color: #5c3a21;
+  /* bordo in legno */
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.7), 0 8px 0 #3d2412;
 }
 
 /* Dattilo: terminale hacker */
 .arena-dattilo {
   background: #020a04;
   border-color: #0f3816;
-  box-shadow: inset 0 0 30px rgba(0,255,0,0.1);
+  box-shadow: inset 0 0 30px rgba(0, 255, 0, 0.1);
 }
-.arena-dattilo .phrase c.ok, 
+
+.arena-dattilo .phrase c.ok,
 .arena-dattilo .frase c.ok {
   color: #0f0;
   text-shadow: 0 0 5px #0f0;
 }
+
 .arena-dattilo .typing-hint {
   color: #0f0;
   opacity: 0.7;
@@ -1520,9 +1538,9 @@
 
 /* Bersagli: poligono di tiro */
 .arena-bersagli {
-  background: 
-    repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(255,255,255,0.03) 20px),
-    repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(255,255,255,0.03) 20px),
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(255, 255, 255, 0.03) 20px),
+    repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(255, 255, 255, 0.03) 20px),
     #17102b;
   border-color: #3f2a63;
 }
@@ -1531,7 +1549,7 @@
 .arena-impostore {
   background: radial-gradient(circle at top, #2e0813 0%, #110105 100%);
   border-color: #540e21;
-  box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8);
 }
 
 /* Snake (nuovo) */
@@ -1562,14 +1580,14 @@
 .arena-caccia {
   background: radial-gradient(circle at center, #dcb98a 0%, #a67c46 100%);
   border-color: #5c3c16;
-  box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6);
 }
 
 /* Calcolo: lavagna in ardesia */
 .arena-calcolo {
   background: #2b3a32;
   border-color: #17211b;
-  box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
 }
 
 /* Conta: sfondo blu con pallini (abaco) */
@@ -1619,7 +1637,7 @@
 .arena-riflessi {
   background: radial-gradient(circle, #380838 0%, #170217 100%);
   border-color: #ff00ff;
-  box-shadow: inset 0 0 40px rgba(255,0,255,0.2);
+  box-shadow: inset 0 0 40px rgba(255, 0, 255, 0.2);
 }
 
 /* Scuoti: dinamico / blur */
@@ -1643,7 +1661,7 @@
 
 /* Stroop: arcobaleno scuro */
 .arena-stroop {
-  background: linear-gradient(90deg, rgba(128,0,0,0.5), rgba(128,128,0,0.5), rgba(0,128,0,0.5), rgba(0,0,128,0.5));
+  background: linear-gradient(90deg, rgba(128, 0, 0, 0.5), rgba(128, 128, 0, 0.5), rgba(0, 128, 0, 0.5), rgba(0, 0, 128, 0.5));
   background-color: #111;
   border-color: #333;
 }
@@ -1668,7 +1686,7 @@
   width: 100%;
   max-width: 320px;
   aspect-ratio: 1;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   border: 2px solid var(--linea);
   border-radius: 8px;
   display: grid;
@@ -1676,16 +1694,28 @@
   grid-template-rows: repeat(15, 1fr);
   gap: 1px;
 }
+
 .snake-board.sn-dead {
   filter: grayscale(1) sepia(1) hue-rotate(-50deg);
 }
+
 .sn-cell {
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 2px;
 }
-.sn-body { background: var(--successo); }
-.sn-head { background: #fff; }
-.sn-food { background: var(--errore); border-radius: 50%; }
+
+.sn-body {
+  background: var(--successo);
+}
+
+.sn-head {
+  background: #fff;
+}
+
+.sn-food {
+  background: var(--errore);
+  border-radius: 50%;
+}
 
 .snake-punteggio {
   font-size: 1.5rem;
@@ -1699,10 +1729,34 @@
   z-index: 50;
   opacity: 0;
 }
-.sn-ctrl.up { top: 0; left: 0; right: 0; height: 30%; }
-.sn-ctrl.down { bottom: 0; left: 0; right: 0; height: 30%; }
-.sn-ctrl.left { top: 30%; bottom: 30%; left: 0; width: 30%; }
-.sn-ctrl.right { top: 30%; bottom: 30%; right: 0; width: 30%; }
+
+.sn-ctrl.up {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+}
+
+.sn-ctrl.down {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+}
+
+.sn-ctrl.left {
+  top: 30%;
+  bottom: 30%;
+  left: 0;
+  width: 30%;
+}
+
+.sn-ctrl.right {
+  top: 30%;
+  bottom: 30%;
+  right: 0;
+  width: 30%;
+}
 
 /* ---------- dodge ---------- */
 .dodge-area {
@@ -1710,12 +1764,13 @@
   width: 100%;
   max-width: 360px;
   height: 360px;
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
   border: 2px solid var(--linea);
   border-radius: var(--raggio);
   overflow: hidden;
   user-select: none;
 }
+
 .dodge-ship {
   position: absolute;
   bottom: 10px;
@@ -1725,12 +1780,14 @@
   transition: left 0.05s linear;
   z-index: 20;
 }
+
 .dodge-meteor {
   position: absolute;
   font-size: 1.8rem;
   transform: translate(-50%, -50%);
   z-index: 10;
 }
+
 .dodge-score {
   font-size: 2rem;
   font-weight: 900;
@@ -1751,7 +1808,7 @@
 
 .oca-tile:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.5);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
 }
 
 #oca-dice-cube:hover {
@@ -1777,8 +1834,15 @@
 }
 
 @keyframes panicPulse {
-  0% { box-shadow: 0 0 15px #ff0055; filter: drop-shadow(0 0 5px #ff0055); }
-  100% { box-shadow: 0 0 45px #ff0055; filter: drop-shadow(0 0 15px #ff0055) hue-rotate(20deg); }
+  0% {
+    box-shadow: 0 0 15px #ff0055;
+    filter: drop-shadow(0 0 5px #ff0055);
+  }
+
+  100% {
+    box-shadow: 0 0 45px #ff0055;
+    filter: drop-shadow(0 0 15px #ff0055) hue-rotate(20deg);
+  }
 }
 
 .hud-timer.panic-timer {
@@ -1787,8 +1851,14 @@
 }
 
 @keyframes timerPanicBeat {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.22); text-shadow: 0 0 12px #ff0055; }
+  0% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(1.22);
+    text-shadow: 0 0 12px #ff0055;
+  }
 }
 
 #screen-round .arena.malus-glitch,
@@ -1799,11 +1869,30 @@
 }
 
 @keyframes cyberGlitchAnim {
-  0% { transform: translate(0, 0); filter: none; }
-  25% { transform: translate(-4px, 3px); filter: hue-rotate(90deg) contrast(1.3); }
-  50% { transform: translate(4px, -3px); filter: invert(0.15); }
-  75% { transform: translate(-3px, -2px); filter: hue-rotate(270deg); }
-  100% { transform: translate(0, 0); filter: none; }
+  0% {
+    transform: translate(0, 0);
+    filter: none;
+  }
+
+  25% {
+    transform: translate(-4px, 3px);
+    filter: hue-rotate(90deg) contrast(1.3);
+  }
+
+  50% {
+    transform: translate(4px, -3px);
+    filter: invert(0.15);
+  }
+
+  75% {
+    transform: translate(-3px, -2px);
+    filter: hue-rotate(270deg);
+  }
+
+  100% {
+    transform: translate(0, 0);
+    filter: none;
+  }
 }
 
 #screen-round .arena.malus-cieco,
@@ -1812,9 +1901,24 @@
 }
 
 @keyframes blackoutFade {
-  0%, 40% { opacity: 1; filter: none; }
-  50%, 75% { opacity: 0.05; filter: blur(12px) brightness(0.15); }
-  85%, 100% { opacity: 1; filter: none; }
+
+  0%,
+  40% {
+    opacity: 1;
+    filter: none;
+  }
+
+  50%,
+  75% {
+    opacity: 0.05;
+    filter: blur(12px) brightness(0.15);
+  }
+
+  85%,
+  100% {
+    opacity: 1;
+    filter: none;
+  }
 }
 
 #screen-round .arena.malus-nebbia-attiva,
@@ -1841,9 +1945,17 @@
 }
 
 @keyframes shakeTextAnim {
-  0% { transform: translate(-3px, -2px) rotate(-1deg); }
-  50% { transform: translate(3px, 1px) rotate(1.2deg); }
-  100% { transform: translate(-1px, 3px) rotate(-0.8deg); }
+  0% {
+    transform: translate(-3px, -2px) rotate(-1deg);
+  }
+
+  50% {
+    transform: translate(3px, 1px) rotate(1.2deg);
+  }
+
+  100% {
+    transform: translate(-1px, 3px) rotate(-0.8deg);
+  }
 }
 
 /* Malus Falso Allarme (Riflessi / Cronometro / Bomba) */
@@ -1853,10 +1965,24 @@
 }
 
 @keyframes flashAllarme {
-  0%, 88%, 100% { filter: none; }
-  90% { filter: invert(0.35) saturate(3); }
-  92% { filter: none; }
-  94% { filter: brightness(1.8) contrast(1.4); }
+
+  0%,
+  88%,
+  100% {
+    filter: none;
+  }
+
+  90% {
+    filter: invert(0.35) saturate(3);
+  }
+
+  92% {
+    filter: none;
+  }
+
+  94% {
+    filter: brightness(1.8) contrast(1.4);
+  }
 }
 
 /* Malus Super Attrito (Spam / Fune / Scuoti) */
@@ -1867,8 +1993,13 @@
 }
 
 @keyframes attritoPulse {
-  0% { transform: scale(0.985); }
-  100% { transform: scale(1.015); }
+  0% {
+    transform: scale(0.985);
+  }
+
+  100% {
+    transform: scale(1.015);
+  }
 }
 
 /* Overlay Congelamento */
@@ -1896,8 +2027,15 @@
 }
 
 @keyframes freezeShimmer {
-  0% { border-color: #38bdf8; box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.4); }
-  100% { border-color: #ffffff; box-shadow: inset 0 0 40px rgba(56, 189, 248, 0.8); }
+  0% {
+    border-color: #38bdf8;
+    box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.4);
+  }
+
+  100% {
+    border-color: #ffffff;
+    box-shadow: inset 0 0 40px rgba(56, 189, 248, 0.8);
+  }
 }
 
 .freeze-icon {
@@ -1943,9 +2081,18 @@
 }
 
 @keyframes freezeCrack {
-  0% { transform: scale(1); }
-  50% { transform: scale(0.97) rotate(1deg); filter: brightness(1.4); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(0.97) rotate(1deg);
+    filter: brightness(1.4);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .freeze-shattered {
@@ -1965,8 +2112,14 @@
 }
 
 @keyframes malusBannerGlow {
-  0% { border-color: #ff0055; }
-  100% { border-color: #b026ff; box-shadow: 0 0 20px rgba(176, 38, 255, 0.45); }
+  0% {
+    border-color: #ff0055;
+  }
+
+  100% {
+    border-color: #b026ff;
+    box-shadow: 0 0 20px rgba(176, 38, 255, 0.45);
+  }
 }
 
 .malus-active-pill {
@@ -2143,4 +2296,9 @@
   padding: 5px 10px !important;
   border-radius: 8px !important;
   cursor: pointer;
+}
+
+.tris-cella.imminente-scomparsa {
+  opacity: 0.4;
+  filter: grayscale(80%);
 }
