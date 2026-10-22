@@ -434,7 +434,14 @@ GIOCHI.push({
     // Lancio logico generato dal giocatore corrente
     function eseguiTiroLogica() {
       if (concluso || inAnimazione) return;
-      const dado = Math.floor(Math.random() * 6) + 1;
+      let dado = Math.floor(Math.random() * 6) + 1;
+
+      // Malus Specifico: Dado Maledetto (tiro max 3)
+      const malusId = window.Malus && window.Malus.estraiId(typeof S !== "undefined" ? S.malusNelRoundCorrente : null);
+      if (malusId === "dado_lento") {
+        dado = Math.min(dado, 3);
+        if (elEventBanner) elEventBanner.innerHTML = "🎲 <b>DADO MALEDETTO!</b> Tiro depotenziato a max 3!";
+      }
 
       if (!isSolo && (typeof S === "undefined" || S.ruolo !== "solo")) {
         api.invia({ tipo: "tiroOca", turno: turno, dado: dado });

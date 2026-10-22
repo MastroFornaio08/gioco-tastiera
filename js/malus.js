@@ -19,8 +19,9 @@
       nome: 'Nebbia Fitta',
       icona: '🌫️',
       tag: 'VISUALE OSCURATA',
-      desc: 'Un denso banco di nebbia copre l’arena: passa il cursore o il dito per farti strada!',
+      desc: 'Un banco di nebbia leggera copre l’arena: tocca o passa il cursore per illuminare il faro!',
       colore: '#a78bfa',
+      giochiEsclusi: ['dattilo', 'caccia'],
       attiva(arena) {
         arena.classList.add('malus-nebbia-attiva');
         const canvas = document.createElement('canvas');
@@ -29,46 +30,62 @@
         arena.appendChild(canvas);
 
         const ctx = canvas.getContext('2d');
-        let w = (canvas.width = arena.clientWidth || 360);
-        let h = (canvas.height = arena.clientHeight || 400);
+        const rect0 = arena.getBoundingClientRect();
+        let w = (canvas.width = Math.round(rect0.width) || arena.clientWidth || window.innerWidth || 360);
+        let h = (canvas.height = Math.round(rect0.height) || arena.clientHeight || window.innerHeight || 400);
 
-        // Disegna nebbia iniziale
-        ctx.fillStyle = 'rgba(13, 14, 21, 0.94)';
+        // Disegna nebbia atmosferica traslucida (visibile e misteriosa, NON accecante!)
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
         ctx.fillRect(0, 0, w, h);
 
         const pulisciPunto = (clientX, clientY) => {
           const rect = canvas.getBoundingClientRect();
-          const x = clientX - rect.left;
-          const y = clientY - rect.top;
+          if (!rect.width || !rect.height) return;
+          const scaleX = canvas.width / rect.width;
+          const scaleY = canvas.height / rect.height;
+          const x = (clientX - rect.left) * scaleX;
+          const y = (clientY - rect.top) * scaleY;
           ctx.save();
           ctx.globalCompositeOperation = 'destination-out';
-          const rad = ctx.createRadialGradient(x, y, 10, x, y, 70);
+          const rad = ctx.createRadialGradient(x, y, 15, x, y, 115);
           rad.addColorStop(0, 'rgba(0,0,0,1)');
+          rad.addColorStop(0.65, 'rgba(0,0,0,0.85)');
           rad.addColorStop(1, 'rgba(0,0,0,0)');
           ctx.fillStyle = rad;
           ctx.beginPath();
-          ctx.arc(x, y, 70, 0, Math.PI * 2);
+          ctx.arc(x, y, 115, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
         };
 
         const onPointer = (e) => pulisciPunto(e.clientX, e.clientY);
-        arena.addEventListener('pointermove', onPointer, { passive: true });
-        arena.addEventListener('pointerdown', onPointer, { passive: true });
+        const onTouch = (e) => {
+          if (e.touches && e.touches[0]) {
+            pulisciPunto(e.touches[0].clientX, e.touches[0].clientY);
+          }
+        };
 
+        window.addEventListener('pointermove', onPointer, { passive: true });
+        window.addEventListener('pointerdown', onPointer, { passive: true });
+        window.addEventListener('touchmove', onTouch, { passive: true });
+        window.addEventListener('touchstart', onTouch, { passive: true });
+
+        // Riempimento lento e delicato della nebbia (~4 secondi prima che si richiuda)
         const interval = setInterval(() => {
           if (!canvas.parentNode) {
             clearInterval(interval);
             return;
           }
-          ctx.fillStyle = 'rgba(13, 14, 21, 0.035)';
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.016)';
           ctx.fillRect(0, 0, w, h);
-        }, 120);
+        }, 160);
 
         return () => {
           clearInterval(interval);
-          arena.removeEventListener('pointermove', onPointer);
-          arena.removeEventListener('pointerdown', onPointer);
+          window.removeEventListener('pointermove', onPointer);
+          window.removeEventListener('pointerdown', onPointer);
+          window.removeEventListener('touchmove', onTouch);
+          window.removeEventListener('touchstart', onTouch);
           arena.classList.remove('malus-nebbia-attiva');
           if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
         };
@@ -81,6 +98,7 @@
       tag: 'PROSPETTIVA INVERTITA',
       desc: 'L’arena è capovolta a 180°: gioca a testa in giù!',
       colore: '#ff0055',
+      giochiEsclusi: ['caccia', 'equilibrio'],
       attiva(arena) {
         arena.classList.add('malus-sottosopra');
         return () => arena.classList.remove('malus-sottosopra');
@@ -178,9 +196,62 @@
       tag: 'BLACKOUT LAMPO',
       desc: 'Lo schermo si oscura a intervalli regolari: devi andare a memoria!',
       colore: '#f43f5e',
+      giochiCompatibili: ['memory', 'fotografica', 'sequenza', 'simon', 'ordine', 'inverso'],
       attiva(arena) {
         arena.classList.add('malus-cieco');
         return () => arena.classList.remove('malus-cieco');
+      }
+    },
+    {
+      id: 'dado_lento',
+      nome: 'Dado Maledetto',
+      icona: '🎲',
+      tag: 'TIRO DEPOTENZIATO',
+      desc: 'Il dado è incantato: ottieni al massimo 3 ad ogni lancio!',
+      colore: '#f59e0b',
+      giochiCompatibili: ['oca', 'tabellone', 'yahtzee'],
+      attiva(arena) {
+        arena.classList.add('malus-panic');
+        return () => arena.classList.remove('malus-panic');
+      }
+    },
+    {
+      id: 'tasti_ballerini',
+      nome: 'Tasti Ballerini',
+      icona: '🔤',
+      tag: 'TESTO ONDEGGIA',
+      desc: 'I testi e le parole rimbalzano e ballano rendendo difficile colpire!',
+      colore: '#ec4899',
+      giochiCompatibili: ['dattilo', 'anagrammi', 'calcolo', 'stroop', 'conta', 'intruso'],
+      attiva(arena) {
+        arena.classList.add('malus-shake-text');
+        return () => arena.classList.remove('malus-shake-text');
+      }
+    },
+    {
+      id: 'falso_allarme',
+      nome: 'Falso Allarme',
+      icona: '⚠️',
+      tag: 'DISTRAZIONE LAMPO',
+      desc: 'Falsi lampi di colore e scosse per ingannare i tuoi riflessi!',
+      colore: '#eab308',
+      giochiCompatibili: ['riflessi', 'cronometro', 'bomba'],
+      attiva(arena) {
+        arena.classList.add('malus-falso-allarme');
+        return () => arena.classList.remove('malus-falso-allarme');
+      }
+    },
+    {
+      id: 'super_attrito',
+      nome: 'Super Attrito',
+      icona: '🥊',
+      tag: 'FATICA DOPPIA',
+      desc: 'L’arena oppone forte resistenza e vibra ad ogni pressione!',
+      colore: '#ef4444',
+      giochiCompatibili: ['spam', 'fune', 'scuoti'],
+      attiva(arena) {
+        arena.classList.add('malus-attrito');
+        return () => arena.classList.remove('malus-attrito');
       }
     }
   ];
@@ -195,8 +266,34 @@
     },
 
     pescaCasuali(n = 3) {
-      const mescolati = CATALOGO_MALUS.slice().sort(() => Math.random() - 0.5);
-      return mescolati.slice(0, n);
+      return this.pescaCasualiPerGioco(window.S?.giocoId, n);
+    },
+
+    pescaCasualiPerGioco(giocoId, n = 3) {
+      const validi = CATALOGO_MALUS.filter(m => {
+        if (!giocoId) {
+          return !m.giochiCompatibili;
+        }
+        if (m.giochiEsclusi && m.giochiEsclusi.includes(giocoId)) return false;
+        if (m.giochiCompatibili && !m.giochiCompatibili.includes(giocoId)) return false;
+        return true;
+      });
+
+      // Metti in risalto i malus specifici del gioco se presenti
+      const specifici = validi.filter(m => m.giochiCompatibili && m.giochiCompatibili.includes(giocoId));
+      const universali = validi.filter(m => !m.giochiCompatibili);
+
+      const scelti = [];
+      if (specifici.length > 0) {
+        const specShuffled = specifici.slice().sort(() => Math.random() - 0.5);
+        scelti.push(specShuffled[0]);
+      }
+      const rimanenti = universali.slice().sort(() => Math.random() - 0.5);
+      while (scelti.length < n && rimanenti.length > 0) {
+        const p = rimanenti.pop();
+        if (!scelti.some(s => s.id === p.id)) scelti.push(p);
+      }
+      return scelti;
     },
 
     /* ------------------------------------------------------------------ Attivazione Malus */
@@ -272,6 +369,12 @@
       const banner = document.getElementById('malus-banner-prenotato');
       if (banner) banner.style.display = 'none';
       if (!container) return;
+
+      // Se siamo in modalità allenamento (solo), nessun Malus va assegnato
+      if (window.S && window.S.ruolo === 'solo') {
+        container.style.display = 'none';
+        return;
+      }
 
       // Se la partita è terminata o c'è stata vittoria automatica, niente malus
       if (window.S && (window.S.vittoriaAutomatica || window.S.round >= (window.MAX_ROUND || 3) - 1)) {
@@ -350,18 +453,39 @@
       });
     },
 
+    estraiId(malusObj) {
+      if (!malusObj) return null;
+      if (typeof malusObj === 'string') return malusObj;
+      if (malusObj.id) return malusObj.id;
+      if (malusObj.malusId) return malusObj.malusId;
+      if (malusObj.malus) {
+        if (typeof malusObj.malus === 'string') return malusObj.malus;
+        if (malusObj.malus.id) return malusObj.malus.id;
+        if (malusObj.malus.malusId) return malusObj.malus.malusId;
+      }
+      return null;
+    },
+
+    risolvi(malusObj) {
+      if (!malusObj) return null;
+      const id = this.estraiId(malusObj);
+      return this.trova(id);
+    },
+
     /* ------------------------------------------------------------------ Applicazione nel Round */
     mostraBadgeRound(malusObj) {
       if (!malusObj) return;
-      const m = this.trova(malusObj.id || malusObj.malusId) || malusObj.malus || malusObj;
+      const m = this.risolvi(malusObj);
+      if (!m) return;
       const badge = document.getElementById('modifier-badge');
+      const mittente = malusObj.nome || (malusObj.malus && malusObj.malus.nome) || 'Avversario';
       if (badge && m) {
         badge.classList.add('is-on', 'malus-badge-on');
         badge.innerHTML = `
           <div class="malus-active-pill">
             <span class="pulse-icon">🚨</span> 
             <b>MALUS ATTIVO:</b> ${m.icona || '⚡'} <b>${m.nome}</b> — <span>${m.desc || ''}</span> 
-            <small class="malus-author">Sfidante: ${malusObj.nome || 'Avversario'} · Se battuto: VITTORIA AUTOMATICA!</small>
+            <small class="malus-author">Sfidante: ${mittente} · Se battuto: VITTORIA AUTOMATICA!</small>
           </div>
         `;
       }
@@ -373,8 +497,13 @@
       const arena = document.getElementById('arena');
       if (!arena) return;
 
-      const m = this.trova(malusObj.id || malusObj.malusId) || malusObj.malus || malusObj;
-      if (!m) return;
+      const m = this.risolvi(malusObj);
+      if (!m) {
+        console.warn("[Malus] Impossibile trovare malus:", malusObj);
+        return;
+      }
+
+      console.log("[Malus] Attivazione effetto schermo:", m.id, m.nome);
 
       if (typeof m.attiva === 'function') {
         _puliziaMalusCorrente = m.attiva(arena);

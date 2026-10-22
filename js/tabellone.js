@@ -239,7 +239,11 @@ function avviaTiroDado() {
 
 // Host gestisce il tiro e sincronizza
 function lanciaDadoBoardHost(dadoRicevuto) {
-  const dado = dadoRicevuto || (Math.floor(Math.random() * 6) + 1);
+  let dado = dadoRicevuto || (Math.floor(Math.random() * 6) + 1);
+  const malusId = window.Malus && window.Malus.estraiId(typeof S !== "undefined" ? S.malusNelRoundCorrente : null);
+  if (malusId === "dado_lento") {
+    dado = Math.min(dado, 3);
+  }
   const tiratore = S.boardVincitore;
   const ultimo = S.boardUltimo;
   

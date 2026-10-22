@@ -20,7 +20,7 @@ const PREFISSO_ID = "dattiloduello-v1-";
 const ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // niente I/O/0/1, si confondono
 const MAX_GIOCATORI = 6;
 
-// Configurazione WebRTC con server STUN veloci e verificati
+// Configurazione WebRTC con server STUN veloci, stabili e verificati
 const PEER_OPTS = {
   debug: 1,
   config: {
@@ -28,12 +28,9 @@ const PEER_OPTS = {
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
       { urls: "stun:stun2.l.google.com:19302" },
-      { urls: "stun:stun3.l.google.com:19302" },
-      { urls: "stun:stun4.l.google.com:19302" },
-      { urls: "stun:stun.cloudflare.com:3478" },
-      { urls: "stun:relay.metered.ca:80" }
+      { urls: "stun:stun.cloudflare.com:3478" }
     ],
-    iceCandidatePoolSize: 10
+    iceCandidatePoolSize: 0
   }
 };
 
@@ -147,11 +144,7 @@ const Rete = {
     };
     conn.on("close", addio);
     conn.on("error", (err) => {
-      console.warn("[Rete] Warning/Errore connessione " + id + ":", err);
-      // Disconnetti solo se il canale non è aperto o chiuso definitivamente
-      if (!conn.open) {
-        addio();
-      }
+      console.warn("[Rete] Warning canale " + id + ":", err);
     });
   },
 
