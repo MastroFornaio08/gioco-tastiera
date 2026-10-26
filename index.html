@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="css/style.css?v=18">
   <link rel="stylesheet" href="css/giochi.css?v=16">
   <link rel="stylesheet" href="css/anima.css?v=15">
-  <link rel="stylesheet" href="css/design-system.css?v=3">
+  <link rel="stylesheet" href="css/design-system.css?v=4">
 </head>
 
 <body>
@@ -213,41 +213,47 @@
 
     <!-- ============ TABELLONE (OCA) ============ -->
     <section class="screen" id="screen-board">
-      <h2>Il Tabellone</h2>
-      <div class="board-wrapper" style="padding: 20px 0; max-height: 60vh; overflow-y: auto;">
-        <div id="board-container"
-          style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; max-width: 500px; margin: 0 auto; padding: 10px; justify-items: center;">
-          <!-- generato da js -->
+      <header class="board-header">
+        <div>
+          <p class="screen-eyebrow">Corsa al traguardo</p>
+          <h2>Tabellone</h2>
         </div>
-      </div>
-      <div class="board-controls" style="text-align: center; margin-top: 10px;">
-        <div id="board-status" style="margin-bottom: 15px; font-weight: bold; font-size: 1.2rem; color: #ffd23b;">
-          Prepara i dadi...</div>
+        <div class="board-legend" aria-label="Caselle speciali">
+          <span><i class="legend-dot legend-plus"></i>Bonus +2</span>
+          <span><i class="legend-dot legend-minus"></i>Malus −2</span>
+          <span><i class="legend-dot legend-goal"></i>Traguardo</span>
+        </div>
+      </header>
 
-        <div id="board-dice-area" style="display: none; margin-bottom: 15px;">
-          <div id="board-dice-box"
-            style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 10px 0;">
-            <div id="board-dice-cube"
-              style="font-size: 4rem; line-height: 1; margin-bottom: 6px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); transition: transform 0.15s ease;">
-              🎲</div>
-            <div id="board-dice-result"
-              style="font-size: 1.25rem; font-weight: bold; color: #fff; min-height: 1.6rem; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">
+      <div class="board-layout">
+        <div class="board-wrapper">
+          <div id="board-container" aria-label="Percorso di gioco"></div>
+        </div>
+
+        <aside class="board-controls">
+          <div class="board-turn-card">
+            <span class="board-turn-label">Turno in corso</span>
+            <div id="board-status">Preparazione della partita…</div>
+          </div>
+
+          <div id="board-dice-area" class="board-dice-area" style="display: none;">
+            <div id="board-dice-box" class="board-dice-box">
+              <div id="board-dice-cube" class="board-dice-cube">🎲</div>
+              <div id="board-dice-result" class="board-dice-result"></div>
             </div>
+            <button class="btn btn-primary" id="btn-roll-dice">Lancia il dado</button>
           </div>
-          <button class="btn btn-primary" id="btn-roll-dice"
-            style="width: 100%; max-width: 320px; margin: 0 auto; padding: 14px 20px; font-size: 1.3rem; font-weight: bold; background: #eab308; color: #000; border-radius: 12px; box-shadow: 0 4px 12px rgba(234, 179, 8, 0.4);">🎲
-            Lancia il tuo Dado!</button>
-        </div>
 
-        <div id="board-choose-area" style="display: none; margin-bottom: 15px;">
-          <h3 id="board-choose-title" style="margin-bottom: 10px; color: #10b981;">Scegli tu il prossimo gioco:</h3>
-          <div id="board-game-list"
-            style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 220px; overflow-y: auto;">
-            <!-- generato da js -->
+          <div id="board-choose-area" class="board-choose-area" style="display: none;">
+            <div class="board-choose-heading">
+              <span class="board-turn-label">Prossima sfida</span>
+              <h3 id="board-choose-title">Scegli un gioco</h3>
+            </div>
+            <div id="board-game-list" class="board-game-list"></div>
           </div>
-        </div>
 
-        <button class="btn btn-ghost btn-small" id="btn-board-quit">Abbandona partita</button>
+          <button class="btn btn-ghost btn-small board-quit" id="btn-board-quit">Abbandona partita</button>
+        </aside>
       </div>
     </section>
 
@@ -561,7 +567,7 @@
   <!--<script src="js/giochi/snake.js?v=14"></script>-->
   <script src="js/giochi/escaperoom.js?v=14"></script>
 
-  <script src="js/tabellone.js?v=13"></script>
+  <script src="js/tabellone.js?v=14"></script>
   <script src="js/avvio.js?v=20"></script>
   <script>
     // Rimozione immediata di qualsiasi Service Worker attivo e svuotamento completo CacheStorage
