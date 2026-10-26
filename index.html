@@ -4,23 +4,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Zaltergames — Neo-Arcade Party Game (2-6 Giocatori)</title>
+  <title>Zaltergames — Party games competitivi</title>
   <meta name="description"
     content="Trentuno giochi lampo Neo-Arcade da 2 a 6 giocatori, direttamente dal browser. Latenza zero, niente account, pura competizione.">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0D0E15">
+  <meta name="theme-color" content="#090b10">
   <link rel="icon" href="img/panda.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,700;1,800&family=Inter:wght@400;500;600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="css/style.css?v=18">
   <link rel="stylesheet" href="css/giochi.css?v=16">
   <link rel="stylesheet" href="css/anima.css?v=15">
+  <link rel="stylesheet" href="css/design-system.css?v=1">
 </head>
 
 <body>
@@ -44,10 +45,11 @@
 
     <!-- ============ MENU ============ -->
     <section class="screen is-active" id="screen-menu">
+      <p class="menu-kicker">PARTY GAMES / 2–6 GIOCATORI</p>
       <h1 class="logo">
         ZALTER<span>GAMES</span>
       </h1>
-      <p class="tagline">Trentuno giochi lampo Neo-Arcade. Da 2 a 6 giocatori. Tre round e si vede chi comanda.</p>
+      <p class="tagline">Sfide rapide, rivalità vere. Crea una stanza e scegli chi comanda.</p>
 
       <label class="field">
         <span>Il tuo nome</span>
@@ -73,14 +75,12 @@
             giocatori</small></button>
         <button class="btn" id="btn-join-screen">Entra con Codice<small>ti serve il codice dell'host</small></button>
         <button class="btn btn-ghost" id="btn-solo">Allenamento<small>da solo, contro un fantasma</small></button>
-        <button class="btn btn-ghost" id="btn-records">🏆 Record & Trofei<small>punteggi e badge
+        <button class="btn btn-ghost" id="btn-records">Record & Trofei<small>punteggi e badge
             sbloccati</small></button>
         <button class="btn btn-ghost" id="btn-bot-tester"
-          style="border-color: #00f0ff; color: #00f0ff; box-shadow: 0 0 12px rgba(0,240,255,0.2);">🤖 Bot Tester (Scova
-          Bug)<small>test automatico giochi con 2-6 bot</small></button>
+          style="border-color: #00f0ff; color: #00f0ff; box-shadow: 0 0 12px rgba(0,240,255,0.2);">Bot Tester<small>test automatico giochi con 2-6 bot</small></button>
         <button type="button" class="btn btn-ghost btn-small" id="btn-purge-cache"
-          style="color: #94a3b8; font-size: 0.8rem; margin-top: 4px; border-color: rgba(255,255,255,0.15);">🧹 Svuota
-          Cache & Aggiorna Gioco</button>
+          style="color: #94a3b8; font-size: 0.8rem; margin-top: 4px; border-color: rgba(255,255,255,0.15);">Svuota cache</button>
       </div>
 
       <p class="hint">Serve solo il browser. Niente account, niente installazioni.</p>
