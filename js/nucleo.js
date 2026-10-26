@@ -250,11 +250,12 @@ function disegnaGriglia() {
   listaEl.innerHTML = giochiFiltrati.map(g => {
     const blocco = motivoBlocco(g);
     const cat = CATEGORIE_MAP[g.id] || "party";
-    const tagCat = cat === "azione" ? "⚡ Azione" : cat === "mente" ? "🧠 Mente" : cat === "precisione" ? "🎯 Abilità" : "🎭 Party";
+    const tagCat = cat === "azione" ? "Riflessi" : cat === "mente" ? "Mente" : cat === "precisione" ? "Abilità" : "Party";
     return "<div class='riga-gioco" + (blocco ? " bloccata" : "") + (S.giocoId === g.id ? " scelta" : "") + "' data-gioco='" + g.id + "'>" +
       "<div class='rg-icona'>" + g.icona + "</div>" +
       "<div class='rg-info'>" +
-        "<div class='rg-nome'>" + fuggiHtml(g.nome) + " <span style='font-size:0.75rem; opacity:0.7; font-weight:normal;'>(" + tagCat + ")</span></div>" +
+        "<div class='rg-nome'>" + fuggiHtml(g.nome) + "</div>" +
+        "<div class='rg-cat'>" + tagCat + "</div>" +
         "<div class='rg-desc'>" + fuggiHtml(g.desc) + "</div>" +
         (blocco ? "<div class='rg-tag'>" + fuggiHtml(blocco) + "</div>" : "") +
       "</div>" +
