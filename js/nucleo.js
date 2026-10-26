@@ -50,7 +50,7 @@ const REQUISITI_GIOCHI = {
   urlo: "Microfono",
   tris: "Solo 2 giocatori",
   impostore: "Da 3 giocatori",
-  escaperoom: "Cooperativo"
+  escaperoom: "Co-op simultaneo"
 };
 
 /* ------------------------------------------------------------------ stato */
