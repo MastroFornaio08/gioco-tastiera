@@ -598,3 +598,327 @@ body.light-theme .btn-chat-pill {
 .posto.vuoto {
   animation: none;
 }
+
+
+/* ======================================================================
+   Lobby 2.0 — layout dedicato, stabile anche su viewport basse
+   ====================================================================== */
+
+#screen-lobby.is-active {
+  display: grid;
+  grid-template-rows: auto auto minmax(190px, 1fr) auto;
+  gap: 14px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  justify-content: stretch;
+}
+
+.lobby-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 54px;
+}
+
+.lobby-heading { flex: 1 1 auto; min-width: 0; }
+
+.screen-eyebrow {
+  margin: 0 0 5px;
+  color: var(--zg-accent);
+  font: 700 .65rem/1 var(--font-body);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+#screen-lobby #lobby-titolo {
+  margin: 0;
+  text-align: left;
+  font-size: clamp(1.65rem, 4vw, 2.25rem);
+}
+
+#screen-lobby .giocatori {
+  flex: 0 1 auto;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  max-width: 52%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  background: transparent;
+  border-radius: 0;
+}
+
+#screen-lobby .gioc {
+  flex: 0 0 48px;
+  width: 48px;
+}
+
+#screen-lobby .gioc-avatar {
+  width: 38px;
+  height: 38px;
+  margin-bottom: 3px;
+  font-size: 1.08rem;
+  border-width: 1px;
+}
+
+#screen-lobby .gioc-nome {
+  font-size: .62rem;
+  color: var(--zg-text-3);
+}
+
+#screen-lobby .lobby-filtri {
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  margin: 0;
+  padding: 0 0 2px;
+  overflow-x: auto;
+}
+
+#screen-lobby .filtro-btn,
+#screen-lobby .filtro-btn[data-cat] {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 8px 13px;
+  border-radius: 9px;
+}
+
+#screen-lobby .lista-giochi {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(104px, auto);
+  align-content: start;
+  gap: 8px;
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 2px 6px 2px 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+#screen-lobby .riga-gioco {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 4px;
+  min-height: 104px;
+  padding: 14px;
+  text-align: left;
+  overflow: hidden;
+}
+
+#screen-lobby .riga-gioco.scelta {
+  background: rgba(139,156,255,.12);
+  border-color: var(--zg-accent);
+  box-shadow: inset 0 0 0 1px rgba(139,156,255,.1);
+  animation: none;
+}
+
+#screen-lobby .rg-icona {
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  font-size: 1.55rem;
+  line-height: 1;
+  background: var(--zg-canvas-2);
+  border: 1px solid var(--zg-line);
+  border-radius: 12px;
+}
+
+#screen-lobby .rg-info {
+  display: contents;
+  min-width: 0;
+}
+
+#screen-lobby .rg-nome {
+  grid-column: 2;
+  align-self: end;
+  min-width: 0;
+  color: var(--zg-text);
+  font-family: var(--font-display);
+  font-size: .96rem;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#screen-lobby .rg-cat {
+  grid-column: 3;
+  align-self: end;
+  padding: 4px 7px;
+  color: var(--zg-text-3);
+  background: rgba(255,255,255,.035);
+  border: 1px solid var(--zg-line);
+  border-radius: 7px;
+  font-size: .59rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+#screen-lobby .rg-desc {
+  grid-column: 2 / 4;
+  align-self: start;
+  min-width: 0;
+  color: var(--zg-text-2);
+  font-size: .73rem;
+  line-height: 1.38;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+#screen-lobby .rg-tag {
+  grid-column: 2 / 4;
+  color: var(--zg-danger);
+  font-size: .67rem;
+}
+
+.lobby-actions {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--zg-line);
+}
+
+.lobby-quick-actions,
+.lobby-play-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.lobby-quick-actions { grid-template-columns: repeat(2, 1fr); }
+.lobby-play-actions { grid-template-columns: 1.15fr 1fr 1fr; }
+
+#screen-lobby .lobby-actions .btn {
+  min-height: 44px;
+  padding: 9px 12px;
+  font-size: .79rem;
+}
+
+#screen-lobby #btn-roulette,
+#screen-lobby #btn-start-vote,
+#screen-lobby #btn-start-tournament,
+#screen-lobby #btn-start-board {
+  color: var(--zg-text-2);
+  background: var(--zg-panel);
+  border: 1px solid var(--zg-line);
+  box-shadow: none;
+  animation: none;
+}
+
+#screen-lobby #btn-roulette:hover,
+#screen-lobby #btn-start-vote:hover,
+#screen-lobby #btn-start-tournament:hover,
+#screen-lobby #btn-start-board:hover {
+  color: var(--zg-text);
+  background: var(--zg-panel-hover);
+  border-color: var(--zg-line-strong);
+}
+
+#screen-lobby #btn-start {
+  color: var(--zg-accent-ink);
+  background: var(--zg-accent);
+  border-color: var(--zg-accent);
+  animation: none;
+}
+
+#screen-lobby #btn-start:disabled {
+  color: var(--zg-text-3) !important;
+  background: var(--zg-panel) !important;
+  border: 1px solid var(--zg-line) !important;
+  opacity: .62;
+}
+
+#screen-lobby .status:empty { display: none; }
+
+#screen-lobby .lobby-back {
+  width: 100%;
+  min-height: 36px;
+  margin: 0;
+  padding: 6px 12px;
+  color: var(--zg-text-3);
+  background: transparent;
+  border-color: transparent;
+}
+
+@media (max-width: 620px) {
+  #screen-lobby.is-active {
+    grid-template-rows: auto auto minmax(220px, 1fr) auto;
+    gap: 10px;
+    padding: 20px 16px 14px;
+  }
+
+  .lobby-header {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  #screen-lobby .giocatori {
+    max-width: 48%;
+  }
+
+  #screen-lobby .lista-giochi {
+    grid-template-columns: 1fr;
+    grid-auto-rows: minmax(88px, auto);
+  }
+
+  #screen-lobby .riga-gioco {
+    min-height: 88px;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    padding: 11px;
+  }
+
+  #screen-lobby .rg-icona {
+    width: 42px;
+    height: 42px;
+    font-size: 1.35rem;
+  }
+
+  .lobby-play-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #screen-lobby #btn-start {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 621px) {
+  #screen-lobby.is-active {
+    gap: 9px;
+    padding-block: 20px;
+  }
+
+  #screen-lobby .lista-giochi {
+    grid-auto-rows: minmax(86px, auto);
+  }
+
+  #screen-lobby .riga-gioco {
+    min-height: 86px;
+    padding: 10px 12px;
+  }
+
+  #screen-lobby .rg-desc {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+
+  .lobby-actions { padding-top: 8px; }
+  #screen-lobby .lobby-actions .btn { min-height: 40px; }
+}
