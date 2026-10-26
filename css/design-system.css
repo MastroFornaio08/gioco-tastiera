@@ -577,3 +577,24 @@ body.light-theme .btn-chat-pill {
   outline: 2px solid var(--zg-accent);
   outline-offset: 3px;
 }
+
+
+/* Neutralizza le animazioni decorative ereditate dal tema arcade. */
+.btn-primary:not(:disabled),
+#btn-create:not(:disabled) {
+  animation: none;
+  box-shadow: none;
+}
+
+.code {
+  color: var(--zg-text);
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  animation: none;
+}
+
+.gioc.mio .gioc-avatar,
+.posto.vuoto {
+  animation: none;
+}
