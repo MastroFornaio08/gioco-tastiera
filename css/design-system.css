@@ -1334,3 +1334,10 @@ body.light-theme .btn-chat-pill {
   .casella-step { top: 6px; left: 6px; font-size: .48rem; }
   .pedina-board { width: 23px; height: 23px; font-size: .95rem; }
 }
+
+
+/* Mantiene le caselle proporzionate invece di stirarle sull'altezza disponibile. */
+#board-container {
+  grid-auto-rows: 64px;
+  align-content: center;
+}
