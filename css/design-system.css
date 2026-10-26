@@ -1341,3 +1341,70 @@ body.light-theme .btn-chat-pill {
   grid-auto-rows: 76px;
   align-content: center;
 }
+
+/* Arena condivisa: un solo linguaggio visivo, senza “temi” decorativi discordanti. */
+#screen-round .arena-wrap {
+  background:
+    radial-gradient(circle at 50% -15%, rgba(139, 156, 255, .11), transparent 42%),
+    var(--zg-canvas) !important;
+}
+
+#screen-round .arena {
+  color: var(--zg-text) !important;
+  background: linear-gradient(145deg, rgba(24, 28, 40, .96), rgba(13, 16, 24, .98)) !important;
+  background-image: none !important;
+  border: 1px solid var(--zg-line) !important;
+  box-shadow: var(--zg-shadow-2) !important;
+}
+
+#screen-round .arena input,
+#screen-round .arena select,
+#screen-round .arena textarea {
+  min-height: 46px;
+  color: var(--zg-text);
+  background: rgba(255, 255, 255, .045);
+  border: 1px solid var(--zg-line-strong);
+  border-radius: 10px;
+  box-shadow: none;
+  font: 600 .95rem/1.2 var(--zg-font-body);
+}
+
+#screen-round .arena input:focus,
+#screen-round .arena select:focus,
+#screen-round .arena textarea:focus {
+  border-color: var(--zg-accent);
+  outline: 3px solid rgba(139, 156, 255, .16);
+}
+
+#screen-round .arena button {
+  font-family: var(--zg-font-body);
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.hud-nord-pill {
+  background: rgba(13, 16, 24, .9);
+  border: 1px solid var(--zg-line-strong);
+  box-shadow: var(--zg-shadow-1);
+}
+
+.hud-timer {
+  color: var(--zg-accent-soft);
+  background: rgba(139, 156, 255, .1);
+  border-color: rgba(139, 156, 255, .24);
+  text-shadow: none;
+}
+
+.rg-requisito {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 4px 8px;
+  color: var(--zg-text-2);
+  background: rgba(139, 156, 255, .08);
+  border: 1px solid rgba(139, 156, 255, .18);
+  border-radius: 999px;
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+}

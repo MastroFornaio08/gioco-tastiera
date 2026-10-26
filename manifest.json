@@ -1,11 +1,11 @@
 {
   "name": "Zaltergames",
   "short_name": "Zaltergames",
-  "description": "Ventisette giochi lampo Neo-Arcade da 2 a 6 giocatori, direttamente dal browser.",
+  "description": "Venticinque party game competitivi da 2 a 6 giocatori, direttamente dal browser.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0D0E15",
-  "theme_color": "#FFE600",
+  "background_color": "#090b10",
+  "theme_color": "#8b9cff",
   "icons": [
     {
       "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>",

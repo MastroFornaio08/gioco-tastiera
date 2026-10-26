@@ -1,5 +1,5 @@
 const fs = require('fs');
-const html = fs.readFileSync('index.html', 'utf8');
+const html = fs.readFileSync('index.html', 'utf8').replace(/<!--[\s\S]*?-->/g, '');
 
 // Find all script tags in index.html in order
 const scriptMatches = [...html.matchAll(/<script\s+src="([^"]+)"/g)];

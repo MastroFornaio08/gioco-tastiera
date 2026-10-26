@@ -196,7 +196,7 @@
       tag: 'BLACKOUT LAMPO',
       desc: 'Lo schermo si oscura a intervalli regolari: devi andare a memoria!',
       colore: '#f43f5e',
-      giochiCompatibili: ['memory', 'fotografica', 'sequenza', 'simon', 'ordine', 'inverso'],
+      giochiCompatibili: ['memory', 'fotografica', 'sequenza', 'ordine', 'inverso'],
       attiva(arena) {
         arena.classList.add('malus-cieco');
         return () => arena.classList.remove('malus-cieco');
@@ -209,7 +209,7 @@
       tag: 'TIRO DEPOTENZIATO',
       desc: 'Il dado è incantato: ottieni al massimo 3 ad ogni lancio!',
       colore: '#f59e0b',
-      giochiCompatibili: ['oca', 'tabellone', 'yahtzee'],
+      giochiCompatibili: ['tabellone', 'yahtzee'],
       attiva(arena) {
         arena.classList.add('malus-panic');
         return () => arena.classList.remove('malus-panic');
@@ -248,7 +248,7 @@
       tag: 'FATICA DOPPIA',
       desc: 'L’arena oppone forte resistenza e vibra ad ogni pressione!',
       colore: '#ef4444',
-      giochiCompatibili: ['spam', 'fune', 'scuoti'],
+      giochiCompatibili: ['spam', 'scuoti'],
       attiva(arena) {
         arena.classList.add('malus-attrito');
         return () => arena.classList.remove('malus-attrito');

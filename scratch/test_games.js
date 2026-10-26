@@ -35,6 +35,7 @@ function createMockElement(tag = 'div') {
     removeAttribute(k) { delete this.attributes[k]; },
     dataset: {},
     appendChild(el) { this.children.push(el); return el; },
+    insertAdjacentHTML(position, html) { this.innerHTML += html; },
     removeChild(el) {
       const idx = this.children.indexOf(el);
       if (idx !== -1) this.children.splice(idx, 1);

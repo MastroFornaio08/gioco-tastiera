@@ -43,6 +43,16 @@ const BONUS_PRIMO = 100;   // a chi finisce per primo, nei giochi di velocità
 const COLORI = ["#00F0FF", "#FF0055", "#FFE600", "#00FF66", "#B026FF", "#FF7A00"];
 const ID_FANTASMA = "gh";
 
+/* Requisiti mostrati prima di avviare i giochi che usano hardware specifico. */
+const REQUISITI_GIOCHI = {
+  caccia: "Fotocamera opzionale",
+  scuoti: "Sensori o controlli touch",
+  urlo: "Microfono",
+  tris: "Solo 2 giocatori",
+  impostore: "Da 3 giocatori",
+  escaperoom: "Cooperativo"
+};
+
 /* ------------------------------------------------------------------ stato */
 
 const S = {
@@ -177,7 +187,7 @@ function applicaElenco(lista) {
 
 /* ------------------------------------------------------------ scelta gioco */
 
-/* Mappatura categorie per i 27 giochi attivi */
+/* Mappatura categorie per i 25 giochi attivi */
 const CATEGORIE_MAP = {
   // ⚡ Azione & Riflessi
   riflessi: "azione",
@@ -186,9 +196,7 @@ const CATEGORIE_MAP = {
   bomba: "azione",
   spam: "azione",
   equilibrio: "azione",
-  fune: "azione",
   dodge: "azione",
-  flappy: "azione",
 
   // 🧠 Mente & Logica
   calcolo: "mente",
@@ -198,24 +206,20 @@ const CATEGORIE_MAP = {
   memory: "mente",
   inverso: "mente",
   sequenza: "mente",
-  simon: "mente",
   intruso: "mente",
 
   // 🎯 Precisione & Abilità
   dattilo: "precisione",
-  sniper: "precisione",
   bersagli: "precisione",
   fotografica: "precisione",
   conta: "precisione",
   tris: "precisione",
   yahtzee: "precisione",
-  snake: "precisione",
 
   // 🎭 Party & Bluff
   impostore: "party",
   caccia: "party",
   urlo: "party",
-  oca: "party",
   escaperoom: "party"
 };
 
@@ -251,12 +255,14 @@ function disegnaGriglia() {
     const blocco = motivoBlocco(g);
     const cat = CATEGORIE_MAP[g.id] || "party";
     const tagCat = cat === "azione" ? "Riflessi" : cat === "mente" ? "Mente" : cat === "precisione" ? "Abilità" : "Party";
+    const requisito = REQUISITI_GIOCHI[g.id];
     return "<div class='riga-gioco" + (blocco ? " bloccata" : "") + (S.giocoId === g.id ? " scelta" : "") + "' data-gioco='" + g.id + "'>" +
       "<div class='rg-icona'>" + g.icona + "</div>" +
       "<div class='rg-info'>" +
         "<div class='rg-nome'>" + fuggiHtml(g.nome) + "</div>" +
         "<div class='rg-cat'>" + tagCat + "</div>" +
         "<div class='rg-desc'>" + fuggiHtml(g.desc) + "</div>" +
+        (requisito ? "<div class='rg-requisito'>" + fuggiHtml(requisito) + "</div>" : "") +
         (blocco ? "<div class='rg-tag'>" + fuggiHtml(blocco) + "</div>" : "") +
       "</div>" +
       "</div>";
@@ -924,9 +930,9 @@ function mostraRisultato(tabella) {
       if (S.giocoId === "dattilo" && mr.guadagno >= 280) Trofei.sblocca("dita_fuoco");
       if ((S.giocoId === "riflessi" || S.giocoId === "cronometro") && mr.tempo <= 0.25) Trofei.sblocca("riflessi_lampo");
       if (S.giocoId === "calcolo" && mr.guadagno >= 500) Trofei.sblocca("cervellone");
-      if ((S.giocoId === "bersagli" || S.giocoId === "sniper") && mr.guadagno >= 400) Trofei.sblocca("cecchino");
+      if (S.giocoId === "bersagli" && mr.guadagno >= 400) Trofei.sblocca("cecchino");
       if (S.giocoId === "stroop" && mr.guadagno >= 450) Trofei.sblocca("stroop_master");
-      if (S.giocoId === "simon" && mr.guadagno >= 600) Trofei.sblocca("cyborg_simon");
+      if (S.giocoId === "sequenza" && mr.guadagno >= 600) Trofei.sblocca("cyborg_simon");
       if (S.giocoId === "bomba" && mr.guadagno > 0) Trofei.sblocca("disinnescatore");
       if (S.giocoId === "tris" && mia === 0) Trofei.sblocca("maestro_tris");
     }

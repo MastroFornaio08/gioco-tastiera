@@ -46,6 +46,7 @@ function createMockElement(tag = 'div', id = '') {
       }
       return child;
     },
+    insertAdjacentHTML(position, html) { this.innerHTML += html; },
     removeChild(child) {
       const idx = this.children.indexOf(child);
       if (idx !== -1) this.children.splice(idx, 1);
@@ -333,6 +334,14 @@ async function testGiocoConBot(gioco, numBot = 3) {
       }
     }
 
+    if (botFinished.size !== actualPlayers) {
+      throw new Error(`Solo ${botFinished.size}/${actualPlayers} bot hanno concluso il round`);
+    }
+    for (const [id, esito] of botFinished) {
+      if (!esito || !Number.isFinite(Number(esito.punti))) {
+        throw new Error(`Punteggio non valido per ${id}`);
+      }
+    }
     report.pass = true;
     report.botScores = Array.from(botFinished.entries()).map(([id, r]) => `${id}: ${r.punti}pt (${r.dettaglio || '-'})`);
 

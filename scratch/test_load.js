@@ -80,7 +80,7 @@ const context = {
 context.window = context;
 vm.createContext(context);
 
-const html = fs.readFileSync('index.html', 'utf8');
+const html = fs.readFileSync('index.html', 'utf8').replace(/<!--[\s\S]*?-->/g, '');
 const scriptMatches = [...html.matchAll(/<script\s+src="([^"]+)"/g)];
 
 for (const m of scriptMatches) {
