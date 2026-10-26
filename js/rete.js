@@ -28,9 +28,19 @@ const PEER_OPTS = {
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
       { urls: "stun:stun2.l.google.com:19302" },
-      { urls: "stun:stun.cloudflare.com:3478" }
+      { urls: "stun:stun.cloudflare.com:3478" },
+      { urls: "stun:openrelay.metered.ca:80" },
+      {
+        urls: [
+          "turn:openrelay.metered.ca:80",
+          "turn:openrelay.metered.ca:443",
+          "turn:openrelay.metered.ca:443?transport=tcp"
+        ],
+        username: "openrelayproject",
+        credential: "openrelayproject"
+      }
     ],
-    iceCandidatePoolSize: 0
+    iceCandidatePoolSize: 6
   }
 };
 
@@ -60,6 +70,7 @@ const Rete = {
   _tentativiRiconnessione: 0,
   _apriConnessioneOspite: null,
   _ospiteConnesso: false,
+  _connOspite: null,
 
   on(tipo, fn) { this.handlers[tipo] = fn; return this; },
 
@@ -296,7 +307,11 @@ const Rete = {
     const avviaConnessione = (riconnessione = false) => {
       if (this._ospiteConnesso || !this.peer || this.peer.destroyed) return;
       console.log("[Rete] Ospite connette a:", targetId);
+      if (this._connOspite && !this._connOspite.open) {
+        try { this._connOspite.close(); } catch (e) {}
+      }
       conn = this.peer.connect(targetId, { reliable: true });
+      this._connOspite = conn;
       this._collegaConn("p0", conn);
 
       const onAperto = () => {
@@ -327,9 +342,7 @@ const Rete = {
       timerTimeout = setTimeout(() => {
         if (!this._ospiteConnesso && (!conn || !conn.open)) {
           console.warn("[Rete] Timeout connessione stanza:", codice);
-          this._emit("errore", {
-            messaggio: "Impossibile collegarsi alla stanza " + codice + ". Assicurati che l'host sia nella schermata 'Sala d'attesa' e riprova!"
-          });
+          this._emit("stato", { messaggio: "Connessione lenta: provo un percorso alternativo…" });
           try { if (conn) conn.close(); } catch (e) {}
           this._programmaRiconnessione();
         }
@@ -380,6 +393,7 @@ const Rete = {
     }
     this._apriConnessioneOspite = null;
     this._ospiteConnesso = false;
+    this._connOspite = null;
     this._tentativiRiconnessione = 0;
     this._timerSlot.forEach(timer => clearTimeout(timer));
     this._timerSlot.clear();

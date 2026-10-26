@@ -1455,6 +1455,7 @@ function collegaRete() {
 
   Rete.on("riconnessioneFallita", () => {
     toast("Non riesco a rientrare. Controlla la rete e riprova dalla stanza.");
+    stato("join-status", "Collegamento non riuscito. L'host deve lasciare aperta la stanza; se siete su reti diverse può essere necessario riprovare.", "err");
     if ($("btn-join")) $("btn-join").disabled = false;
   });
 
