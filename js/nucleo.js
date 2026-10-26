@@ -1747,4 +1747,3 @@ function configuraTastoEsciSud() {
   btn.addEventListener("touchcancel", annullaPressione, { passive: true });
 }
 
-
