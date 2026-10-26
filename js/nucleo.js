@@ -1214,14 +1214,11 @@ function collegaRete() {
   Rete.on("connesso", () => {
     if (S.ruolo === "ospite") {
       let tentativiCiao = 0;
+      const eraRiconnessione = !!(S.io && Rete.io);
       const inviaCiao = () => {
-        if (S.io && Rete.io) {
-          if (timerHandshakeCiao) { clearInterval(timerHandshakeCiao); timerHandshakeCiao = null; }
-          return;
-        }
         tentativiCiao++;
         console.log(`[Rete] Presentazione ospite ('ciao'), tentativo ${tentativiCiao}...`);
-        Rete.invia("ciao", { nome: S.nome, avatar: S.avatar });
+        Rete.invia("ciao", { nome: S.nome, avatar: S.avatar, riconnessione: eraRiconnessione });
         if (tentativiCiao >= 8 && timerHandshakeCiao) {
           clearInterval(timerHandshakeCiao);
           timerHandshakeCiao = null;
@@ -1254,7 +1251,7 @@ function collegaRete() {
         } else {
           stato("host-status", "Giocatore connesso! Puoi aspettare altri amici o premere il tasto.");
         }
-        toast(nomeDi(m.da) + " è entrato!");
+        toast(nomeDi(m.da) + (m.riconnessione ? " è rientrato in partita." : " è entrato!"));
         break;
       }
 
@@ -1418,35 +1415,47 @@ function collegaRete() {
     if (S.ruolo === "solo") return;
 
     if (S.ruolo === "ospite" && id === "p0") {
-      azzera(); azzeraRete();
-      toast("L'host ha chiuso la partita.");
-      tornaAlMenu();
+      toast("Connessione persa. Provo a rientrare…");
       return;
     }
 
     // un ospite se n'è andato: la partita continua fra i rimasti
     const g = gioc(id);
     if (g) g.online = false;
-    toast((g ? g.nome : "Un giocatore") + " si è disconnesso.");
+    toast((g ? g.nome : "Un giocatore") + " ha perso la connessione. Attendo il rientro…");
     disegnaPunteggiHud();     // lo si vede subito barrato, senza aspettare il round dopo
 
     if (S.ruolo === "host") {
-      const inLobby = !$("screen-host").classList.contains("is-active");
-      Rete.invia("giocatori", { lista: elencoDaSpedire(), inLobby });
-      if (!inLobby) {
+      setTimeout(() => {
+        const corrente = gioc(id);
+        if (corrente && corrente.online) return;
+        const inLobby = !$("screen-host").classList.contains("is-active");
+        Rete.invia("giocatori", { lista: elencoDaSpedire(), inLobby });
+        if (!inLobby) { disegnaSalaAttesa(); return; }
+        if (attivi().length < 2) {
+          toast("Il giocatore non è rientrato. Torno in sala d'attesa.");
+          azzera();
+          entraInLobby();
+          return;
+        }
         disegnaSalaAttesa();
-        return;
-      }
-      if (attivi().length < 2) {
-        toast("Sei rimasto solo. Torno in sala d'attesa.");
-        azzera();
-        entraInLobby();
-        return;
-      }
-      disegnaSalaAttesa();
-      aggiornaTastoInizia();
-      forseChiudiRound();   // magari mancava solo lui per chiudere il round
+        aggiornaTastoInizia();
+        forseChiudiRound();
+      }, 12000);
     }
+  });
+
+  Rete.on("riconnessione", ({ tentativo, massimo }) => {
+    toast("Riconnessione " + tentativo + "/" + massimo + "…");
+  });
+
+  Rete.on("riconnesso", () => {
+    toast("Connessione ripristinata.");
+  });
+
+  Rete.on("riconnessioneFallita", () => {
+    toast("Non riesco a rientrare. Controlla la rete e riprova dalla stanza.");
+    if ($("btn-join")) $("btn-join").disabled = false;
   });
 
   Rete.on("errore", ({ messaggio }) => {

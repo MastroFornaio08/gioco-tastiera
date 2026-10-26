@@ -30,6 +30,15 @@ function copia(testo, conferma) {
 }
 
 function collegaInterfaccia() {
+  const effectsQuality = $("effects-quality");
+  if (effectsQuality && window.Effetti) {
+    effectsQuality.value = Effetti.modalita || "auto";
+    effectsQuality.onchange = () => {
+      Effetti.impostaModalita(effectsQuality.value);
+      toast(effectsQuality.value === "disattivati" ? "Effetti disattivati." : "Qualità effetti aggiornata.");
+    };
+  }
+
   $("btn-create").onclick = () => {
     S.nome = nomeScelto();
     S.avatar = avatarScelto();

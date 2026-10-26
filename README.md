@@ -11,6 +11,8 @@ Apri <https://mastrofornaio08.github.io/gioco-tastiera/>.
 - **Allenamento** permette di provare i giochi compatibili contro un avversario simulato.
 - **Torneo** assegna corone per ogni sfida vinta.
 - **Tabellone** trasforma i minigiochi in una corsa a 25 caselle.
+- **Effetti visivi** offre qualità automatica, completa, ridotta o disattivata.
+- Le interruzioni brevi di rete attivano una **riconnessione automatica** mantenendo lo slot del giocatore.
 
 Non servono account. L’host funziona da arbitro e i browser comunicano tramite PeerJS/WebRTC.
 

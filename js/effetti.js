@@ -46,8 +46,9 @@
       const pochiCore = typeof navigator !== 'undefined' && navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
       const pocaMemoria = typeof navigator !== 'undefined' && navigator.deviceMemory && navigator.deviceMemory <= 4;
       const schermoPiccolo = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 720px)').matches;
-      this.qualita = (pochiCore || pocaMemoria || schermoPiccolo) ? 0.55 : 1;
-      this.limiteParticelle = this.qualita < 1 ? 150 : 280;
+      this.qualitaAutomatica = (pochiCore || pocaMemoria || schermoPiccolo) ? 0.55 : 1;
+      try { this.modalita = localStorage.getItem('zg-effetti') || 'auto'; } catch (e) { this.modalita = 'auto'; }
+      this._applicaModalita();
     }
 
     _init() {
@@ -108,9 +109,22 @@
       return Math.max(minimo, Math.round(valore * this.qualita));
     }
 
+    _applicaModalita() {
+      this.qualita = this.modalita === 'completi' ? 1 : this.modalita === 'ridotti' ? 0.45 : this.qualitaAutomatica;
+      this.limiteParticelle = this.qualita < 1 ? 130 : 280;
+    }
+
+    impostaModalita(modalita) {
+      if (!['auto', 'completi', 'ridotti', 'disattivati'].includes(modalita)) modalita = 'auto';
+      this.modalita = modalita;
+      try { localStorage.setItem('zg-effetti', modalita); } catch (e) {}
+      this._applicaModalita();
+      if (modalita === 'disattivati') this._ferma();
+    }
+
     /* ------------------------------------------------------------------ API: Coriandoli */
     coriandoli(quanti = 65, opzioni = {}) {
-      if (RIDOTTO() || !this._init()) return;
+      if (this.modalita === 'disattivati' || RIDOTTO() || !this._init()) return;
       quanti = this._quantita(quanti);
       const colori = opzioni.colori || null;
       const w = this.w;
@@ -146,7 +160,7 @@
 
     /* ------------------------------------------------------------------ API: Cannoni Laterali */
     cannoni(quantiPerCannone = 45, colori) {
-      if (RIDOTTO() || !this._init()) return;
+      if (this.modalita === 'disattivati' || RIDOTTO() || !this._init()) return;
       quantiPerCannone = this._quantita(quantiPerCannone);
       const w = this.w;
       const h = this.h;
@@ -212,7 +226,7 @@
 
     /* ------------------------------------------------------------------ API: Fuochi d'Artificio */
     fuoco(x, y, opzioni = {}) {
-      if (RIDOTTO() || !this._init()) return;
+      if (this.modalita === 'disattivati' || RIDOTTO() || !this._init()) return;
       const targetX = x !== undefined ? x : this.w * (0.2 + Math.random() * 0.6);
       const targetY = y !== undefined ? y : this.h * (0.18 + Math.random() * 0.35);
       const colore = opzioni.colore || this._coloreCasuale(opzioni.colori);
@@ -279,7 +293,7 @@
 
     /* ------------------------------------------------------------------ API: Spettacolo Fuochi Continuo */
     spettacoloFuochi(durataMs = 3500, intervalloMs = 380) {
-      if (RIDOTTO()) return;
+      if (this.modalita === 'disattivati' || RIDOTTO()) return;
       if (this._spettacoloTimer) clearInterval(this._spettacoloTimer);
 
       const inizio = Date.now();
@@ -305,7 +319,7 @@
 
     /* ------------------------------------------------------------------ API: Scintille (Sparks al tocco) */
     scintille(x, y, colore, quanti = 14) {
-      if (RIDOTTO() || !this._init()) return;
+      if (this.modalita === 'disattivati' || RIDOTTO() || !this._init()) return;
       quanti = this._quantita(quanti);
       const c = colore || this._coloreCasuale();
 
@@ -335,7 +349,7 @@
 
     /* ------------------------------------------------------------------ API: Onda d'Urto (Shockwave) */
     onda(x, y, colore = '#00f0ff', raggioMax = 80) {
-      if (RIDOTTO() || !this._init()) return;
+      if (this.modalita === 'disattivati' || RIDOTTO() || !this._init()) return;
       this.particelle.push({
         tipo: 'shockwave',
         x: x,
@@ -352,7 +366,7 @@
 
     /* ------------------------------------------------------------------ API: Preset Vittoria */
     vittoria(tipo = 'round') {
-      if (RIDOTTO()) return;
+      if (this.modalita === 'disattivati' || RIDOTTO()) return;
       if (tipo === 'partita' || tipo === 'torneo') {
         // Gran finale: cannoni a raffica + spettacolo di fuochi d'artificio
         this.cannoni(60);
@@ -598,7 +612,9 @@
     spettacoloFuochi(durata, intervallo) { istanza.spettacoloFuochi(durata, intervallo); },
     scintille(x, y, colore, quanti) { istanza.scintille(x, y, colore, quanti); },
     onda(x, y, colore, raggioMax) { istanza.onda(x, y, colore, raggioMax); },
-    vittoria(tipo) { istanza.vittoria(tipo); }
+    vittoria(tipo) { istanza.vittoria(tipo); },
+    impostaModalita(modalita) { istanza.impostaModalita(modalita); },
+    get modalita() { return istanza.modalita; }
   };
 
   // Funzione coriandoli globale per retrocompatibilità 100%

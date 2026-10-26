@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="css/style.css?v=19">
   <link rel="stylesheet" href="css/giochi.css?v=16">
   <link rel="stylesheet" href="css/anima.css?v=15">
-  <link rel="stylesheet" href="css/design-system.css?v=7">
+  <link rel="stylesheet" href="css/design-system.css?v=8">
 </head>
 
 <body>
@@ -75,6 +75,16 @@
         <button class="btn btn-ghost" id="btn-records">Record & Trofei<small>punteggi e badge
             sbloccati</small></button>
       </div>
+
+      <label class="effects-setting" for="effects-quality">
+        <span>Effetti visivi</span>
+        <select id="effects-quality" aria-label="Qualità effetti visivi">
+          <option value="auto">Automatici</option>
+          <option value="completi">Completi</option>
+          <option value="ridotti">Ridotti</option>
+          <option value="disattivati">Disattivati</option>
+        </select>
+      </label>
 
       <p class="hint">Serve solo il browser. Niente account, niente installazioni.</p>
     </section>
@@ -352,10 +362,10 @@
 
   <!-- rete, audio, effetti e motore comune -->
   <script src="js/audio.js?v=15"></script>
-  <script src="js/rete.js?v=19"></script>
-  <script src="js/effetti.js?v=16"></script>
+  <script src="js/rete.js?v=20"></script>
+  <script src="js/effetti.js?v=17"></script>
   <script src="js/malus.js?v=7"></script>
-  <script src="js/nucleo.js?v=29"></script>
+  <script src="js/nucleo.js?v=30"></script>
   <!-- i 25 giochi attivi -->
   <script src="js/giochi/dattilo.js?v=13"></script>
   <script src="js/giochi/riflessi.js?v=14"></script>
@@ -384,7 +394,7 @@
   <script src="js/giochi/escaperoom.js?v=14"></script>
 
   <script src="js/tabellone.js?v=14"></script>
-  <script src="js/avvio.js?v=20"></script>
+  <script src="js/avvio.js?v=21"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

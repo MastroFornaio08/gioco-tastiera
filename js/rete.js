@@ -54,6 +54,12 @@ const Rete = {
   conns: new Map(),     // idGiocatore -> connessione   (l'ospite ha solo 'p0')
   handlers: {},
   _heartbeatInterval: null,
+  _slotPerPeer: new Map(),
+  _timerSlot: new Map(),
+  _riconnessioneTimer: null,
+  _tentativiRiconnessione: 0,
+  _apriConnessioneOspite: null,
+  _ospiteConnesso: false,
 
   on(tipo, fn) { this.handlers[tipo] = fn; return this; },
 
@@ -93,6 +99,7 @@ const Rete = {
   /* Cerca se esiste già uno slot assegnato allo stesso peerId */
   _trovaSlotPeer(peerId) {
     if (!peerId) return null;
+    if (this._slotPerPeer.has(peerId)) return this._slotPerPeer.get(peerId);
     for (const [id, c] of this.conns.entries()) {
       if (c && c.peer === peerId) return id;
     }
@@ -102,7 +109,9 @@ const Rete = {
   /* Primo slot libero fra p1 e p5, così un posto liberato viene riusato. */
   _slotLibero() {
     for (let i = 1; i < MAX_GIOCATORI; i++) {
-      if (!this.conns.has("p" + i)) return "p" + i;
+      const id = "p" + i;
+      const riservato = Array.from(this._slotPerPeer.values()).includes(id);
+      if (!this.conns.has(id) && !riservato) return id;
     }
     return null;
   },
@@ -136,9 +145,22 @@ const Rete = {
     const addio = () => {
       if (this.conns.get(id) === conn) {
         this.conns.delete(id);
+        if (this.ruolo === "host" && conn.peer) {
+          const timerPrecedente = this._timerSlot.get(conn.peer);
+          if (timerPrecedente) clearTimeout(timerPrecedente);
+          const timer = setTimeout(() => {
+            if (!this.conns.has(id)) this._slotPerPeer.delete(conn.peer);
+            this._timerSlot.delete(conn.peer);
+          }, 12000);
+          this._timerSlot.set(conn.peer, timer);
+        }
         if (eraAperto) {
           console.log("[Rete] Canale dati chiuso con:", id);
           this._emit("disconnesso", { id });
+          if (this.ruolo === "ospite" && id === "p0" && !this._chiusuraVoluta) {
+            this._ospiteConnesso = false;
+            this._programmaRiconnessione();
+          }
         }
       }
     };
@@ -146,6 +168,27 @@ const Rete = {
     conn.on("error", (err) => {
       console.warn("[Rete] Warning canale " + id + ":", err);
     });
+  },
+
+  _programmaRiconnessione() {
+    if (this._chiusuraVoluta || this.ruolo !== "ospite" || this._riconnessioneTimer) return;
+    const massimo = 8;
+    const prova = () => {
+      this._riconnessioneTimer = null;
+      if (this._chiusuraVoluta || this._ospiteConnesso) return;
+      this._tentativiRiconnessione++;
+      this._emit("riconnessione", { tentativo: this._tentativiRiconnessione, massimo });
+      try {
+        if (this.peer && this.peer.disconnected && !this.peer.destroyed) this.peer.reconnect();
+        if (this.peer && this.peer.open && this._apriConnessioneOspite) this._apriConnessioneOspite(true);
+      } catch (e) {}
+      if (!this._ospiteConnesso && this._tentativiRiconnessione < massimo) {
+        this._riconnessioneTimer = setTimeout(prova, Math.min(1200 + this._tentativiRiconnessione * 650, 5000));
+      } else if (!this._ospiteConnesso) {
+        this._emit("riconnessioneFallita", {});
+      }
+    };
+    this._riconnessioneTimer = setTimeout(prova, 900);
   },
 
   /* Host: registra un id ricavato da un codice casuale.
@@ -158,6 +201,9 @@ const Rete = {
     this.io = "p0";
     this.codice = codice;
     this.conns = new Map();
+    this._slotPerPeer = new Map();
+    this._timerSlot.forEach(timer => clearTimeout(timer));
+    this._timerSlot = new Map();
 
     const peer = new Peer(PREFISSO_ID + codice, PEER_OPTS);
     this.peer = peer;
@@ -190,6 +236,10 @@ const Rete = {
         if (conn.open) rifiuta(); else conn.on("open", rifiuta);
         return;
       }
+      this._slotPerPeer.set(conn.peer, id);
+      const timerSlot = this._timerSlot.get(conn.peer);
+      if (timerSlot) clearTimeout(timerSlot);
+      this._timerSlot.delete(conn.peer);
       this._collegaConn(id, conn);
     });
 
@@ -223,28 +273,41 @@ const Rete = {
     this.codice = codice;
     this.conns = new Map();
 
-    const guestId = "zg-g-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7);
+    let guestId;
+    try {
+      guestId = localStorage.getItem("zg-peer-id");
+      if (!guestId) {
+        guestId = "zg-g-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7);
+        localStorage.setItem("zg-peer-id", guestId);
+      }
+    } catch (e) {
+      guestId = "zg-g-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7);
+    }
     const peer = new Peer(guestId, PEER_OPTS);
     this.peer = peer;
 
-    let connesso = false;
+    this._ospiteConnesso = false;
+    this._tentativiRiconnessione = 0;
     let timerTimeout = null;
     let conn = null;
 
     const targetId = PREFISSO_ID + codice;
 
-    const avviaConnessione = () => {
-      if (connesso || !this.peer || this.peer.destroyed) return;
+    const avviaConnessione = (riconnessione = false) => {
+      if (this._ospiteConnesso || !this.peer || this.peer.destroyed) return;
       console.log("[Rete] Ospite connette a:", targetId);
       conn = this.peer.connect(targetId, { reliable: true });
       this._collegaConn("p0", conn);
 
       const onAperto = () => {
-        if (connesso) return;
-        connesso = true;
+        if (this._ospiteConnesso) return;
+        this._ospiteConnesso = true;
         if (timerTimeout) { clearTimeout(timerTimeout); timerTimeout = null; }
+        if (this._riconnessioneTimer) { clearTimeout(this._riconnessioneTimer); this._riconnessioneTimer = null; }
         console.log("[Rete] Connessione P2P riuscita con l'host!");
         this._emit("stato", { messaggio: "Canale aperto! Presentazione all'host..." });
+        if (riconnessione || this._tentativiRiconnessione > 0) this._emit("riconnesso", {});
+        this._tentativiRiconnessione = 0;
       };
 
       if (conn.open) onAperto();
@@ -254,6 +317,7 @@ const Rete = {
         console.warn("[Rete] Errore canale dati ospite:", err);
       });
     };
+    this._apriConnessioneOspite = avviaConnessione;
 
     peer.on("open", (mioPeerId) => {
       console.log("[Rete] Ospite registrato (" + mioPeerId + ") -> connessione a:", targetId);
@@ -261,13 +325,13 @@ const Rete = {
       avviaConnessione();
 
       timerTimeout = setTimeout(() => {
-        if (!connesso && (!conn || !conn.open)) {
+        if (!this._ospiteConnesso && (!conn || !conn.open)) {
           console.warn("[Rete] Timeout connessione stanza:", codice);
           this._emit("errore", {
             messaggio: "Impossibile collegarsi alla stanza " + codice + ". Assicurati che l'host sia nella schermata 'Sala d'attesa' e riprova!"
           });
           try { if (conn) conn.close(); } catch (e) {}
-          try { peer.destroy(); } catch (e) {}
+          this._programmaRiconnessione();
         }
       }, 16000);
     });
@@ -276,12 +340,15 @@ const Rete = {
       if (this._chiusuraVoluta || !peer || peer.destroyed) return;
       console.warn("[Rete] Ospite disconnesso temporaneamente dal broker. Riconnetto...");
       try { peer.reconnect(); } catch (e) {}
+      this._programmaRiconnessione();
     });
 
     peer.on("error", (err) => {
       console.warn("[Rete] Errore peer ospite:", err);
       if (timerTimeout) { clearTimeout(timerTimeout); timerTimeout = null; }
-      if (err.type === "peer-unavailable") {
+      if (err.type === "peer-unavailable" && this._tentativiRiconnessione > 0) {
+        this._programmaRiconnessione();
+      } else if (err.type === "peer-unavailable") {
         this._emit("errore", {
           messaggio: "Nessuna stanza attiva trovata con il codice '" + codice + "'. Assicurati che l'host abbia già creato la stanza e sia nella Sala d'attesa!"
         });
@@ -307,6 +374,15 @@ const Rete = {
       clearInterval(this._heartbeatInterval);
       this._heartbeatInterval = null;
     }
+    if (this._riconnessioneTimer) {
+      clearTimeout(this._riconnessioneTimer);
+      this._riconnessioneTimer = null;
+    }
+    this._apriConnessioneOspite = null;
+    this._ospiteConnesso = false;
+    this._tentativiRiconnessione = 0;
+    this._timerSlot.forEach(timer => clearTimeout(timer));
+    this._timerSlot.clear();
     this.conns.forEach(conn => { try { conn.close(); } catch (e) {} });
     this.conns.clear();
     try {

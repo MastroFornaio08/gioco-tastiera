@@ -53,3 +53,20 @@ test('testi e manifest dichiarano 25 giochi', () => {
   assert.match(html, /Venticinque party game/);
   assert.doesNotMatch(html, /Trentuno|31 Minigiochi|31 giochi/);
 });
+
+test('la preferenza effetti è persistente e offre quattro livelli', () => {
+  const effetti = read('js/effetti.js');
+  for (const valore of ['auto', 'completi', 'ridotti', 'disattivati']) {
+    assert.match(html, new RegExp(`value="${valore}"`));
+  }
+  assert.match(effetti, /localStorage\.getItem\('zg-effetti'\)/);
+  assert.match(effetti, /impostaModalita/);
+});
+
+test('la rete conserva identità e slot durante la riconnessione', () => {
+  const rete = read('js/rete.js');
+  assert.match(rete, /localStorage\.getItem\("zg-peer-id"\)/);
+  assert.match(rete, /_programmaRiconnessione/);
+  assert.match(rete, /_slotPerPeer/);
+  assert.match(rete, /riconnessioneFallita/);
+});
