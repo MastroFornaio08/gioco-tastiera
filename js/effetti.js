@@ -43,6 +43,11 @@
       this.dpr = 1;
       this._ready = false;
       this._spettacoloTimer = null;
+      const pochiCore = typeof navigator !== 'undefined' && navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+      const pocaMemoria = typeof navigator !== 'undefined' && navigator.deviceMemory && navigator.deviceMemory <= 4;
+      const schermoPiccolo = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 720px)').matches;
+      this.qualita = (pochiCore || pocaMemoria || schermoPiccolo) ? 0.55 : 1;
+      this.limiteParticelle = this.qualita < 1 ? 150 : 280;
     }
 
     _init() {
@@ -58,9 +63,12 @@
         document.body.appendChild(this.canvas);
       }
 
-      this.ctx = this.canvas.getContext('2d', { alpha: true });
+      this.ctx = this.canvas.getContext('2d', { alpha: true, desynchronized: true });
       this._ridimensiona();
       window.addEventListener('resize', () => this._ridimensiona());
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) this._ferma();
+      });
       this._agganciaClickInterattivi();
       this._ready = true;
       return true;
@@ -68,7 +76,7 @@
 
     _ridimensiona() {
       if (!this.canvas || !this.ctx) return;
-      this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+      this.dpr = Math.min(window.devicePixelRatio || 1, this.qualita < 1 ? 1 : 1.5);
       this.w = window.innerWidth;
       this.h = window.innerHeight;
       this.canvas.width = Math.floor(this.w * this.dpr);
@@ -87,14 +95,28 @@
       return palette[Math.floor(Math.random() * palette.length)];
     }
 
+    _ferma() {
+      if (this._spettacoloTimer) clearInterval(this._spettacoloTimer);
+      this._spettacoloTimer = null;
+      if (this.animId) cancelAnimationFrame(this.animId);
+      this.animId = null;
+      this.particelle.length = 0;
+      if (this.ctx) this.ctx.clearRect(0, 0, this.w, this.h);
+    }
+
+    _quantita(valore, minimo = 4) {
+      return Math.max(minimo, Math.round(valore * this.qualita));
+    }
+
     /* ------------------------------------------------------------------ API: Coriandoli */
     coriandoli(quanti = 65, opzioni = {}) {
       if (RIDOTTO() || !this._init()) return;
+      quanti = this._quantita(quanti);
       const colori = opzioni.colori || null;
       const w = this.w;
 
       for (let i = 0; i < quanti; i++) {
-        if (this.particelle.length > 500) break;
+        if (this.particelle.length >= this.limiteParticelle) break;
         const forma = Math.random() < 0.4 ? 'rect' : (Math.random() < 0.7 ? 'star' : 'circle');
         this.particelle.push({
           tipo: 'confetti',
@@ -125,12 +147,13 @@
     /* ------------------------------------------------------------------ API: Cannoni Laterali */
     cannoni(quantiPerCannone = 45, colori) {
       if (RIDOTTO() || !this._init()) return;
+      quantiPerCannone = this._quantita(quantiPerCannone);
       const w = this.w;
       const h = this.h;
 
       // Cannone di sinistra (spara verso l'alto a destra, 55°-75°)
       for (let i = 0; i < quantiPerCannone; i++) {
-        if (this.particelle.length > 500) break;
+        if (this.particelle.length >= this.limiteParticelle) break;
         const angolo = (Math.PI / 180) * (50 + Math.random() * 30);
         const velocita = 14 + Math.random() * 14;
         this.particelle.push(this._creaParticellaCannone(
@@ -143,7 +166,7 @@
 
       // Cannone di destra (spara verso l'alto a sinistra, 105°-125°)
       for (let i = 0; i < quantiPerCannone; i++) {
-        if (this.particelle.length > 500) break;
+        if (this.particelle.length >= this.limiteParticelle) break;
         const angolo = (Math.PI / 180) * (100 + Math.random() * 30);
         const velocita = 14 + Math.random() * 14;
         this.particelle.push(this._creaParticellaCannone(
@@ -223,7 +246,7 @@
     }
 
     _esplosioneFuoco(x, y, coloreBase, opzioni = {}) {
-      const quanti = opzioni.quanti || (45 + Math.floor(Math.random() * 25));
+      const quanti = this._quantita(opzioni.quanti || (45 + Math.floor(Math.random() * 25)), 12);
       const raggioOnda = opzioni.raggioOnda || 85;
 
       // Onda d'urto neon centrale
@@ -231,7 +254,7 @@
 
       // Scintille a raggiera sferica/anulare
       for (let i = 0; i < quanti; i++) {
-        if (this.particelle.length > 500) break;
+        if (this.particelle.length >= this.limiteParticelle) break;
         const angolo = Math.random() * PI2;
         const vel = 3 + Math.random() * 8.5;
         const colore = Math.random() < 0.25 ? '#ffffff' : (Math.random() < 0.2 ? '#ffd700' : coloreBase);
@@ -248,8 +271,8 @@
           gravity: 0.08 + Math.random() * 0.06,
           drag: 0.94 + Math.random() * 0.03,
           flicker: Math.random() < 0.6,
-          glow: true,
-          coda: []
+          glow: this.qualita === 1,
+          coda: this.qualita === 1 ? [] : null
         });
       }
     }
@@ -263,6 +286,10 @@
       this.cannoni(40);
       this.fuoco();
 
+      if (this.qualita < 1) {
+        durataMs = Math.min(durataMs, 2400);
+        intervalloMs = Math.max(intervalloMs, 600);
+      }
       this._spettacoloTimer = setInterval(() => {
         if (Date.now() - inizio >= durataMs) {
           clearInterval(this._spettacoloTimer);
@@ -279,10 +306,11 @@
     /* ------------------------------------------------------------------ API: Scintille (Sparks al tocco) */
     scintille(x, y, colore, quanti = 14) {
       if (RIDOTTO() || !this._init()) return;
+      quanti = this._quantita(quanti);
       const c = colore || this._coloreCasuale();
 
       for (let i = 0; i < quanti; i++) {
-        if (this.particelle.length > 500) break;
+        if (this.particelle.length >= this.limiteParticelle) break;
         const angolo = Math.random() * PI2;
         const vel = 2 + Math.random() * 6.5;
         this.particelle.push({
@@ -298,8 +326,8 @@
           gravity: 0.12,
           drag: 0.92,
           flicker: true,
-          glow: true,
-          coda: []
+          glow: this.qualita === 1,
+          coda: this.qualita === 1 ? [] : null
         });
       }
       this._avviaLoop();
@@ -430,7 +458,7 @@
           p.sciaContatore++;
 
           // Rilascia scintille di scia ogni 2 tick
-          if (p.sciaContatore % 2 === 0 && rimaste.length < 500) {
+          if (p.sciaContatore % (this.qualita < 1 ? 4 : 2) === 0 && rimaste.length < this.limiteParticelle) {
             rimaste.push({
               tipo: 'spark',
               x: p.x,
@@ -444,8 +472,8 @@
               gravity: 0.04,
               drag: 0.95,
               flicker: false,
-              glow: true,
-              coda: []
+              glow: this.qualita === 1,
+              coda: this.qualita === 1 ? [] : null
             });
           }
 
