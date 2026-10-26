@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="css/style.css?v=18">
   <link rel="stylesheet" href="css/giochi.css?v=16">
   <link rel="stylesheet" href="css/anima.css?v=15">
-  <link rel="stylesheet" href="css/design-system.css?v=2">
+  <link rel="stylesheet" href="css/design-system.css?v=3">
 </head>
 
 <body>
@@ -177,42 +177,38 @@
 
     <!-- ============ LOBBY / SCELTA GIOCO ============ -->
     <section class="screen" id="screen-lobby">
-      <div class="giocatori" id="lobby-giocatori"></div>
+      <header class="lobby-header">
+        <div class="lobby-heading">
+          <p class="screen-eyebrow">Selezione modalità</p>
+          <h2 id="lobby-titolo">Scegli la sfida</h2>
+        </div>
+        <div class="giocatori" id="lobby-giocatori" aria-label="Giocatori nella stanza"></div>
+      </header>
 
-      <h2 id="lobby-titolo">Scegli la sfida</h2>
-
-      <!-- Filtri categorie giochi -->
-      <div class="lobby-filtri" id="lobby-filtri">
-        <button class="filtro-btn is-active" data-cat="tutti">🌟 Tutti</button>
-        <button class="filtro-btn" data-cat="azione">⚡ Riflessi</button>
-        <button class="filtro-btn" data-cat="mente">🧠 Mente</button>
-        <button class="filtro-btn" data-cat="precisione">🎯 Abilità</button>
-        <button class="filtro-btn" data-cat="party">🎭 Party</button>
+      <div class="lobby-filtri" id="lobby-filtri" aria-label="Categorie">
+        <button class="filtro-btn is-active" data-cat="tutti">Tutti</button>
+        <button class="filtro-btn" data-cat="azione">Riflessi</button>
+        <button class="filtro-btn" data-cat="mente">Mente</button>
+        <button class="filtro-btn" data-cat="precisione">Abilità</button>
+        <button class="filtro-btn" data-cat="party">Party</button>
       </div>
 
       <div class="lista-giochi" id="lista-giochi"></div>
 
-      <!-- Azioni extra: Roulette casuale, Votazione e Bot Test -->
-      <div class="lobby-extra-actions" style="display: flex; gap: 8px; margin-top: 12px;">
-        <button class="btn btn-ghost" id="btn-roulette" style="flex: 1; border-color: #ffd23b; font-size: 0.95rem;">🎲
-          Sorpresa!</button>
-        <button class="btn btn-ghost" id="btn-start-vote"
-          style="flex: 1; border-color: #a855f7; font-size: 0.95rem;">🗳️ Vota Gioco</button>
-        <button class="btn btn-ghost" id="btn-lobby-bot-tester"
-          style="flex: 1; border-color: #00f0ff; font-size: 0.95rem; color: #00f0ff;">🤖 Bot Test</button>
-      </div>
-
-      <div style="display:flex; flex-direction:column; gap:10px; margin-top:16px;">
-        <div style="display:flex; gap:10px;">
-          <button class="btn btn-primary" id="btn-start" style="flex:1;">Gioca Singolo</button>
-          <button class="btn btn-primary" id="btn-start-tournament" style="flex:1; background:#ffd23b; color:#000;">👑
-            Torneo</button>
+      <footer class="lobby-actions">
+        <div class="lobby-quick-actions">
+          <button class="btn btn-ghost" id="btn-roulette">Scelta casuale</button>
+          <button class="btn btn-ghost" id="btn-start-vote">Votazione</button>
+          <button class="btn btn-ghost" id="btn-lobby-bot-tester">Bot test</button>
         </div>
-        <button class="btn btn-primary" id="btn-start-board"
-          style="width:100%; background:#10b981; color:#fff; font-size:1.2rem;">🎲 Gioco dell'Oca (Tabellone)</button>
-      </div>
-      <p class="status" id="lobby-status"></p>
-      <button class="btn btn-ghost btn-small" data-back>Torna al menu</button>
+        <div class="lobby-play-actions">
+          <button class="btn btn-primary" id="btn-start">Gioca</button>
+          <button class="btn" id="btn-start-tournament">Torneo</button>
+          <button class="btn" id="btn-start-board">Tabellone</button>
+        </div>
+        <p class="status" id="lobby-status"></p>
+        <button class="btn btn-ghost btn-small lobby-back" data-back>Torna al menu</button>
+      </footer>
     </section>
 
     <!-- ============ TABELLONE (OCA) ============ -->
