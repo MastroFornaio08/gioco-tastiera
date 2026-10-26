@@ -7,64 +7,36 @@ function disegnaTabellone() {
   const container = $("board-container");
   if (!container) return;
   container.innerHTML = "";
-  
+
   for (let i = 0; i <= OBIETTIVO_TABELLONE; i++) {
     const isSpecialPlus = i === 5 || i === 15;
     const isSpecialMinus = i === 10 || i === 20;
     const isEnd = i === OBIETTIVO_TABELLONE;
     const isStart = i === 0;
-    
-    let label = i;
-    let iconaCasella = "";
-    if (isEnd) {
-      label = "25";
-      iconaCasella = "🏆";
-    } else if (isStart) {
-      label = "0";
-      iconaCasella = "🏁";
-    } else if (isSpecialPlus) {
-      label = "+2";
-      iconaCasella = "🪿";
-    } else if (isSpecialMinus) {
-      label = "-2";
-      iconaCasella = "🍌";
-    }
-    
-    const bg = isEnd 
-      ? 'linear-gradient(135deg, #f59e0b, #d97706)' 
-      : isStart
-      ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
-      : isSpecialPlus 
-      ? 'linear-gradient(135deg, #10b981, #059669)' 
-      : isSpecialMinus 
-      ? 'linear-gradient(135deg, #ef4444, #b91c1c)' 
-      : 'linear-gradient(135deg, #334155, #1e293b)';
-      
-    const border = isEnd ? '#fbbf24' : isSpecialPlus ? '#34d399' : isSpecialMinus ? '#f87171' : '#475569';
-    const textColor = '#fff';
-    
-    container.innerHTML += `
-      <div class="casella" id="casella-${i}" style="
-        min-width: 80px; height: 80px; border-radius: 16px; 
-        background: ${bg}; color: ${textColor};
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        font-size: 1.1rem; font-weight: bold; position: relative; border: 3px solid ${border};
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3); transition: transform 0.2s, box-shadow 0.2s;
-      ">
-        <div style="font-size: 1.2rem; line-height: 1;">${iconaCasella}</div>
-        <div style="font-size: 0.85rem; opacity: 0.85; margin-top: 2px;">${label}</div>
-        <div class="pedine-slot" id="slot-${i}" style="position: absolute; display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; width: 100%; top: 50%; transform: translateY(-50%); pointer-events: none;"></div>
+
+    const tipo = isEnd ? "goal" : isStart ? "start" : isSpecialPlus ? "plus" : isSpecialMinus ? "minus" : "normal";
+    const icona = isEnd ? "🏆" : isStart ? "🏁" : isSpecialPlus ? "↗" : isSpecialMinus ? "↙" : "";
+    const label = isEnd ? "25" : isSpecialPlus ? "+2" : isSpecialMinus ? "−2" : String(i);
+
+    container.insertAdjacentHTML("beforeend", `
+      <div class="casella casella--${tipo}" id="casella-${i}" data-position="${i}">
+        <span class="casella-step">${i === 0 ? "START" : i === OBIETTIVO_TABELLONE ? "FINISH" : String(i).padStart(2, "0")}</span>
+        <span class="casella-icon" aria-hidden="true">${icona}</span>
+        <span class="casella-value">${label}</span>
+        <div class="pedine-slot" id="slot-${i}"></div>
       </div>
-    `;
+    `);
   }
 }
 
 function aggiornaPedine() {
   for (let i = 0; i <= OBIETTIVO_TABELLONE; i++) {
     const slot = $("slot-" + i);
+    const cell = $("casella-" + i);
     if (slot) slot.innerHTML = "";
+    if (cell) cell.classList.remove("is-leading");
   }
-  
+
   S.giocatori.forEach(g => {
     if (!g.online && S.ruolo !== "solo") return;
     let pos = S.posizioni[g.id] || 0;
@@ -72,31 +44,25 @@ function aggiornaPedine() {
     if (pos < 0) pos = 0;
     const slot = $("slot-" + pos);
     if (slot) {
-      slot.innerHTML += `<div style="font-size: 2.1rem; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.9)); margin-top: -6px; animation: bounce 0.4s ease;" title="${g.nome}">${g.avatar}</div>`;
+      slot.insertAdjacentHTML("beforeend", `<span class="pedina-board" title="${fuggiHtml(g.nome)}">${g.avatar}</span>`);
     }
   });
-  
+
   const maxPos = Math.max(...S.giocatori.map(g => (g.online || S.ruolo === "solo") ? (S.posizioni[g.id] || 0) : 0));
   const casella = $("casella-" + Math.min(maxPos, OBIETTIVO_TABELLONE));
-  if (casella) casella.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (casella) casella.classList.add("is-leading");
 }
 
 function popolaSceltaGiochi() {
   const container = $("board-game-list");
   if (!container) return;
   container.innerHTML = "";
-  
+
   const giochiValidi = GIOCHI.filter(g => !motivoBlocco(g));
   giochiValidi.forEach(g => {
     const btn = document.createElement("button");
-    btn.className = "btn";
-    btn.style.padding = "10px 12px";
-    btn.style.fontSize = "0.95rem";
-    btn.style.display = "flex";
-    btn.style.alignItems = "center";
-    btn.style.gap = "8px";
-    btn.style.justifyContent = "center";
-    btn.innerHTML = `<span style="font-size: 1.3rem;">${g.icona}</span> <span>${g.nome}</span>`;
+    btn.className = "board-game-option";
+    btn.innerHTML = `<span class="board-game-icon">${g.icona}</span><span class="board-game-name">${fuggiHtml(g.nome)}</span><span class="board-game-arrow" aria-hidden="true">→</span>`;
     btn.onclick = () => {
       container.querySelectorAll("button").forEach(b => b.disabled = true);
       $("board-status").textContent = "Caricamento gioco in corso...";
