@@ -922,3 +922,415 @@ body.light-theme .btn-chat-pill {
   .lobby-actions { padding-top: 8px; }
   #screen-lobby .lobby-actions .btn { min-height: 40px; }
 }
+
+
+/* ======================================================================
+   Tabellone 2.0 — dashboard di partita
+   ====================================================================== */
+
+#screen-board.is-active {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 18px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  justify-content: stretch;
+}
+
+.board-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+#screen-board .board-header h2 {
+  margin: 0;
+  text-align: left;
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
+}
+
+.board-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  color: var(--zg-text-3);
+  font-size: .65rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.board-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--zg-line-strong);
+}
+
+.legend-plus { background: var(--zg-positive); }
+.legend-minus { background: var(--zg-danger); }
+.legend-goal { background: var(--zg-warning); }
+
+.board-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.08fr) minmax(270px, .92fr);
+  gap: 16px;
+  min-height: 0;
+}
+
+.board-wrapper {
+  min-height: 0;
+  padding: 14px;
+  overflow: hidden;
+  background: var(--zg-canvas-2);
+  border: 1px solid var(--zg-line);
+  border-radius: var(--zg-radius-md);
+}
+
+#board-container {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(48px, 1fr));
+  grid-auto-rows: minmax(58px, 1fr);
+  gap: 7px;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.casella {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 58px;
+  overflow: hidden;
+  color: var(--zg-text-2);
+  background: var(--zg-panel);
+  border: 1px solid var(--zg-line);
+  border-radius: 11px;
+  box-shadow: inset 0 1px rgba(255,255,255,.025);
+  transition: border-color .18s ease, background .18s ease, transform .18s var(--zg-ease);
+}
+
+.casella-step {
+  position: absolute;
+  top: 7px;
+  left: 8px;
+  color: var(--zg-text-3);
+  font: 800 .54rem/1 var(--font-body);
+  letter-spacing: .05em;
+}
+
+.casella-icon {
+  color: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.casella-value {
+  color: var(--zg-text-2);
+  font: 750 .74rem/1 var(--font-display);
+}
+
+.casella--normal .casella-icon:empty { display: none; }
+
+.casella--start {
+  background: rgba(139,156,255,.13);
+  border-color: rgba(139,156,255,.46);
+}
+
+.casella--plus {
+  background: rgba(73,214,173,.10);
+  border-color: rgba(73,214,173,.38);
+  color: var(--zg-positive);
+}
+
+.casella--minus {
+  background: rgba(255,111,125,.09);
+  border-color: rgba(255,111,125,.34);
+  color: var(--zg-danger);
+}
+
+.casella--goal {
+  background: rgba(244,201,93,.10);
+  border-color: rgba(244,201,93,.4);
+  color: var(--zg-warning);
+}
+
+.casella.is-leading {
+  border-color: var(--zg-accent);
+  background: rgba(139,156,255,.14);
+  box-shadow: inset 0 0 0 1px rgba(139,156,255,.12);
+}
+
+.pedine-slot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding-top: 5px;
+  pointer-events: none;
+}
+
+.pedina-board {
+  display: inline-grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  font-size: 1.12rem;
+  line-height: 1;
+  background: var(--zg-panel-raised);
+  border: 1px solid var(--zg-line-strong);
+  border-radius: 9px;
+  box-shadow: 0 6px 14px rgba(0,0,0,.28);
+  animation: zg-piece-in .26s var(--zg-ease) both;
+}
+
+@keyframes zg-piece-in {
+  from { opacity: 0; transform: translateY(-5px) scale(.88); }
+  to { opacity: 1; transform: none; }
+}
+
+.board-controls {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 14px;
+  text-align: left;
+  background: var(--zg-panel);
+  border: 1px solid var(--zg-line);
+  border-radius: var(--zg-radius-md);
+}
+
+.board-turn-card {
+  padding: 13px 14px;
+  background: var(--zg-canvas-2);
+  border: 1px solid var(--zg-line);
+  border-radius: var(--zg-radius-sm);
+}
+
+.board-turn-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--zg-text-3);
+  font: 800 .6rem/1 var(--font-body);
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+#board-status {
+  margin: 0;
+  color: var(--zg-text);
+  font-size: .88rem;
+  font-weight: 700;
+  line-height: 1.42;
+}
+
+.board-dice-area {
+  margin-top: 12px;
+  padding: 14px;
+  background: rgba(139,156,255,.08);
+  border: 1px solid rgba(139,156,255,.25);
+  border-radius: var(--zg-radius-sm);
+}
+
+.board-dice-box {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.board-dice-cube {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  font-size: 2.3rem;
+  line-height: 1;
+  background: var(--zg-panel-raised);
+  border: 1px solid var(--zg-line-strong);
+  border-radius: 13px;
+  filter: none;
+  transition: transform .15s ease;
+}
+
+.board-dice-result {
+  min-height: 1.5rem;
+  color: var(--zg-text-2);
+  font-size: .78rem;
+  font-weight: 650;
+  line-height: 1.4;
+  text-shadow: none;
+}
+
+#btn-roll-dice {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 11px 14px;
+  font-size: .82rem;
+  background: var(--zg-accent);
+  color: var(--zg-accent-ink);
+  border-color: var(--zg-accent);
+  box-shadow: none;
+  animation: none;
+}
+
+.board-choose-area {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: 14px;
+}
+
+.board-choose-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+}
+
+.board-choose-heading .board-turn-label { margin: 0; }
+
+#board-choose-title {
+  margin: 0;
+  color: var(--zg-text);
+  font: 700 .9rem/1.2 var(--font-display);
+}
+
+.board-game-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: start;
+  gap: 6px;
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+  padding-right: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--zg-line-strong) transparent;
+}
+
+.board-game-option {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 7px 9px;
+  color: var(--zg-text-2);
+  text-align: left;
+  background: var(--zg-canvas-2);
+  border: 1px solid var(--zg-line);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s var(--zg-ease);
+}
+
+.board-game-option:hover:not(:disabled) {
+  color: var(--zg-text);
+  background: var(--zg-panel-hover);
+  border-color: var(--zg-line-strong);
+  transform: translateX(2px);
+}
+
+.board-game-option:disabled { opacity: .5; cursor: wait; }
+
+.board-game-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+  background: var(--zg-panel);
+  border-radius: 8px;
+}
+
+.board-game-name {
+  min-width: 0;
+  overflow: hidden;
+  font-size: .76rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-game-arrow {
+  color: var(--zg-text-3);
+  font-size: .9rem;
+}
+
+.board-quit {
+  width: 100%;
+  min-height: 36px;
+  margin: 10px 0 0;
+  padding: 7px 10px;
+  color: var(--zg-text-3);
+  border-color: transparent;
+}
+
+@media (max-width: 720px) {
+  #screen-board.is-active {
+    display: flex;
+    height: auto;
+    min-height: calc(100dvh - 20px);
+    overflow-y: auto;
+  }
+
+  .board-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .board-legend {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .board-layout {
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .board-wrapper { min-height: 430px; }
+
+  .board-controls { min-height: 320px; }
+
+  .board-game-list { max-height: 250px; }
+}
+
+@media (max-width: 420px) {
+  #board-container {
+    grid-template-columns: repeat(5, minmax(44px, 1fr));
+    gap: 5px;
+  }
+
+  .board-wrapper {
+    min-height: 390px;
+    padding: 9px;
+  }
+
+  .casella { min-height: 54px; border-radius: 9px; }
+  .casella-step { top: 6px; left: 6px; font-size: .48rem; }
+  .pedina-board { width: 23px; height: 23px; font-size: .95rem; }
+}
