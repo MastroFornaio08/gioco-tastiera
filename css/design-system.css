@@ -1523,6 +1523,8 @@ body.light-theme .btn-chat-pill {
 .escp-agent.is-ready i { background: #fbbf24; }
 .escp-agent.is-complete { opacity: 1; background: rgba(52,211,153,.08); border-color: rgba(52,211,153,.35); }
 .escp-agent.is-complete i { background: #34d399; box-shadow: 0 0 9px #34d399; }
+.escp-agent.is-active { opacity: 1; border-color: rgba(251,191,36,.55); }
+.escp-agent.is-active i { background: #fbbf24; box-shadow: 0 0 9px #fbbf24; animation: zg-unlock .8s ease-in-out infinite alternate; }
 
 .escp-console {
   display: flex;
@@ -1544,6 +1546,16 @@ body.light-theme .btn-chat-pill {
 }
 
 .escp-module { display: grid; place-items: center; flex: 1; width: 100%; }
+.escp-module-stage { position: relative; display: grid; place-items: center; flex: 1; width: 100%; min-height: 135px; }
+.escp-module-stage.is-locked .escp-module { opacity: .13; filter: blur(3px); pointer-events: none; user-select: none; }
+.escp-lock { position: absolute; inset: 0; z-index: 2; display: none; place-content: center; justify-items: center; gap: 5px; padding: 18px; text-align: center; border: 1px solid rgba(139,156,255,.25); border-radius: 12px; background: rgba(7,9,14,.76); backdrop-filter: blur(7px); }
+.escp-module-stage.is-locked .escp-lock { display: grid; }
+.escp-lock > span { display: grid; place-items: center; width: 42px; height: 42px; margin-bottom: 3px; color: var(--esc-accent); border: 1px solid currentColor; border-radius: 50%; font-size: 1.25rem; }
+.escp-lock strong { color: var(--zg-text); font-size: .72rem; letter-spacing: .12em; }
+.escp-lock small { color: var(--zg-text-3); font-size: .67rem; }
+.escp-module-stage.is-unlocked { animation: escp-terminal-on .35s ease-out; }
+.escp-module-stage.is-complete .escp-module { opacity: .55; pointer-events: none; }
+@keyframes escp-terminal-on { from { opacity: .25; transform: scale(.985); } to { opacity: 1; transform: scale(1); } }
 .escp-grid { display: grid; grid-template-columns: repeat(4, minmax(48px, 1fr)); gap: 8px; width: min(100%, 420px); }
 .escp-node,
 .escp-firewall button {

@@ -1,17 +1,16 @@
-/* Escape Room — cooperativa simultanea a ruoli.
-   Ogni giocatore risolve un modulo diverso. Una volta calibrato, il modulo
-   viene liberato automaticamente dal compagno precedente nella catena. */
+/* Escape Room — catena cooperativa di minigiochi.
+   Un giocatore può iniziare soltanto dopo che il precedente ha vinto. */
 
 GIOCHI.push({
   id: "escaperoom",
   nome: "Escape Protocol",
   icona: "🗝️",
-  desc: "Coordinate i moduli della struttura: ognuno risolve una prova diversa e sblocca il compagno successivo.",
+  desc: "Superate una catena di prove: ogni vittoria sblocca il minigioco del compagno successivo.",
   regole: [
     "Ogni giocatore riceve un <b>modulo differente</b> da completare sul proprio dispositivo.",
-    "Tutti lavorano <b>contemporaneamente</b>: precisione, memoria, riflessi e controllo.",
-    "Quando completi la prova, invii energia al giocatore successivo e liberi il suo terminale.",
-    "La fase termina soltanto quando <b>tutti i moduli</b> sono calibrati e agganciati.",
+    "Parte il primo giocatore; gli altri terminali restano <b>bloccati</b>.",
+    "Soltanto vincendo la tua prova liberi il minigioco del giocatore successivo.",
+    "Se un anello della catena non riesce, <b>perde tutta la squadra</b>.",
     "Superate tre settori per aprire insieme la porta di evacuazione."
   ],
   gara: false,
@@ -39,19 +38,20 @@ GIOCHI.push({
   crea(api) {
     const giocatori = api.giocatori.filter(g => g.online);
     const mioIndice = Math.max(0, giocatori.findIndex(g => g.id === api.io));
-    const ruolo = api.dati.ruoli[mioIndice % api.dati.ruoli.length];
+    const settore = api.dati.settore || (api.round + 1);
+    // A ogni settore i ruoli scorrono: ciascun giocatore affronta una prova nuova.
+    const ruolo = api.dati.ruoli[(mioIndice + settore - 1) % api.dati.ruoli.length];
     const predecessore = giocatori[(mioIndice - 1 + giocatori.length) % giocatori.length];
     const successore = giocatori[(mioIndice + 1) % giocatori.length];
-    const settore = api.dati.settore || (api.round + 1);
-    const seed = (api.dati.semi[mioIndice % api.dati.semi.length] || 1) + settore * 97;
-    const pronti = new Set();
+    const seed = (api.dati.semi[(mioIndice + settore - 1) % api.dati.semi.length] || 1) + settore * 97;
     const completati = new Set();
-    let localePronto = false;
     let localeCompletato = false;
+    let sbloccato = mioIndice === 0;
+    let moduloAvviato = false;
     let concluso = false;
     let cleanupModulo = () => {};
 
-    api.suggerimento("Completa il tuo modulo. Il compagno precedente libererà il terminale.");
+    api.suggerimento(sbloccato ? "Sei il primo anello: vinci per sbloccare il compagno." : "Attendi che il compagno precedente vinca la sua prova.");
 
     api.arena.innerHTML = `
       <div class="escape-protocol" style="--esc-accent:${ruolo.colore}">
@@ -78,17 +78,14 @@ GIOCHI.push({
             <span>OBIETTIVO INDIVIDUALE</span>
             <p id="escp-instruction"></p>
           </div>
-          <div id="escp-module" class="escp-module"></div>
-          <div id="escp-feedback" class="escp-feedback">Modulo in attesa di input.</div>
-        </section>
-
-        <section class="escp-release">
-          <div>
-            <span class="escp-release-label">COLLEGAMENTO DI SICUREZZA</span>
-            <strong id="escp-release-text">Prima calibra il tuo modulo.</strong>
-            <small>Ricevi lo sblocco da ${fuggiHtml(predecessore.nome)} · alimenti ${fuggiHtml(successore.nome)}</small>
+          <div class="escp-module-stage${sbloccato ? " is-unlocked" : " is-locked"}" id="escp-module-stage">
+            <div id="escp-module" class="escp-module"></div>
+            <div class="escp-lock" id="escp-lock">
+              <span>⌁</span><strong>TERMINALE BLOCCATO</strong>
+              <small>${fuggiHtml(predecessore.nome)} deve prima vincere la sua prova</small>
+            </div>
           </div>
-          <button id="escp-release-btn" class="btn btn-primary" disabled>Aggancia modulo</button>
+          <div id="escp-feedback" class="escp-feedback">${sbloccato ? "Terminale attivo. Completa la prova." : "In attesa dell’anello precedente."}</div>
         </section>
 
         <div class="escp-team-progress">
@@ -99,10 +96,9 @@ GIOCHI.push({
     `;
 
     const modulo = api.arena.querySelector("#escp-module");
+    const moduleStage = api.arena.querySelector("#escp-module-stage");
     const istruzione = api.arena.querySelector("#escp-instruction");
     const feedback = api.arena.querySelector("#escp-feedback");
-    const releaseBtn = api.arena.querySelector("#escp-release-btn");
-    const releaseText = api.arena.querySelector("#escp-release-text");
     const count = api.arena.querySelector("#escp-team-count");
     const fill = api.arena.querySelector("#escp-track-fill");
 
@@ -121,44 +117,33 @@ GIOCHI.push({
       feedback.className = "escp-feedback" + (tipo ? " is-" + tipo : "");
     }
 
+    function sbloccaLocale() {
+      if (sbloccato || localeCompletato) return;
+      sbloccato = true;
+      moduleStage.classList.remove("is-locked");
+      moduleStage.classList.add("is-unlocked");
+      setFeedback(predecessore.nome + " ha vinto. Ora tocca a te!", "ok");
+      api.suggerimento("Terminale sbloccato: completa la tua prova.");
+      avviaModulo();
+    }
+
     function segnaPronto() {
-      if (localePronto || concluso) return;
-      localePronto = true;
-      pronti.add(api.io);
-      aggiornaCatena();
-      setFeedback("Calibrazione riuscita. Energia inviata a " + successore.nome + ".", "ok");
-      api.invia({ tipo: "esc-pronto", id: api.io });
-      aggiornaSblocco();
-    }
-
-    function aggiornaSblocco() {
-      if (!localePronto || localeCompletato) return;
-      if (pronti.has(predecessore.id)) {
-        releaseBtn.disabled = false;
-        releaseText.textContent = predecessore.nome + " ha liberato il terminale.";
-        releaseBtn.classList.add("is-unlocked");
-      } else {
-        releaseText.textContent = "Calibrato. Attendo lo sblocco da " + predecessore.nome + "…";
-      }
-    }
-
-    function completaLocale() {
-      if (!localePronto || localeCompletato || !pronti.has(predecessore.id)) return;
+      if (!sbloccato || localeCompletato || concluso) return;
       localeCompletato = true;
       completati.add(api.io);
-      releaseBtn.disabled = true;
-      releaseBtn.textContent = "Modulo agganciato";
-      setFeedback("Collegamento stabile. Attendo la squadra.", "ok");
-      api.invia({ tipo: "esc-completo", id: api.io });
+      moduleStage.classList.add("is-complete");
+      setFeedback("Prova superata. Hai sbloccato " + successore.nome + ".", "ok");
+      api.invia({ tipo: "esc-superato", id: api.io });
       aggiornaProgresso();
     }
-    releaseBtn.onclick = completaLocale;
 
     function aggiornaCatena() {
       api.arena.querySelectorAll(".escp-agent").forEach(el => {
         const id = el.dataset.agent;
-        el.classList.toggle("is-ready", pronti.has(id));
         el.classList.toggle("is-complete", completati.has(id));
+        const indice = giocatori.findIndex(g => g.id === id);
+        if (indice < 0) return;
+        el.classList.toggle("is-active", indice === 0 ? completati.size === 0 : completati.has(giocatori[indice - 1].id) && !completati.has(id));
       });
     }
 
@@ -186,7 +171,7 @@ GIOCHI.push({
       if (window.Effetti) Effetti.coriandoli(26);
       setTimeout(() => api.finito({
         punti,
-        dettaglio: giocatori.length + "/" + giocatori.length + " moduli · " + tempo.toFixed(1) + "s"
+        dettaglio: giocatori.length + "/" + giocatori.length + " prove · " + tempo.toFixed(1) + "s"
       }), 1200);
     }
 
@@ -321,20 +306,21 @@ GIOCHI.push({
       circuiti: creaCircuiti,
       firewall: creaFirewall
     };
-    creatori[ruolo.id]();
+    function avviaModulo() {
+      if (moduloAvviato || concluso) return;
+      moduloAvviato = true;
+      creatori[ruolo.id]();
+    }
+    if (sbloccato) avviaModulo();
     aggiornaCatena();
     aggiornaProgresso();
 
     return {
       messaggio(m) {
         if (!m || concluso) return;
-        if (m.tipo === "esc-pronto") {
-          pronti.add(m.id);
-          aggiornaCatena();
-          aggiornaSblocco();
-          if (m.id === predecessore.id && localePronto) setFeedback(predecessore.nome + " ha inviato lo sblocco.", "ok");
-        } else if (m.tipo === "esc-completo") {
+        if (m.tipo === "esc-superato") {
           completati.add(m.id);
+          if (m.id === predecessore.id) sbloccaLocale();
           aggiornaProgresso();
         }
       },
@@ -344,7 +330,7 @@ GIOCHI.push({
         cleanupModulo();
         api.finito({
           punti: completati.size * 160,
-          dettaglio: completati.size + "/" + giocatori.length + " moduli agganciati"
+          dettaglio: completati.size + "/" + giocatori.length + " prove superate"
         });
       },
       chiudi() {

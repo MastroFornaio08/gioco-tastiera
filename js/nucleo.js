@@ -50,7 +50,7 @@ const REQUISITI_GIOCHI = {
   urlo: "Microfono",
   tris: "Solo 2 giocatori",
   impostore: "Da 3 giocatori",
-  escaperoom: "Co-op simultaneo"
+  escaperoom: "Co-op a catena"
 };
 
 /* ------------------------------------------------------------------ stato */
@@ -1762,4 +1762,5 @@ function configuraTastoEsciSud() {
   btn.addEventListener("touchend", annullaPressione, { passive: true });
   btn.addEventListener("touchcancel", annullaPressione, { passive: true });
 }
+
 
