@@ -1,6 +1,6 @@
 # Zaltergames
 
-Party game browser-based con 25 sfide competitive per 2–6 giocatori, allenamento contro un fantasma, tornei e modalità Tabellone.
+Party game browser-based con 26 sfide competitive per 2–6 giocatori, allenamento contro un fantasma, tornei e modalità Tabellone.
 
 ## Giocare
 
@@ -18,7 +18,7 @@ Non servono account. L’host funziona da arbitro e i browser comunicano tramite
 
 ## Catalogo
 
-Il catalogo è stato ridotto a 25 giochi distinti. Sono state eliminate le varianti che duplicavano quasi completamente altre meccaniche:
+Il catalogo è stato ridotto a 26 giochi distinti. Sono state eliminate le varianti che duplicavano quasi completamente altre meccaniche:
 
 - Simon Dice → resta **Sequenza**.
 - Tiro al Bersaglio → resta **Bersaglio**.
