@@ -1,0 +1,367 @@
+/*
+  Tema "Game portal": una direzione visiva da catalogo arcade,
+  pensata per Zaltergames senza riutilizzare marchi o asset di terzi.
+*/
+:root {
+  --portal-navy: #071a43;
+  --portal-blue: #0c55c9;
+  --portal-blue-dark: #073184;
+  --portal-sky: #38bdf8;
+  --portal-yellow: #ffd84a;
+  --portal-orange: #ff9f1c;
+  --portal-ink: #10214b;
+  --portal-paper: #f4f8ff;
+  --portal-card: #ffffff;
+  --portal-line: #c8daf7;
+  --primario: var(--portal-blue);
+  --secondario: var(--portal-yellow);
+  --testo: var(--portal-ink);
+  --muto: #55709b;
+  --linea: var(--portal-line);
+}
+
+body {
+  background:
+    radial-gradient(circle at 15% -5%, rgba(56, 189, 248, .32), transparent 27rem),
+    radial-gradient(circle at 105% 30%, rgba(255, 216, 74, .24), transparent 26rem),
+    #eaf3ff;
+  color: var(--portal-ink);
+  font-family: Manrope, system-ui, sans-serif;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: .28;
+  background-image:
+    linear-gradient(rgba(12, 85, 201, .08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(12, 85, 201, .08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.sfondo { display: none; }
+#app { position: relative; z-index: 1; }
+.screen { max-width: 1120px; }
+
+#screen-menu,
+#screen-host,
+#screen-join,
+#screen-records,
+#screen-result,
+#screen-final {
+  background: var(--portal-card);
+  border: 1px solid var(--portal-line);
+  border-radius: 24px;
+  box-shadow: 0 18px 50px rgba(5, 37, 101, .18);
+}
+
+#screen-menu {
+  max-width: 650px;
+  padding: clamp(28px, 5vw, 54px);
+  overflow: hidden;
+}
+
+#screen-menu::before {
+  content: "PLAY TOGETHER";
+  display: block;
+  width: max-content;
+  margin: -8px auto 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--portal-yellow);
+  color: var(--portal-ink);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  font-weight: 900;
+}
+
+.menu-kicker {
+  color: var(--portal-blue);
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.logo,
+#screen-menu .logo {
+  color: var(--portal-navy);
+  font-family: "Space Grotesk", Manrope, sans-serif;
+  font-size: clamp(2.65rem, 8vw, 5.3rem);
+  line-height: .92;
+  letter-spacing: -.07em;
+  text-shadow: 4px 4px 0 var(--portal-yellow);
+}
+
+.logo span { color: var(--portal-blue); }
+.tagline { color: #48678f; max-width: 34rem; margin-inline: auto; }
+
+.field > span,
+.effects-setting > span {
+  color: var(--portal-ink);
+  font-weight: 800;
+}
+
+.field input,
+.effects-setting select {
+  border: 2px solid var(--portal-line);
+  background: #f8fbff;
+  border-radius: 12px;
+  color: var(--portal-ink);
+  box-shadow: none;
+}
+
+.field input:focus,
+.effects-setting select:focus {
+  border-color: var(--portal-blue);
+  outline: 4px solid rgba(56, 189, 248, .22);
+}
+
+.avatar-selector {
+  justify-content: center;
+  gap: 10px;
+}
+
+.avatar-btn {
+  background: #eef5ff;
+  border: 2px solid #cfe0fb;
+  border-radius: 12px;
+}
+
+.avatar-btn.scelto {
+  background: var(--portal-yellow);
+  border-color: var(--portal-orange);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 0 var(--portal-orange);
+}
+
+.menu-actions,
+.lobby-play-actions,
+.lobby-quick-actions {
+  gap: 12px;
+}
+
+.btn {
+  border: 2px solid var(--portal-blue-dark);
+  border-radius: 12px;
+  background: white;
+  color: var(--portal-blue-dark);
+  font-weight: 900;
+  letter-spacing: .01em;
+  box-shadow: 0 4px 0 var(--portal-blue-dark);
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--portal-blue-dark);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--portal-blue-dark);
+}
+
+.btn-primary {
+  border-color: #d88000;
+  background: var(--portal-yellow);
+  color: var(--portal-ink);
+  box-shadow: 0 4px 0 #d88000;
+}
+
+.btn-primary:hover:not(:disabled) { box-shadow: 0 6px 0 #d88000; }
+.btn-primary:active:not(:disabled) { box-shadow: 0 1px 0 #d88000; }
+.btn-ghost { background: #eef6ff; }
+.btn small { color: inherit; opacity: .7; }
+
+#screen-lobby {
+  max-width: 1220px;
+  padding: clamp(18px, 3vw, 36px);
+  background: transparent;
+}
+
+.lobby-header {
+  padding: 24px 28px;
+  border-radius: 22px;
+  color: white;
+  background: linear-gradient(120deg, var(--portal-navy), var(--portal-blue));
+  box-shadow: 0 14px 32px rgba(5, 49, 132, .24);
+}
+
+.lobby-header h2,
+.lobby-header .screen-eyebrow { color: white; }
+.lobby-header .screen-eyebrow { opacity: .72; }
+.gioc {
+  background: rgba(255,255,255,.13);
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 12px;
+  color: white;
+}
+
+.lobby-filtri {
+  margin: 20px 0 16px;
+  padding: 8px;
+  border: 1px solid var(--portal-line);
+  border-radius: 14px;
+  background: rgba(255,255,255,.9);
+}
+
+.filtro-btn {
+  border: 0;
+  border-radius: 10px;
+  color: #47638c;
+  font-weight: 800;
+}
+
+.filtro-btn.is-active {
+  background: var(--portal-blue);
+  color: white;
+  box-shadow: 0 3px 0 var(--portal-blue-dark);
+}
+
+.lista-giochi {
+  gap: 14px;
+}
+
+.riga-gioco {
+  min-height: 118px;
+  padding: 16px 18px;
+  border: 2px solid var(--portal-line);
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 5px 0 #c4d9fa;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+
+.riga-gioco:hover:not(.bloccata) {
+  transform: translateY(-3px);
+  border-color: var(--portal-blue);
+  box-shadow: 0 8px 0 #b4d0f8;
+}
+
+.riga-gioco.scelta {
+  border-color: #e39100;
+  background: linear-gradient(120deg, #fffdf2, #fff8d8);
+  box-shadow: 0 5px 0 #e39100;
+}
+
+.riga-gioco.bloccata { opacity: .55; filter: grayscale(.2); }
+.rg-icona {
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: #e9f3ff;
+  font-size: 2rem;
+}
+
+.rg-nome { color: var(--portal-ink); font-size: 1.1rem; font-weight: 900; }
+.rg-desc { color: #5a7397; }
+.rg-cat,
+.rg-tag,
+.rg-requisito {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #e6f3ff;
+  color: var(--portal-blue-dark);
+  font-size: .7rem;
+  font-weight: 900;
+}
+
+.lobby-actions {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid var(--portal-line);
+  background: rgba(255,255,255,.88);
+}
+
+#screen-round {
+  background: var(--portal-navy);
+  color: white;
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.hud-nord {
+  background: linear-gradient(90deg, var(--portal-navy), var(--portal-blue-dark));
+  border-bottom: 3px solid var(--portal-yellow);
+}
+
+.hud-nord-pill,
+.hud-p,
+.modifier {
+  border-color: rgba(255,255,255,.25);
+  background: rgba(255,255,255,.11);
+  color: white;
+}
+
+.arena-wrap { background: #f4f8ff; color: var(--portal-ink); }
+.countdown-card {
+  border: 4px solid white;
+  background: var(--portal-blue);
+  box-shadow: 0 8px 0 var(--portal-blue-dark);
+}
+
+#screen-result,
+#screen-final,
+#screen-records {
+  color: var(--portal-ink);
+}
+
+#screen-result h2,
+#screen-final h2,
+#screen-records h2 {
+  color: var(--portal-blue-dark);
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 900;
+}
+
+.scoreboard-table-wrap {
+  border: 1px solid var(--portal-line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.scoreboard-table th { background: var(--portal-blue); color: white; }
+.scoreboard-table tr:nth-child(even) { background: #f2f7ff; }
+.scoreboard-table .vinto { background: #fff9dd; }
+
+#screen-board {
+  background: #edf5ff;
+  border-radius: 22px;
+}
+
+.board-header,
+.board-controls {
+  border-color: var(--portal-line);
+  background: white;
+}
+
+.board-game-option,
+.board-turn-card,
+.board-dice-box {
+  border-color: var(--portal-line);
+  background: #f7fbff;
+}
+
+.btn-fullscreen,
+.btn-theme,
+.btn-music {
+  border: 2px solid var(--portal-blue-dark);
+  background: white;
+  color: var(--portal-blue-dark);
+  box-shadow: 0 3px 0 var(--portal-blue-dark);
+}
+
+@media (max-width: 700px) {
+  #screen-menu { border-radius: 18px; }
+  .lobby-header { padding: 18px; }
+  .riga-gioco { min-height: 100px; }
+  .rg-icona { width: 50px; height: 50px; }
+  .lobby-quick-actions,
+  .lobby-play-actions { grid-template-columns: 1fr; }
+}
