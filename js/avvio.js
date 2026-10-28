@@ -153,7 +153,11 @@ function collegaInterfaccia() {
     };
   });
 
-  // Roulette casuale e Votazione party
+  // Roulette casuale, Playlist e Votazione party
+  const btnPlaylist = $("btn-start-playlist");
+  if (btnPlaylist) {
+    btnPlaylist.onclick = () => avviaPlaylist();
+  }
   const btnRoulette = $("btn-roulette");
   if (btnRoulette) {
     btnRoulette.onclick = () => avviaRoulette();
