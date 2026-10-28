@@ -95,7 +95,7 @@ test('la rimozione del Torneo non interrompe l’inizializzazione dei comandi', 
   assert.doesNotMatch(avvio, /btn-start-tournament/);
   assert.match(avvio, /\$\("btn-next"\)\.onclick/);
   assert.match(html, /js\/avvio\.js\?v=23/);
-  assert.match(read('sw.js'), /zaltergames-v4/);
+  assert.match(read('sw.js'), /zaltergames-v5/);
 });
 
 
