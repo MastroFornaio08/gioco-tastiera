@@ -1159,6 +1159,12 @@ function azzera(resetTotale = true) {
 }
 
 function avviaPartita(torneo = false, board = false) {
+  if (!torneo && !board) {
+    S.isPlaylist = false;
+    S.playlist = [];
+    S.playlistIndex = 0;
+  }
+
   if (board) {
     if (Object.keys(S.posizioni || {}).length === 0) {
       azzera(true);
