@@ -84,9 +84,9 @@ test('la Playlist Party crea una sequenza di sfide senza duplicati', () => {
 
 test('la lobby non espone più il tasto Torneo e versiona gli script della playlist', () => {
   assert.doesNotMatch(html, /id="btn-start-tournament"/);
-  assert.match(html, /js\/nucleo\.js\?v=33/);
+  assert.match(html, /js\/nucleo\.js\?v=34/);
   assert.match(html, /js\/avvio\.js\?v=23/);
-  assert.match(read('sw.js'), /zaltergames-v6/);
+  assert.match(read('sw.js'), /zaltergames-v7/);
 });
 
 
@@ -95,7 +95,7 @@ test('la rimozione del Torneo non interrompe l’inizializzazione dei comandi', 
   assert.doesNotMatch(avvio, /btn-start-tournament/);
   assert.match(avvio, /\$\("btn-next"\)\.onclick/);
   assert.match(html, /js\/avvio\.js\?v=23/);
-  assert.match(read('sw.js'), /zaltergames-v6/);
+  assert.match(read('sw.js'), /zaltergames-v7/);
 });
 
 
@@ -111,4 +111,12 @@ test('Meteoriti è sostituito da due sfide pensate per touch', () => {
   assert.doesNotMatch(html, /js\/giochi\/dodge\.js/);
   assert.match(read('js/giochi/tapdash.js'), /touchstart/);
   assert.match(read('js/giochi/swipesprint.js'), /touchend/);
+});
+
+
+test('Escape Room non applica o propone malus', () => {
+  const nucleo = read('js/nucleo.js');
+  assert.match(nucleo, /g\.id === "escaperoom"/);
+  assert.match(nucleo, /S\.giocoId === "escaperoom"/);
+  assert.match(nucleo, /S\.malusInCoda = null/);
 });
