@@ -88,3 +88,12 @@ test('la lobby non espone più il tasto Torneo e versiona gli script della playl
   assert.match(html, /js\/avvio\.js\?v=22/);
   assert.match(read('sw.js'), /zaltergames-v3/);
 });
+
+
+test('la rimozione del Torneo non interrompe l’inizializzazione dei comandi', () => {
+  const avvio = read('js/avvio.js');
+  assert.doesNotMatch(avvio, /btn-start-tournament/);
+  assert.match(avvio, /\$\("btn-next"\)\.onclick/);
+  assert.match(html, /js\/avvio\.js\?v=23/);
+  assert.match(read('sw.js'), /zaltergames-v4/);
+});
