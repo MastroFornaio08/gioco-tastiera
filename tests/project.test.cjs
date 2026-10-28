@@ -48,9 +48,9 @@ test('gli strumenti diagnostici non sono caricati in produzione', () => {
   assert.doesNotMatch(html, /id="btn-(?:bot-tester|test-p2p|purge-cache)/);
 });
 
-test('testi e manifest dichiarano 25 giochi', () => {
-  assert.match(read('manifest.json'), /Venticinque/);
-  assert.match(html, /Venticinque party game/);
+test('testi e manifest dichiarano 26 giochi', () => {
+  assert.match(read('manifest.json'), /Ventisei/);
+  assert.match(html, /Ventisei party game/);
   assert.doesNotMatch(html, /Trentuno|31 Minigiochi|31 giochi/);
 });
 
