@@ -85,8 +85,8 @@ test('la Playlist Party crea una sequenza di sfide senza duplicati', () => {
 test('la lobby non espone più il tasto Torneo e versiona gli script della playlist', () => {
   assert.doesNotMatch(html, /id="btn-start-tournament"/);
   assert.match(html, /js\/nucleo\.js\?v=32/);
-  assert.match(html, /js\/avvio\.js\?v=22/);
-  assert.match(read('sw.js'), /zaltergames-v3/);
+  assert.match(html, /js\/avvio\.js\?v=23/);
+  assert.match(read('sw.js'), /zaltergames-v4/);
 });
 
 
