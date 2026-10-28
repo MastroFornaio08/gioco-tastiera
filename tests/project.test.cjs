@@ -86,7 +86,7 @@ test('la lobby non espone più il tasto Torneo e versiona gli script della playl
   assert.doesNotMatch(html, /id="btn-start-tournament"/);
   assert.match(html, /js\/nucleo\.js\?v=32/);
   assert.match(html, /js\/avvio\.js\?v=23/);
-  assert.match(read('sw.js'), /zaltergames-v4/);
+  assert.match(read('sw.js'), /zaltergames-v5/);
 });
 
 
