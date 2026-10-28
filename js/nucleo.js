@@ -199,7 +199,8 @@ const CATEGORIE_MAP = {
   bomba: "azione",
   spam: "azione",
   equilibrio: "azione",
-  dodge: "azione",
+  tapdash: "azione",
+  swipesprint: "azione",
 
   // 🧠 Mente & Logica
   calcolo: "mente",
