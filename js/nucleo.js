@@ -581,12 +581,19 @@ function preparaRound() {
     </div>
   `;
 
-  S.malusNelRoundCorrente = S.malusAttivo;
-
-  if (S.malusAttivo && window.Malus) {
-    Malus.mostraBadgeRound(S.malusAttivo);
-  } else if (window.Malus) {
-    Malus.rimuoviDalRound();
+  // Escape Room è cooperativa: non porta né riceve malus.
+  if (g.id === "escaperoom") {
+    S.malusAttivo = null;
+    S.malusInCoda = null;
+    S.malusNelRoundCorrente = null;
+    if (window.Malus) Malus.rimuoviDalRound();
+  } else {
+    S.malusNelRoundCorrente = S.malusAttivo;
+    if (S.malusAttivo && window.Malus) {
+      Malus.mostraBadgeRound(S.malusAttivo);
+    } else if (window.Malus) {
+      Malus.rimuoviDalRound();
+    }
   }
 
   mostra("screen-round");
@@ -990,6 +997,12 @@ function mostraRisultato(tabella) {
       `;
     }
     const container = document.getElementById("malus-container");
+    if (container) container.style.display = "none";
+  } else if (S.giocoId === "escaperoom") {
+    S.malusInCoda = null;
+    const banner = document.getElementById("malus-banner-prenotato");
+    const container = document.getElementById("malus-container");
+    if (banner) banner.style.display = "none";
     if (container) container.style.display = "none";
   } else {
     if (window.Malus) Malus.gestisciFineRound(tabella);
