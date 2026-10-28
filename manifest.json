@@ -1,7 +1,7 @@
 {
   "name": "Zaltergames",
   "short_name": "Zaltergames",
-  "description": "Venticinque party game competitivi da 2 a 6 giocatori, direttamente dal browser.",
+  "description": "Ventisei party game competitivi da 2 a 6 giocatori, direttamente dal browser.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#090b10",
