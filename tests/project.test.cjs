@@ -70,3 +70,13 @@ test('la rete conserva identità e slot durante la riconnessione', () => {
   assert.match(rete, /_slotPerPeer/);
   assert.match(rete, /riconnessioneFallita/);
 });
+
+test('la Playlist Party crea una sequenza di sfide senza duplicati', () => {
+  const nucleo = read('js/nucleo.js');
+  const avvio = read('js/avvio.js');
+  assert.match(html, /id="btn-start-playlist"/);
+  assert.match(avvio, /avviaPlaylist\(\)/);
+  assert.match(nucleo, /function avviaPlaylist\(\)/);
+  assert.match(nucleo, /mescola\(validi\)\.slice\(0, lunghezza\)/);
+  assert.match(nucleo, /isPlaylist: S\.isPlaylist/);
+});
