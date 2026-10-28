@@ -17,8 +17,8 @@ test('tutti gli asset locali caricati dall HTML esistono', () => {
 
 test('la build pubblica carica 25 giochi distinti', () => {
   const scripts = [...html.matchAll(/<script\s+src="(js\/giochi\/[^"]+)"/g)].map(m => m[1].split('?')[0]);
-  assert.equal(scripts.length, 25);
-  const retired = ['simon.js', 'sniper.js', 'fune.js', 'oca.js'];
+  assert.equal(scripts.length, 26);
+  const retired = ['simon.js', 'sniper.js', 'fune.js', 'oca.js', 'dodge.js'];
   for (const name of retired) assert.ok(!scripts.some(file => file.endsWith(name)), `${name} non deve essere caricato`);
 });
 
@@ -84,7 +84,7 @@ test('la Playlist Party crea una sequenza di sfide senza duplicati', () => {
 
 test('la lobby non espone più il tasto Torneo e versiona gli script della playlist', () => {
   assert.doesNotMatch(html, /id="btn-start-tournament"/);
-  assert.match(html, /js\/nucleo\.js\?v=32/);
+  assert.match(html, /js\/nucleo\.js\?v=33/);
   assert.match(html, /js\/avvio\.js\?v=23/);
   assert.match(read('sw.js'), /zaltergames-v5/);
 });
@@ -102,4 +102,13 @@ test('la rimozione del Torneo non interrompe l’inizializzazione dei comandi', 
 test('il tema game portal è caricato e disponibile offline', () => {
   assert.match(html, /css\/portal-theme\.css\?v=1/);
   assert.match(read('sw.js'), /\.\/css\/portal-theme\.css/);
+});
+
+
+test('Meteoriti è sostituito da due sfide pensate per touch', () => {
+  assert.match(html, /js\/giochi\/tapdash\.js/);
+  assert.match(html, /js\/giochi\/swipesprint\.js/);
+  assert.doesNotMatch(html, /js\/giochi\/dodge\.js/);
+  assert.match(read('js/giochi/tapdash.js'), /touchstart/);
+  assert.match(read('js/giochi/swipesprint.js'), /touchend/);
 });
