@@ -365,3 +365,120 @@ body::before {
   .lobby-quick-actions,
   .lobby-play-actions { grid-template-columns: 1fr; }
 }
+
+
+/* Correzioni responsive: l'HUD resta leggero e non copre più l'arena. */
+#screen-round {
+  background: #eaf3ff;
+  border: 0;
+  border-radius: 0;
+  color: var(--portal-ink);
+}
+
+#screen-round.is-active {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(56, 189, 248, .2), transparent 36rem),
+    #eaf3ff !important;
+}
+
+.hud-nord {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.hud-nord .hud-punti {
+  gap: 6px;
+}
+
+.hud-nord .hud-p {
+  padding: 4px 9px;
+  background: rgba(7, 26, 67, .9);
+  border: 1px solid rgba(255,255,255,.28);
+  color: white;
+  box-shadow: none;
+}
+
+.hud-nord .hud-p.mio {
+  border-color: var(--portal-yellow);
+}
+
+.hud-nord .bar-label { color: #31547e; }
+.hud-nord .bar { background: rgba(7, 26, 67, .75); }
+
+.tapdash,
+.swipe-sprint {
+  position: relative;
+  width: min(100%, 560px);
+  min-height: min(58vh, 520px);
+  overflow: hidden;
+  border: 3px solid #b8d3f7;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255,216,74,.4), transparent 12rem),
+    linear-gradient(145deg, #f9fcff, #e8f3ff);
+  touch-action: none;
+}
+
+.tapdash-top,
+.swipe-progress {
+  position: absolute;
+  z-index: 1;
+  top: 18px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  color: var(--portal-blue-dark);
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+.tapdash-target {
+  position: absolute;
+  width: 88px;
+  height: 88px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: white;
+  font-size: 2.4rem;
+  box-shadow: 0 9px 0 rgba(7, 49, 132, .28);
+  transition: left .12s ease, top .12s ease, transform .1s ease;
+  touch-action: manipulation;
+}
+
+.tapdash-target:active { transform: scale(.9) translateY(5px); }
+
+.swipe-sprint {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 18px;
+}
+
+.swipe-sprint p {
+  margin: 0;
+  color: #527197;
+  font-weight: 800;
+}
+
+.swipe-arrow {
+  display: grid;
+  place-items: center;
+  width: min(44vw, 190px);
+  height: min(44vw, 190px);
+  border-radius: 32px;
+  background: var(--portal-blue);
+  color: white;
+  font-size: clamp(5rem, 18vw, 9rem);
+  line-height: 1;
+  box-shadow: 0 11px 0 var(--portal-blue-dark);
+  transition: transform .14s ease, background .14s ease;
+}
+
+.swipe-arrow.is-wrong {
+  background: #ef476f;
+  transform: translateX(10px);
+}
