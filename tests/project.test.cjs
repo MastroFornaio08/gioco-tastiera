@@ -100,7 +100,7 @@ test('la rimozione del Torneo non interrompe l’inizializzazione dei comandi', 
 
 
 test('il tema game portal è caricato e disponibile offline', () => {
-  assert.match(html, /css\/portal-theme\.css\?v=1/);
+  assert.match(html, /css\/portal-theme\.css\?v=2/);
   assert.match(read('sw.js'), /\.\/css\/portal-theme\.css/);
 });
 
