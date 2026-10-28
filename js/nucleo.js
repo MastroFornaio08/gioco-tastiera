@@ -71,6 +71,9 @@ const S = {
   round: 0,
   storico: [],
   isTorneo: false,
+  isPlaylist: false,
+  playlist: [],
+  playlistIndex: 0,
   corone: {}, // id -> numero di vittorie
   hostInLobby: false,
 
@@ -345,6 +348,24 @@ function avviaRoulette() {
   }
 
   step();
+}
+
+/* --------------------------------------------------------- Playlist Party */
+function avviaPlaylist() {
+  if (S.ruolo === "ospite") { toast("Solo l'host può avviare una playlist."); return; }
+
+  const validi = GIOCHI.filter(g => !motivoBlocco(g));
+  const lunghezza = Math.min(5, validi.length);
+  if (lunghezza < 2) { toast("Non ci sono abbastanza giochi compatibili."); return; }
+
+  S.isPlaylist = true;
+  S.playlist = mescola(validi).slice(0, lunghezza).map(g => g.id);
+  S.playlistIndex = 0;
+  S.giocoId = S.playlist[0];
+  S.gioco = trovaGioco(S.giocoId);
+
+  toast("🎉 Playlist Party: " + lunghezza + " sfide senza doppioni!");
+  avviaPartita(true);
 }
 
 /* -------------------------------------------------- Votazione Democratica Party */
@@ -1003,6 +1024,19 @@ function avanza() {
   }
 
   if (S.isTorneo) {
+    if (S.isPlaylist) {
+      S.playlistIndex++;
+      if (S.playlistIndex >= S.playlist.length) {
+        if (S.ruolo === "host") Rete.invia("finale", {});
+        mostraFinale();
+        return;
+      }
+      S.giocoId = S.playlist[S.playlistIndex];
+      S.gioco = trovaGioco(S.giocoId);
+      avviaPartita(true);
+      return;
+    }
+
     // In torneo, si torna alla lobby se nessuno ha vinto
     const maxCorone = Math.max(...Object.values(S.corone || {}), 0);
     if (maxCorone >= 3) {
@@ -1050,7 +1084,7 @@ function mostraFinale() {
   const mia = classifica.findIndex(g => g.id === S.io);
 
   $("final-title").textContent =
-    mia === 0 ? (S.vittoriaAutomatica ? "Vittoria Automatica Trionfale!" : S.isBoard ? "Vittoria nel Tabellone!" : S.isTorneo ? "Re della Collina!" : "Hai vinto!") : mia === 1 ? "Secondo posto" : "Fine partita";
+    mia === 0 ? (S.vittoriaAutomatica ? "Vittoria Automatica Trionfale!" : S.isBoard ? "Vittoria nel Tabellone!" : S.isPlaylist ? "Playlist completata!" : S.isTorneo ? "Re della Collina!" : "Hai vinto!") : mia === 1 ? "Secondo posto" : "Fine partita";
   $("final-trophy").textContent = mia === 0 ? "👑" : mia === classifica.length - 1 ? "💀" : "🎖️";
 
   $("final-table").innerHTML =
@@ -1067,7 +1101,9 @@ function mostraFinale() {
     $("final-stats").innerHTML = `👑 <b>Vittoria Automatica:</b> ${fuggiHtml(S.vittoriaAutomatica.vincitoreNome)} ha battuto il Malus di ${fuggiHtml(S.vittoriaAutomatica.sfidanteNome)}! Il round valeva doppio!`;
   } else {
     const vinti = S.storico.filter(t => t.length && t[0].id === S.io).length;
-    $("final-stats").innerHTML = S.isTorneo 
+    $("final-stats").innerHTML = S.isPlaylist
+      ? "🎉 Playlist Party completata: <b>" + S.playlist.length + " sfide diverse</b> senza duplicati."
+      : S.isTorneo 
       ? "Torneo Re della Collina terminato!"
       : (S.gioco.icona + " " + fuggiHtml(S.gioco.nome) + " · " + S.giocatori.length + " giocatori<br>" +
          "Round vinti: <b>" + vinti + " su " + S.storico.length + "</b>");
@@ -1156,7 +1192,8 @@ function avviaPartita(torneo = false, board = false) {
     if (giochiValidi.length === 0) { toast("Nessun gioco supporta questo numero di giocatori."); return; }
     
     if (!(S.isBoard && S.gioco)) {
-      S.gioco = scegli(giochiValidi);
+      const idPlaylist = S.isPlaylist ? S.playlist[S.playlistIndex] : null;
+      S.gioco = trovaGioco(idPlaylist) || scegli(giochiValidi);
       S.giocoId = S.gioco.id;
     }
     // In torneo o board gioca 1 solo round
@@ -1174,6 +1211,9 @@ function avviaPartita(torneo = false, board = false) {
       partita: S.partita,
       giocatori: elencoDaSpedire(),
       isTorneo: S.isTorneo,
+      isPlaylist: S.isPlaylist,
+      playlist: S.playlist,
+      playlistIndex: S.playlistIndex,
       isBoard: S.isBoard,
       corone: S.corone,
       posizioni: S.posizioni
@@ -1317,6 +1357,9 @@ function collegaRete() {
         }
         azzera(false);
         S.isTorneo = !!m.isTorneo;
+        S.isPlaylist = !!m.isPlaylist;
+        S.playlist = Array.isArray(m.playlist) ? m.playlist : [];
+        S.playlistIndex = Number.isInteger(m.playlistIndex) ? m.playlistIndex : 0;
         S.isBoard = !!m.isBoard;
         S.corone = m.corone || {};
         S.posizioni = m.posizioni || {};
@@ -1568,6 +1611,9 @@ function tornaAlMenu() {
   S.giocatori = [];
   S.giocoId = null;
   S.gioco = null;
+  S.isPlaylist = false;
+  S.playlist = [];
+  S.playlistIndex = 0;
   S.latenza = 0;
   mostra("screen-menu");
 }
