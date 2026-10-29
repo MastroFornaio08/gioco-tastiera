@@ -3,7 +3,8 @@
   const mount = (arena, tipo) => {
     if (!window.THREE || !arena) return null;
     const THREE = window.THREE;
-    arena.classList.add("arena3d-" + tipo);\n    const canvas = document.createElement("canvas");
+    arena.classList.add("arena3d-" + tipo);
+    const canvas = document.createElement("canvas");
     canvas.className = "arena3d-canvas";
     canvas.setAttribute("aria-hidden", "true");
     arena.appendChild(canvas);
