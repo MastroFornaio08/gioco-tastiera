@@ -33,12 +33,12 @@ GIOCHI.push({
       "<div class='sem-testo' id='sem-testo'>Aspetta…</div></div>";
 
     const sem = api.arena.querySelector("#semaforo");
-    const testo = api.arena.querySelector("#sem-testo");
+    const testo = api.arena.querySelector("#sem-testo");\n    const scena3d = window.Arena3D ? Arena3D.mount(api.arena, "semaforo") : null;
     let verdeA = 0;
     let concluso = false;
 
     const timer = setTimeout(() => {
-      verdeA = performance.now();
+      verdeA = performance.now();\n      if (scena3d) scena3d.hit();
       sem.classList.remove("rosso");
       sem.classList.add("verde");
       testo.textContent = "ORA!";
@@ -81,7 +81,7 @@ GIOCHI.push({
       },
       chiudi() {
         clearTimeout(timer);
-        document.removeEventListener("keydown", tasto);
+        document.removeEventListener("keydown", tasto);\n        if (scena3d) scena3d.dispose();
       }
     };
   }
