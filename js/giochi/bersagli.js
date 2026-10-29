@@ -148,6 +148,7 @@ GIOCHI.push({
       concluso = true;
       inMovimento = false;
       cancelAnimationFrame(animFrame);
+      if (scena3d) scena3d.hit();
       api.finito({ punti, dettaglio: punti + " punti" });
     }
 
@@ -158,7 +159,8 @@ GIOCHI.push({
       scaduto: concludi,
       chiudi() { 
         inMovimento = false; 
-        cancelAnimationFrame(animFrame); 
+        cancelAnimationFrame(animFrame);
+        if (scena3d) scena3d.dispose();
       }
     };
   }
