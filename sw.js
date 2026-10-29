@@ -1,9 +1,9 @@
-const CACHE_VERSION = "zaltergames-v8";
+const CACHE_VERSION = "zaltergames-v9";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json",
   "./css/style.css", "./css/giochi.css", "./css/anima.css", "./css/design-system.css", "./css/portal-theme.css",
   "./js/nucleo.js", "./js/avvio.js", "./js/rete.js", "./js/audio.js",
-  "./js/effetti.js", "./js/malus.js", "./js/tabellone.js"
+  "./js/effetti.js", "./js/malus.js", "./js/tabellone.js", "./js/arena3d.js"
 ];
 
 self.addEventListener("install", event => {
