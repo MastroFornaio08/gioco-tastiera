@@ -3,7 +3,7 @@
   const mount = (arena, tipo) => {
     if (!window.THREE || !arena) return null;
     const THREE = window.THREE;
-    const canvas = document.createElement("canvas");
+    arena.classList.add("arena3d-" + tipo);\n    const canvas = document.createElement("canvas");
     canvas.className = "arena3d-canvas";
     canvas.setAttribute("aria-hidden", "true");
     arena.appendChild(canvas);
@@ -87,7 +87,7 @@
         pulse = 1;
       },
       hit() { pulse = 1; },
-      dispose() { alive = false; observer.disconnect(); renderer.dispose(); root.clear(); canvas.remove(); }
+      dispose() { alive = false; observer.disconnect(); renderer.dispose(); root.clear(); canvas.remove(); arena.classList.remove("arena3d-" + tipo); }
     };
   };
   window.Arena3D = { mount };
