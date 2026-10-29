@@ -61,7 +61,7 @@ GIOCHI.push({
       "<input id='typer' class='typer' autocomplete='off' autocorrect='off' " +
       "autocapitalize='none' spellcheck='false' aria-label='Area di scrittura'>";
 
-    const cont = api.arena.querySelector("#frase");
+    const scena3d = window.Arena3D ? Arena3D.mount(api.arena, "tastiera") : null;\n    const cont = api.arena.querySelector("#frase");
     cont.innerHTML = bersaglio.split("").map(c =>
       "<c>" + (c === " " ? "&nbsp;" : fuggiHtml(c)) + "</c>").join("");
     const lettere = Array.from(cont.children);
@@ -126,7 +126,7 @@ GIOCHI.push({
 
     return {
       scaduto: consegna,
-      chiudi() { api.arena.removeEventListener("click", rifocalizza); }
+      chiudi() { api.arena.removeEventListener("click", rifocalizza); if (scena3d) scena3d.dispose(); }
     };
   }
 });
