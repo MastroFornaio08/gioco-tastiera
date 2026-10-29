@@ -73,7 +73,7 @@ GIOCHI.push({
     const cursore = api.arena.querySelector("#bersaglio-cursore");
     const btn = api.arena.querySelector("#bersaglio-btn");
     const infoRound = api.arena.querySelector(".bersaglio-round-info");
-    const risultato = api.arena.querySelector("#bersaglio-risultato");
+    const risultato = api.arena.querySelector("#bersaglio-risultato");\n    const scena3d = window.Arena3D ? Arena3D.mount(api.arena, "bersaglio") : null;
 
     function muovi() {
       if (!inMovimento || concluso) return;
@@ -105,7 +105,7 @@ GIOCHI.push({
       cancelAnimationFrame(animFrame);
       btn.disabled = true;
 
-      const x = parseFloat(cursore.dataset.x);
+      if (scena3d) scena3d.hit();\n      const x = parseFloat(cursore.dataset.x);
       const distanza = Math.abs(x - 50); // Il centro è 50%
       
       // Calcolo punteggio: 
