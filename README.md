@@ -1,61 +1,27 @@
-# Zaltergames
+# Il Delitto · Zaltergames
 
-Party game browser-based con 26 sfide competitive per 2–6 giocatori, allenamento contro un fantasma, tornei e modalità Tabellone.
+Un gioco narrativo browser-based per **10 giocatori**. L'host crea una stanza con codice, gli altri nove entrano dai propri telefoni. Ogni giocatore riceve in privato un personaggio, un segreto e un obiettivo.
 
-## Giocare
+## Come si gioca
 
-Apri <https://mastrofornaio08.github.io/gioco-tastiera/>.
+- L'host crea una stanza e condivide il codice o il link.
+- Quando sono collegati tutti e dieci, l'host sceglie uno dei tre casi e distribuisce i ruoli.
+- Ogni caso ha tre indizi pubblici, dieci storie personali, un assassino e un complice che si conoscono.
+- I giocatori possono stringere accordi pubblici o inviare proposte private. Gli accordi non sono vincolanti.
+- Dopo il confronto, l'host inserisce l'accusa: assassino, complice, metodo e movente.
 
-- **Crea stanza** genera un codice da condividere.
-- **Entra con codice** collega un altro dispositivo via WebRTC.
-- **Allenamento** permette di provare i giochi compatibili contro un avversario simulato.
-- **Torneo** assegna corone per ogni sfida vinta.
-- **Tabellone** trasforma i minigiochi in una corsa a 25 caselle.
-- **Effetti visivi** offre qualità automatica, completa, ridotta o disattivata.
-- Le interruzioni brevi di rete attivano una **riconnessione automatica** mantenendo lo slot del giocatore.
+## Casi inclusi
 
-Non servono account. L’host funziona da arbitro e i browser comunicano tramite PeerJS/WebRTC.
+- **Il ritratto scomparso** · Palazzo Velluto, 1934.
+- **L'ultimo applauso** · Teatro Belladonna, 1951.
+- **Il sigillo nero** · Villa Malaspina, 1898.
 
-## Catalogo
+## Rete e privacy
 
-Il catalogo è stato ridotto a 26 giochi distinti. Sono state eliminate le varianti che duplicavano quasi completamente altre meccaniche:
-
-- Simon Dice → resta **Sequenza**.
-- Tiro al Bersaglio → resta **Bersaglio**.
-- Tira alla Fune → resta **Tritadita**.
-- Gioco dell’Oca come minigioco → resta la modalità **Tabellone**.
+La stanza usa PeerJS/WebRTC con l'host come arbitro. I messaggi dei ruoli e degli accordi privati passano sul canale riservato all'host e vengono inviati solo ai destinatari; gli indizi e gli accordi pubblici vengono condivisi con tutti. La stanza richiede dieci giocatori e l'host deve restare collegato per tutta la partita.
 
 ## Sviluppo
 
-Il progetto è statico e non richiede una build.
+Progetto statico, senza build. Apri index.html tramite un server HTTPS/localhost per usare WebRTC.
 
-```bash
-node --test tests/*.test.cjs
-node scratch/test_all_games.js
-```
-
-GitHub Actions controlla asset, sintassi, registrazione dei 25 giochi, configurazione PWA e simulazione con bot. Gli strumenti diagnostici restano nel repository ma non vengono caricati nella versione pubblica.
-
-## Struttura
-
-```text
-index.html                schermate e caricamento moduli
-css/design-system.css     design system e layout moderni
-css/giochi.css            componenti delle arene
-js/nucleo.js              stato, round, punteggi e lobby
-js/rete.js                connessione PeerJS/WebRTC
-js/giochi/                implementazioni dei minigiochi
-js/tabellone.js           modalità Tabellone
-tests/                    controlli automatici
-sw.js                     cache PWA e fallback offline
-```
-
-## Limiti noti
-
-- WebRTC può essere bloccato da reti molto restrittive.
-- Il collegamento iniziale dipende dal broker pubblico PeerJS.
-- Microfono, fotocamera e sensori richiedono HTTPS e consenso.
-
-## Licenza
-
-MIT.
+I moduli dei vecchi minigiochi non vengono più caricati dall'app. Sono rimasti nel repository come sorgente storica e non fanno parte dell'esperienza giocabile.
