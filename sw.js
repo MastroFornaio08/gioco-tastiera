@@ -1,9 +1,8 @@
 const CACHE_VERSION = "zaltergames-v12";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json",
-  "./css/style.css", "./css/giochi.css", "./css/anima.css", "./css/design-system.css", "./css/portal-theme.css",
-  "./js/nucleo.js", "./js/avvio.js", "./js/rete.js", "./js/audio.js",
-  "./js/effetti.js", "./css/delitto.css", "./js/delitto.js", "./js/malus.js", "./js/tabellone.js", "./js/arena3d.js"
+  "./css/style.css", "./css/design-system.css", "./css/delitto.css",
+  "./js/peerjs.min.js", "./js/rete.js", "./js/delitto.js"
 ];
 
 self.addEventListener("install", event => {
