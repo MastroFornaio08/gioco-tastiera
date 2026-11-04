@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css?v=19">
   <link rel="stylesheet" href="css/design-system.css?v=10">
-  <link rel="stylesheet" href="css/delitto.css?v=2">
+  <link rel="stylesheet" href="css/delitto.css?v=4">
 </head>
 <body>
   <div class="sfondo" aria-hidden="true"><span class="macchia m1"></span><span class="macchia m2"></span><span class="macchia m3"></span></div>
@@ -20,12 +20,12 @@
     <section class="screen is-active" id="screen-menu">
       <p class="menu-kicker">ZALTERGAMES PRESENTA · 10 GIOCATORI</p>
       <h1 class="logo">IL <span>DELITTO</span></h1>
-      <p class="tagline">Dieci invitati. Segreti diversi. Un assassino e un complice da smascherare.</p>
+      <p class="tagline">Dieci sospettati, un narratore che vede tutto e un caso da risolvere a tappe.</p>
       <label class="field"><span>Il tuo nome</span><input id="input-name" maxlength="18" placeholder="Es. Marco" autocomplete="nickname"></label>
       <div class="menu-actions">
-        <button class="btn btn-primary" id="btn-create">Crea una stanza<small>Sei l’host. Invita altri nove giocatori.</small></button>
+        <button class="btn btn-primary" id="btn-create">Crea una stanza<small>Sei il narratore. Invita dieci giocatori.</small></button>
         <button class="btn" id="btn-join-screen">Entra con codice<small>Unisciti alla stanza dell’host.</small></button>
-        <button class="btn btn-ghost" id="btn-live-screen" type="button">Gioca dal vivo<small>Dieci persone, un solo telefono da passare.</small></button>
+        <button class="btn btn-ghost" id="btn-live-screen" type="button">Gioca dal vivo<small>Dieci sospettati, un narratore guida la partita.</small></button>
       </div>
       <p class="hint">Giocate ognuno dal proprio telefono via WebRTC oppure passate un solo telefono al tavolo.</p>
       <p class="delitto-note">Il catalogo dei minigiochi è stato sostituito da un mistero a episodi.</p>
@@ -41,38 +41,41 @@
 
     <section class="screen" id="screen-live">
       <p class="screen-eyebrow">Modalità dal vivo · passate il telefono</p><h2>Chi è seduto al tavolo?</h2>
-      <p class="muted">Inserisci dieci nomi, uno per riga. Le schede appariranno una alla volta: chi riceve il telefono legge il proprio ruolo in privato.</p>
+      <p class="muted">Inserisci i dieci sospettati, uno per riga. Tu sei il narratore: vedrai ruoli e soluzione. Scegli un PIN per proteggere la tua schermata quando passate il telefono.</p>
+      <label class="field"><span>Nome del narratore</span><input id="live-narrator-name" maxlength="18" placeholder="Es. Luca"></label>
+      <label class="field"><span>PIN privato del narratore · 4–6 cifre</span><input id="live-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="new-password"></label>
       <label class="field"><span>Nomi dei dieci giocatori</span><textarea id="live-names" maxlength="220" rows="10" placeholder="Anna&#10;Marco&#10;Giulia&#10;…"></textarea></label>
       <button class="btn btn-primary" id="btn-live-start">Prepara la partita</button><p class="status" id="live-status"></p>
       <button class="btn btn-ghost btn-small" data-menu>Indietro</button>
     </section>
 
     <section class="screen" id="screen-room">
-      <header class="delitto-header"><div><p class="screen-eyebrow">Sala riservata · massimo dieci</p><h2>Gli invitati</h2></div><button class="btn btn-ghost btn-small" data-menu>Esci</button></header>
+      <header class="delitto-header"><div><p class="screen-eyebrow">Sala riservata · narratore + 10 sospettati</p><h2>Gli invitati</h2></div><button class="btn btn-ghost btn-small" data-menu>Esci</button></header>
       <div class="room-code-card"><span>CODICE STANZA</span><strong id="room-code">····</strong><button class="btn btn-small" id="btn-copy">Copia invito</button></div>
-      <p class="muted" id="room-hint">Servono 10 giocatori per distribuire i personaggi.</p>
+      <p class="muted" id="room-hint">Servono 10 giocatori oltre al narratore.</p>
       <label class="field host-only" id="case-pick-wrap"><span>Scegli il caso di questa partita</span><select id="case-select"><option value="ritratto">Il ritratto scomparso · Palazzo Velluto</option><option value="sipario">L’ultimo applauso · Teatro Belladonna</option><option value="sigillo">Il sigillo nero · Villa Malaspina</option></select></label>
       <div class="roster-grid" id="roster"></div>
-      <div class="bot-test-tools host-only" id="bot-test-tools"><button class="btn" id="btn-fill-bots">Riempi con bot fino a 10</button><button class="btn btn-ghost" id="btn-stop-bots" disabled>Rimuovi bot</button><p class="status" id="bots-status" aria-live="polite">Aggiunge un bot per ogni posto libero; il totale include l’host.</p></div>
-      <button class="btn btn-primary" id="btn-start" disabled>Distribuisci i personaggi · 1/10</button>
+      <div class="bot-test-tools host-only" id="bot-test-tools"><button class="btn" id="btn-fill-bots">Aggiungi 10 bot di prova</button><button class="btn btn-ghost" id="btn-stop-bots" disabled>Rimuovi bot</button><p class="status" id="bots-status" aria-live="polite">Aggiunge un bot per ogni posto libero; i bot sono i dieci sospettati; l’host è il narratore.</p></div>
+      <button class="btn btn-primary" id="btn-start" disabled>Avvia il caso · 0/10</button>
       <p class="status" id="room-status"></p>
     </section>
 
     <section class="screen" id="screen-game">
       <header class="delitto-header"><div><p class="screen-eyebrow" id="act-label">IL CASO · ATTO I</p><h2 id="case-title"></h2></div><button class="btn btn-ghost btn-small" data-menu>Esci</button></header>
-      <nav class="case-tabs"><button class="case-tab is-active" data-panel="investigation">Indagine</button><button class="case-tab" data-panel="role">Il mio personaggio</button><button class="case-tab" data-panel="deals">Accordi</button><button class="case-tab" data-panel="accusation">Accusa</button></nav>
+      <nav class="case-tabs"><button class="case-tab is-active" data-panel="investigation">Fase di gioco</button><button class="case-tab" data-panel="role">Il mio personaggio</button><button class="case-tab" data-panel="deals">Accordi</button><button class="case-tab" data-panel="accusation">Voto</button><button class="case-tab host-only hidden" id="narrator-tab" data-panel="narrator">Narratore</button></nav>
       <div id="panel-investigation" class="case-panel is-active"></div>
       <div id="panel-role" class="case-panel"></div>
       <div id="panel-deals" class="case-panel"></div>
       <div id="panel-accusation" class="case-panel"></div>
+      <div id="panel-narrator" class="case-panel"></div>
       <p class="status" id="game-status" aria-live="polite"></p>
     </section>
   </main>
   <div id="modal" class="modal-overlay" role="dialog" aria-modal="true" aria-live="polite"></div>
   <script src="js/peerjs.min.js"></script>
-  <script src="js/rete.js?v=21"></script>
-  <script src="js/delitto.js?v=2"></script>
-  <script src="js/delitto-bots.js?v=1"></script>
+  <script src="js/rete.js?v=23"></script>
+  <script src="js/delitto.js?v=4"></script>
+  <script src="js/delitto-bots.js?v=3"></script>
   <script>if('serviceWorker'in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(error=>console.warn('[PWA]',error)))}</script>
 </body>
 </html>

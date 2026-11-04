@@ -1,4 +1,4 @@
-/* Bot P2P locali per provare una stanza da dieci senza nove telefoni extra. */
+/* Bot P2P locali per provare una stanza da dieci sospettati senza dieci telefoni extra. */
 (function(){
   const bots=[];
   let filling=false;
@@ -20,8 +20,9 @@
       if(g.kind==='private-deal')bot.inbox=(bot.inbox||[]).concat(g);
       return;
     }
-    if(msg.tipo==='delitto-state')bot.state=msg.state||null;
+    if(msg.tipo==='delitto-state'){bot.state=msg.state||null;if(bot.state.phase===3&&!bot.voteOnce)setTimeout(()=>sendBotVote(bot),600+Math.random()*1800)}
   }
+  function sendBotVote(bot){if(!bot.conn?.open||!bot.slot||bot.voteOnce||!bot.state)return;const ids=Object.keys(bot.state.players||{});const pick=arr=>arr[Math.floor(Math.random()*arr.length)]||'';bot.conn.send({tipo:'gp',g:{kind:'vote',vote:{killer:pick(ids),partner:pick(ids),method:pick(bot.state.methods||[]),motive:pick(bot.state.motives||[])}}});bot.voteOnce=true}
   function connectBot(index){
     return new Promise((resolve,reject)=>{
       const name=`Bot ${String(index).padStart(2,'0')}`;
@@ -58,7 +59,7 @@
     bot.actOnce=true;
   }
   async function fill(){
-    if(!D.host||!Rete.peer||!Rete.codice||D.started){setStatus('Solo l’host può riempire una stanza prima dell’inizio.',true);return}
+    if(!D.host||!Rete.peer||!Rete.codice||D.started){setStatus('Solo il narratore può riempire una stanza prima dell’inizio.',true);return}
     const missing=10-onlineCount();
     if(missing<=0){setStatus('La stanza è già completa.');return}
     filling=true;updateButtons();
@@ -69,7 +70,7 @@
         updateButtons();
         await new Promise(resolve=>setTimeout(resolve,220));
       }
-      setStatus(`Pronto: ${onlineCount()} giocatori collegati (${bots.length} bot di prova). Puoi iniziare.`);
+      setStatus(`Pronto: ${onlineCount()} sospettati collegati (${bots.length} bot di prova). Puoi iniziare come narratore.`);
     }catch(error){setStatus(error.message||'Non è stato possibile collegare tutti i bot.',true)}
     finally{filling=false;updateButtons();if(typeof renderRoom==='function')renderRoom()}
   }
