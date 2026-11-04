@@ -1,7 +1,7 @@
 {
-  "name": "Zaltergames",
-  "short_name": "Zaltergames",
-  "description": "Ventisei party game competitivi da 2 a 6 giocatori, direttamente dal browser.",
+  "name": "Il Delitto",
+  "short_name": "Il Delitto",
+  "description": "Un mistero narrativo per dieci giocatori, con ruoli segreti e tre casi.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#090b10",

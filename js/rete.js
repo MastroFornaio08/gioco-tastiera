@@ -9,16 +9,16 @@
              \     /
    ospite1 -- HOST -- ospite4
              /     \
-        ospite5   (max 6 in tutto)
+        ospite5   (massimo 10 in tutto)
 
    Ogni giocatore ha un id breve e stabile: 'p0' è sempre l'host, gli ospiti
-   ricevono 'p1'…'p5' nell'ordine in cui entrano. L'id resta valido per tutta
+   ricevono 'p1'…'p9' nell'ordine in cui entrano. L'id resta valido per tutta
    la partita e non cambia se qualcuno se ne va.
 */
 
 const PREFISSO_ID = "dattiloduello-v1-";
 const ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // niente I/O/0/1, si confondono
-const MAX_GIOCATORI = 6;
+const MAX_GIOCATORI = 10;
 
 // Configurazione WebRTC con server STUN veloci, stabili e verificati
 const PEER_OPTS = {
@@ -117,7 +117,7 @@ const Rete = {
     return null;
   },
 
-  /* Primo slot libero fra p1 e p5, così un posto liberato viene riusato. */
+  /* Primo slot libero fra p1 e p9, così un posto liberato viene riusato. */
   _slotLibero() {
     for (let i = 1; i < MAX_GIOCATORI; i++) {
       const id = "p" + i;

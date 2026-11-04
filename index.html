@@ -1,413 +1,67 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
-
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Zaltergames — Party games competitivi</title>
-  <meta name="description"
-    content="Ventisei party game competitivi da 2 a 6 giocatori, direttamente dal browser. Niente account, solo sfide rapide.">
-  <link rel="manifest" href="manifest.json">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#090b10">
-  <link rel="icon" href="img/panda.jpg">
+  <meta name="description" content="Un mistero cooperativo di segreti e deduzione per dieci giocatori.">
+  <title>Il Delitto — Zaltergames</title>
+  <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css?v=19">
-  <link rel="stylesheet" href="css/giochi.css?v=17">
-  <link rel="stylesheet" href="css/anima.css?v=15">
   <link rel="stylesheet" href="css/design-system.css?v=10">
-  <link rel="stylesheet" href="css/portal-theme.css?v=2">
+  <link rel="stylesheet" href="css/delitto.css?v=1">
 </head>
-
 <body>
-
-  <!-- macchie colorate che galleggiano dietro a tutto e stelle cadenti -->
-  <div class="sfondo" aria-hidden="true">
-    <span class="macchia m1"></span>
-    <span class="macchia m2"></span>
-    <span class="macchia m3"></span>
-
-    <!-- stelle cadenti dinamiche -->
-    <div class="stella" style="top: 10%; left: 80%; animation-delay: 0.2s;"></div>
-    <div class="stella" style="top: -10%; left: 50%; animation-delay: 1.5s;"></div>
-    <div class="stella" style="top: 40%; left: 110%; animation-delay: 2.7s;"></div>
-    <div class="stella" style="top: 20%; left: 150%; animation-delay: 4.1s;"></div>
-    <div class="stella" style="top: 70%; left: 90%; animation-delay: 5.5s;"></div>
-    <div class="stella" style="top: -20%; left: 30%; animation-delay: 6.8s;"></div>
-  </div>
-
-  <div id="app">
-
-    <!-- ============ MENU ============ -->
+  <div class="sfondo" aria-hidden="true"><span class="macchia m1"></span><span class="macchia m2"></span><span class="macchia m3"></span></div>
+  <main id="app" class="delitto-app">
     <section class="screen is-active" id="screen-menu">
-      <p class="menu-kicker">PARTY GAMES / 2–6 GIOCATORI</p>
-      <h1 class="logo">
-        ZALTER<span>GAMES</span>
-      </h1>
-      <p class="tagline">Sfide rapide, rivalità vere. Crea una stanza e scegli chi comanda.</p>
-
-      <label class="field">
-        <span>Il tuo nome</span>
-        <input id="input-name" maxlength="14" placeholder="Es. Marco" autocomplete="nickname">
-      </label>
-
-      <label class="field">
-        <span>Il tuo Avatar</span>
-        <div class="avatar-selector" id="avatar-selector">
-          <button class="avatar-btn scelto" title="Cyber Rabbit">🐰</button>
-          <button class="avatar-btn" title="Neon Fox">🦊</button>
-          <button class="avatar-btn" title="Turbo Sloth">🦥</button>
-          <button class="avatar-btn" title="Giga Bear">🐻</button>
-          <button class="avatar-btn" title="Robo Lion">🦁</button>
-          <button class="avatar-btn" title="Cyber Bot">🤖</button>
-          <button class="avatar-btn" title="Alien">👽</button>
-          <button class="avatar-btn" title="Mecha Dino">🦖</button>
-        </div>
-      </label>
-
+      <p class="menu-kicker">ZALTERGAMES PRESENTA · 10 GIOCATORI</p>
+      <h1 class="logo">IL <span>DELITTO</span></h1>
+      <p class="tagline">Dieci invitati. Segreti diversi. Un assassino e un complice da smascherare.</p>
+      <label class="field"><span>Il tuo nome</span><input id="input-name" maxlength="18" placeholder="Es. Marco" autocomplete="nickname"></label>
       <div class="menu-actions">
-        <button class="btn btn-primary" id="btn-create">Crea Stanza<small>sei tu l'host, fino a 6
-            giocatori</small></button>
-        <button class="btn" id="btn-join-screen">Entra con Codice<small>ti serve il codice dell'host</small></button>
-        <button class="btn btn-ghost" id="btn-solo">Allenamento<small>da solo, contro un fantasma</small></button>
-        <button class="btn btn-ghost" id="btn-records">Record & Trofei<small>punteggi e badge
-            sbloccati</small></button>
+        <button class="btn btn-primary" id="btn-create">Crea una stanza<small>Sei l’host. Invita altri nove giocatori.</small></button>
+        <button class="btn" id="btn-join-screen">Entra con codice<small>Unisciti alla stanza dell’host.</small></button>
       </div>
-
-      <label class="effects-setting" for="effects-quality">
-        <span>Effetti visivi</span>
-        <select id="effects-quality" aria-label="Qualità effetti visivi">
-          <option value="auto">Automatici</option>
-          <option value="completi">Completi</option>
-          <option value="ridotti">Ridotti</option>
-          <option value="disattivati">Disattivati</option>
-        </select>
-      </label>
-
-      <p class="hint">Serve solo il browser. Niente account, niente installazioni.</p>
+      <p class="hint">Ogni giocatore usa il proprio telefono. La stanza si collega direttamente via WebRTC.</p>
+      <p class="delitto-note">Il catalogo dei minigiochi è stato sostituito da un mistero a episodi.</p>
     </section>
 
-    <!-- ============ LEADERBOARD & OBIETTIVI ============ -->
-    <section class="screen" id="screen-records">
-      <div class="records-tabs" style="display: flex; gap: 8px; margin-bottom: 16px; justify-content: center;">
-        <button class="records-tab-btn is-active" id="tab-btn-records"
-          style="padding: 8px 18px; border-radius: 99px; border: none; font-weight: bold; cursor: pointer; background: var(--primario); color: #fff;">📊
-          Migliori Punteggi</button>
-        <button class="records-tab-btn" id="tab-btn-trofei"
-          style="padding: 8px 18px; border-radius: 99px; border: 2px solid var(--linea); font-weight: bold; cursor: pointer; background: var(--bg-soft-2); color: var(--testo);">🏅
-          Trofei & Badge</button>
-      </div>
-
-      <div id="tab-content-records">
-        <h2>I Tuoi Migliori Punteggi</h2>
-        <div class="scoreboard-table-wrap" style="max-height: 50vh; overflow-y: auto; margin-bottom: 20px;">
-          <table class="scoreboard-table" id="records-table"></table>
-        </div>
-      </div>
-
-      <div id="tab-content-trofei" style="display: none;">
-        <h2>I Tuoi Trofei</h2>
-        <div id="trofei-container" style="max-height: 50vh; overflow-y: auto; margin-bottom: 20px;"></div>
-      </div>
-
-      <button class="btn btn-ghost btn-small" data-back>Torna al menu</button>
-    </section>
-
-    <!-- ============ HOST / SALA D'ATTESA ============ -->
-    <section class="screen" id="screen-host">
-      <h2>Sala d'attesa</h2>
-      <p class="muted centrato">Manda questo codice a chi vuoi invitare.</p>
-
-      <div class="code-box">
-        <div class="code" id="room-code">·····</div>
-
-        <div id="host-qrcode-container"
-          style="margin: 15px auto; display: flex; flex-direction: column; align-items: center;">
-          <div id="host-qrcode"></div>
-          <small class="muted" style="margin-top: 8px; font-weight: bold; font-size: 0.9rem;">📲 Inquadra dal cellulare
-            per entrare!</small>
-        </div>
-
-        <button class="btn btn-small btn-ghost" id="btn-copy-code">Copia solo codice</button>
-        <button class="btn btn-small btn-primary" id="btn-copy-link" style="margin-top: 10px; width: 100%;">Invita amici
-          📲</button>
-      </div>
-
-      <div class="posti" id="host-giocatori"></div>
-
-      <button class="btn btn-primary" id="btn-host-start" disabled>Serve almeno un altro giocatore</button>
-      <p class="status" id="host-status">Creazione della stanza…</p>
-      <button class="btn btn-ghost btn-small" data-back>Annulla</button>
-    </section>
-
-    <!-- ============ JOIN ============ -->
     <section class="screen" id="screen-join">
-      <h2>Entra in partita</h2>
-
-      <label class="field">
-        <span>Il tuo nome</span>
-        <input id="input-name-join" maxlength="14" placeholder="Es. Marco" autocomplete="nickname">
-      </label>
-
-      <label class="field">
-        <span>Codice della stanza</span>
-        <input id="input-code" maxlength="5" placeholder="ABCD" autocapitalize="characters" autocomplete="off"
-          spellcheck="false"
-          style="font-size: 1.4rem; letter-spacing: 4px; text-transform: uppercase; text-align: center;">
-      </label>
-
-      <button class="btn btn-primary" id="btn-join">Connetti</button>
-      <p class="status" id="join-status"></p>
-
-
-      <div
-        style="font-size: 0.8rem; color: var(--muto); text-align: center; margin: 10px auto 4px; line-height: 1.4; max-width: 300px;">
-        💡 <b>Nota:</b> Chi ha creato la stanza deve tenere aperta la schermata "Sala d'attesa" mentre ti colleghi!
-      </div>
-
-      <button class="btn btn-ghost btn-small" data-back>Indietro</button>
+      <p class="screen-eyebrow">Entra in partita</p><h2>Unisciti agli invitati</h2>
+      <label class="field"><span>Il tuo nome</span><input id="input-name-join" maxlength="18" placeholder="Es. Giulia" autocomplete="nickname"></label>
+      <label class="field"><span>Codice stanza</span><input id="input-code" maxlength="4" placeholder="ABCD" autocapitalize="characters" autocomplete="off"></label>
+      <button class="btn btn-primary" id="btn-join">Connetti</button><p class="status" id="join-status"></p>
+      <button class="btn btn-ghost btn-small" data-menu>Indietro</button>
     </section>
 
-    <!-- ============ LOBBY / SCELTA GIOCO ============ -->
-    <section class="screen" id="screen-lobby">
-      <header class="lobby-header">
-        <div class="lobby-heading">
-          <p class="screen-eyebrow">Selezione modalità</p>
-          <h2 id="lobby-titolo">Scegli la sfida</h2>
-        </div>
-        <div class="giocatori" id="lobby-giocatori" aria-label="Giocatori nella stanza"></div>
-      </header>
-
-      <div class="lobby-filtri" id="lobby-filtri" aria-label="Categorie">
-        <button class="filtro-btn is-active" data-cat="tutti">Tutti</button>
-        <button class="filtro-btn" data-cat="azione">Riflessi</button>
-        <button class="filtro-btn" data-cat="mente">Mente</button>
-        <button class="filtro-btn" data-cat="precisione">Abilità</button>
-        <button class="filtro-btn" data-cat="party">Party</button>
-      </div>
-
-      <div class="lista-giochi" id="lista-giochi"></div>
-
-      <footer class="lobby-actions">
-        <div class="lobby-quick-actions">
-          <button class="btn btn-ghost" id="btn-roulette">Scelta casuale</button>
-          <button class="btn btn-ghost" id="btn-start-vote">Votazione</button>
-          <button class="btn btn-ghost" id="btn-start-playlist">Playlist Party<small>5 sfide diverse</small></button>
-        </div>
-        <div class="lobby-play-actions">
-          <button class="btn btn-primary" id="btn-start">Gioca</button>
-          <button class="btn" id="btn-start-board">Tabellone</button>
-        </div>
-        <p class="status" id="lobby-status"></p>
-        <button class="btn btn-ghost btn-small lobby-back" data-back>Torna al menu</button>
-      </footer>
+    <section class="screen" id="screen-room">
+      <header class="delitto-header"><div><p class="screen-eyebrow">Sala riservata · massimo dieci</p><h2>Gli invitati</h2></div><button class="btn btn-ghost btn-small" data-menu>Esci</button></header>
+      <div class="room-code-card"><span>CODICE STANZA</span><strong id="room-code">····</strong><button class="btn btn-small" id="btn-copy">Copia invito</button></div>
+      <p class="muted" id="room-hint">Servono 10 giocatori per distribuire i personaggi.</p>
+      <label class="field host-only" id="case-pick-wrap"><span>Scegli il caso di questa partita</span><select id="case-select"><option value="ritratto">Il ritratto scomparso · Palazzo Velluto</option><option value="sipario">L’ultimo applauso · Teatro Belladonna</option><option value="sigillo">Il sigillo nero · Villa Malaspina</option></select></label>
+      <div class="roster-grid" id="roster"></div>
+      <button class="btn btn-primary" id="btn-start" disabled>Distribuisci i personaggi · 1/10</button>
+      <p class="status" id="room-status"></p>
     </section>
 
-    <!-- ============ TABELLONE (OCA) ============ -->
-    <section class="screen" id="screen-board">
-      <header class="board-header">
-        <div>
-          <p class="screen-eyebrow">Corsa al traguardo</p>
-          <h2>Tabellone</h2>
-        </div>
-        <div class="board-legend" aria-label="Caselle speciali">
-          <span><i class="legend-dot legend-plus"></i>Bonus +2</span>
-          <span><i class="legend-dot legend-minus"></i>Malus −2</span>
-          <span><i class="legend-dot legend-goal"></i>Traguardo</span>
-        </div>
-      </header>
-
-      <div class="board-layout">
-        <div class="board-wrapper">
-          <div id="board-container" aria-label="Percorso di gioco"></div>
-        </div>
-
-        <aside class="board-controls">
-          <div class="board-turn-card">
-            <span class="board-turn-label">Turno in corso</span>
-            <div id="board-status">Preparazione della partita…</div>
-          </div>
-
-          <div id="board-dice-area" class="board-dice-area" style="display: none;">
-            <div id="board-dice-box" class="board-dice-box">
-              <div id="board-dice-cube" class="board-dice-cube">🎲</div>
-              <div id="board-dice-result" class="board-dice-result"></div>
-            </div>
-            <button class="btn btn-primary" id="btn-roll-dice">Lancia il dado</button>
-          </div>
-
-          <div id="board-choose-area" class="board-choose-area" style="display: none;">
-            <div class="board-choose-heading">
-              <span class="board-turn-label">Prossima sfida</span>
-              <h3 id="board-choose-title">Scegli un gioco</h3>
-            </div>
-            <div id="board-game-list" class="board-game-list"></div>
-          </div>
-
-          <button class="btn btn-ghost btn-small board-quit" id="btn-board-quit">Abbandona partita</button>
-        </aside>
-      </div>
+    <section class="screen" id="screen-game">
+      <header class="delitto-header"><div><p class="screen-eyebrow" id="act-label">IL CASO · ATTO I</p><h2 id="case-title"></h2></div><button class="btn btn-ghost btn-small" data-menu>Esci</button></header>
+      <nav class="case-tabs"><button class="case-tab is-active" data-panel="investigation">Indagine</button><button class="case-tab" data-panel="role">Il mio personaggio</button><button class="case-tab" data-panel="deals">Accordi</button><button class="case-tab" data-panel="accusation">Accusa</button></nav>
+      <div id="panel-investigation" class="case-panel is-active"></div>
+      <div id="panel-role" class="case-panel"></div>
+      <div id="panel-deals" class="case-panel"></div>
+      <div id="panel-accusation" class="case-panel"></div>
+      <p class="status" id="game-status" aria-live="polite"></p>
     </section>
-
-    <!-- ============ ROUND ============ -->
-    <section class="screen" id="screen-round">
-      <!-- HUD A NORD: Timer sempre in alto, orizzontale o verticale -->
-      <header class="hud-nord" id="hud-nord">
-        <div class="hud-nord-pill">
-          <div class="hud-round-badge">
-            <span class="hud-round-lbl">ROUND</span>
-            <span class="hud-round-val"><b id="hud-round">1</b>/<span id="hud-round-tot">3</span></span>
-          </div>
-          <div class="hud-timer" id="hud-timer">0.0s</div>
-        </div>
-
-        <div class="hud-punti" id="hud-punti"></div>
-        <div class="bars" id="bars"></div>
-        <div class="modifier" id="modifier-badge"></div>
-      </header>
-
-      <!-- ARENA CENTRALE: A tutto schermo -->
-      <div class="arena-wrap" id="arena-wrap">
-        <div class="arena" id="arena"></div>
-        <p class="typing-hint" id="typing-hint"></p>
-
-        <!-- COUNTDOWN AL CENTRO DELLO SCHERMO: Sfondo visibile con gioco caricato sotto -->
-        <div class="countdown" id="countdown">
-          <div class="countdown-card">
-            <div class="countdown-num" id="countdown-num">3</div>
-            <div class="countdown-label" id="countdown-label">PRONTI?</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TASTO ESCI A SUD (LONG-PRESS: tieni premuto per uscire) -->
-      <div class="esci-sud-wrap" id="esci-sud-wrap">
-        <button class="btn-esci-sud" id="btn-quit-game" type="button" aria-label="Tieni premuto per uscire">
-          <div class="esci-svg-wrap">
-            <svg class="esci-circle-svg" viewBox="0 0 36 36">
-              <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-              <path class="circle-progress" id="esci-progress-bar" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-            </svg>
-            <span class="esci-btn-icon">✕</span>
-          </div>
-          <span class="esci-btn-text" id="esci-btn-text">Tieni premuto per uscire</span>
-        </button>
-      </div>
-    </section>
-
-    <!-- ============ RISULTATO ROUND ============ -->
-    <section class="screen" id="screen-result">
-      <h2 id="result-title">Round concluso</h2>
-      <div class="scoreboard-table-wrap">
-        <table class="scoreboard-table" id="result-table"></table>
-      </div>
-      <!-- Area Malus & Vendetta dell'Ultimo -->
-      <div id="malus-banner-prenotato" style="display: none;"></div>
-      <div id="malus-container" style="display: none;"></div>
-
-      <div class="status" id="result-status"></div>
-      <button class="btn btn-primary" id="btn-next">Prossimo round</button>
-    </section>
-
-    <!-- ============ FINALE ============ -->
-    <section class="screen" id="screen-final">
-      <h2 id="final-title">Fine partita</h2>
-      <div class="trophy" id="final-trophy">🏆</div>
-      <div class="scoreboard-table-wrap">
-        <table class="scoreboard-table" id="final-table"></table>
-      </div>
-      <div class="final-stats" id="final-stats"></div>
-      <button class="btn btn-primary" id="btn-rematch">Rivincita</button>
-      <button class="btn btn-ghost btn-small" id="btn-share">Condividi Vittoria</button>
-      <button class="btn btn-ghost btn-small" id="btn-change">Cambia gioco</button>
-      <button class="btn btn-ghost btn-small" id="btn-quit">Torna al menu</button>
-      <p class="status" id="final-status"></p>
-    </section>
-
-    <div class="toast" id="toast"></div>
-
-    <!-- ============ OVERLAY VOTAZIONE PARTY ============ -->
-    <div class="modal-overlay" id="modal-voto" style="display: none;">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>🗳️ Votazione Sfida</h3>
-          <div class="modal-timer" id="voto-timer">10s</div>
-        </div>
-        <p class="muted" style="margin: 8px 0 16px;">Vota la sfida che vuoi giocare!</p>
-        <div class="voto-opzioni" id="voto-opzioni"></div>
-        <p class="status" id="voto-status"></p>
-      </div>
-    </div>
-
-  </div>
-
-  <button id="btn-fullscreen" class="btn-fullscreen" title="Schermo Intero">⛶</button>
-  <button id="btn-theme" class="btn-theme" title="Tema Scuro/Chiaro">🌙</button>
-  <button id="btn-music" class="btn-music" title="Musica On/Off">🔇</button>
-
-  <canvas id="coriandoli" aria-hidden="true"></canvas>
-
+  </main>
+  <div id="modal" class="modal-overlay" role="dialog" aria-modal="true" aria-live="polite"></div>
   <script src="js/peerjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.min.js"></script>
-  <script src="js/arena3d.js?v=3"></script>
-
-  <!-- utilità qr code e obiettivi -->
-  <script src="js/qrcode.js?v=13"></script>
-  <script src="js/obiettivi.js?v=13"></script>
-
-  <!-- dati -->
-  <script src="js/frasi.js?v=13"></script>
-  <script src="js/parole.js?v=13"></script>
-  <script src="js/parole-impostore.js?v=13"></script>
-
-  <!-- rete, audio, effetti e motore comune -->
-  <script src="js/audio.js?v=15"></script>
   <script src="js/rete.js?v=21"></script>
-  <script src="js/effetti.js?v=17"></script>
-  <script src="js/malus.js?v=7"></script>
-  <script src="js/nucleo.js?v=34"></script>
-  <!-- i 25 giochi attivi -->
-  <script src="js/giochi/dattilo.js?v=16"></script>
-  <script src="js/giochi/riflessi.js?v=17"></script>
-  <script src="js/giochi/calcolo.js?v=13"></script>
-  <script src="js/giochi/anagrammi.js?v=13"></script>
-  <script src="js/giochi/sequenza.js?v=13"></script>
-  <script src="js/giochi/bersagli.js?v=16"></script>
-  <script src="js/giochi/intruso.js?v=13"></script>
-  <script src="js/giochi/stroop.js?v=13"></script>
-  <script src="js/giochi/ordine.js?v=13"></script>
-  <script src="js/giochi/memory.js?v=13"></script>
-  <script src="js/giochi/tris.js?v=13"></script>
-  <script src="js/giochi/fotografica.js?v=13"></script>
-  <script src="js/giochi/conta.js?v=13"></script>
-  <script src="js/giochi/inverso.js?v=13"></script>
-  <script src="js/giochi/impostore.js?v=13"></script>
-  <script src="js/giochi/yahtzee.js?v=13"></script>
-  <script src="js/giochi/caccia.js?v=13"></script>
-  <script src="js/giochi/scuoti.js?v=13"></script>
-  <script src="js/giochi/urlo.js?v=13"></script>
-  <script src="js/giochi/bomba.js?v=13"></script>
-  <script src="js/giochi/cronometro.js?v=13"></script>
-  <script src="js/giochi/spam.js?v=13"></script>
-  <script src="js/giochi/equilibrio.js?v=13"></script>
-  <script src="js/giochi/tapdash.js?v=2"></script>
-  <script src="js/giochi/swipesprint.js?v=2"></script>
-  <script src="js/giochi/escaperoom.js?v=16"></script>
-
-  <script src="js/tabellone.js?v=14"></script>
-  <script src="js/avvio.js?v=23"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(error => {
-          console.warn('[PWA] Service Worker non disponibile:', error);
-        });
-      });
-    }
-  </script>
+  <script src="js/delitto.js?v=1"></script>
+  <script>if('serviceWorker'in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(error=>console.warn('[PWA]',error)))}</script>
 </body>
-
 </html>
