@@ -44,6 +44,7 @@
       <p class="muted" id="room-hint">Servono 10 giocatori per distribuire i personaggi.</p>
       <label class="field host-only" id="case-pick-wrap"><span>Scegli il caso di questa partita</span><select id="case-select"><option value="ritratto">Il ritratto scomparso · Palazzo Velluto</option><option value="sipario">L’ultimo applauso · Teatro Belladonna</option><option value="sigillo">Il sigillo nero · Villa Malaspina</option></select></label>
       <div class="roster-grid" id="roster"></div>
+      <div class="bot-test-tools host-only" id="bot-test-tools"><button class="btn" id="btn-fill-bots">Riempi con bot fino a 10</button><button class="btn btn-ghost" id="btn-stop-bots" disabled>Rimuovi bot</button><p class="status" id="bots-status" aria-live="polite">Aggiunge un bot per ogni posto libero; il totale include l’host.</p></div>
       <button class="btn btn-primary" id="btn-start" disabled>Distribuisci i personaggi · 1/10</button>
       <p class="status" id="room-status"></p>
     </section>
@@ -62,6 +63,7 @@
   <script src="js/peerjs.min.js"></script>
   <script src="js/rete.js?v=21"></script>
   <script src="js/delitto.js?v=1"></script>
+  <script src="js/delitto-bots.js?v=1"></script>
   <script>if('serviceWorker'in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(error=>console.warn('[PWA]',error)))}</script>
 </body>
 </html>
