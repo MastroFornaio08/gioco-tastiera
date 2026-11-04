@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css?v=19">
   <link rel="stylesheet" href="css/design-system.css?v=10">
-  <link rel="stylesheet" href="css/delitto.css?v=1">
+  <link rel="stylesheet" href="css/delitto.css?v=2">
 </head>
 <body>
   <div class="sfondo" aria-hidden="true"><span class="macchia m1"></span><span class="macchia m2"></span><span class="macchia m3"></span></div>
@@ -25,8 +25,9 @@
       <div class="menu-actions">
         <button class="btn btn-primary" id="btn-create">Crea una stanza<small>Sei l’host. Invita altri nove giocatori.</small></button>
         <button class="btn" id="btn-join-screen">Entra con codice<small>Unisciti alla stanza dell’host.</small></button>
+        <button class="btn btn-ghost" id="btn-live-screen" type="button">Gioca dal vivo<small>Dieci persone, un solo telefono da passare.</small></button>
       </div>
-      <p class="hint">Ogni giocatore usa il proprio telefono. La stanza si collega direttamente via WebRTC.</p>
+      <p class="hint">Giocate ognuno dal proprio telefono via WebRTC oppure passate un solo telefono al tavolo.</p>
       <p class="delitto-note">Il catalogo dei minigiochi è stato sostituito da un mistero a episodi.</p>
     </section>
 
@@ -35,6 +36,14 @@
       <label class="field"><span>Il tuo nome</span><input id="input-name-join" maxlength="18" placeholder="Es. Giulia" autocomplete="nickname"></label>
       <label class="field"><span>Codice stanza</span><input id="input-code" maxlength="4" placeholder="ABCD" autocapitalize="characters" autocomplete="off"></label>
       <button class="btn btn-primary" id="btn-join">Connetti</button><p class="status" id="join-status"></p>
+      <button class="btn btn-ghost btn-small" data-menu>Indietro</button>
+    </section>
+
+    <section class="screen" id="screen-live">
+      <p class="screen-eyebrow">Modalità dal vivo · passate il telefono</p><h2>Chi è seduto al tavolo?</h2>
+      <p class="muted">Inserisci dieci nomi, uno per riga. Le schede appariranno una alla volta: chi riceve il telefono legge il proprio ruolo in privato.</p>
+      <label class="field"><span>Nomi dei dieci giocatori</span><textarea id="live-names" maxlength="220" rows="10" placeholder="Anna&#10;Marco&#10;Giulia&#10;…"></textarea></label>
+      <button class="btn btn-primary" id="btn-live-start">Prepara la partita</button><p class="status" id="live-status"></p>
       <button class="btn btn-ghost btn-small" data-menu>Indietro</button>
     </section>
 
@@ -62,7 +71,7 @@
   <div id="modal" class="modal-overlay" role="dialog" aria-modal="true" aria-live="polite"></div>
   <script src="js/peerjs.min.js"></script>
   <script src="js/rete.js?v=21"></script>
-  <script src="js/delitto.js?v=1"></script>
+  <script src="js/delitto.js?v=2"></script>
   <script src="js/delitto-bots.js?v=1"></script>
   <script>if('serviceWorker'in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(error=>console.warn('[PWA]',error)))}</script>
 </body>
