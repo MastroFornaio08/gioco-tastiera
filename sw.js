@@ -1,8 +1,8 @@
-const CACHE_VERSION = "zaltergames-v12";
+const CACHE_VERSION = "zaltergames-v13";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json",
   "./css/style.css", "./css/design-system.css", "./css/delitto.css",
-  "./js/peerjs.min.js", "./js/rete.js", "./js/delitto.js"
+  "./js/peerjs.min.js", "./js/rete.js", "./js/delitto.js", "./js/delitto-bots.js"
 ];
 
 self.addEventListener("install", event => {
