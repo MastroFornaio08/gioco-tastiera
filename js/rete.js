@@ -12,7 +12,7 @@
         ospite5   (un narratore e massimo 10 giocatori)
 
    Ogni giocatore ha un id breve e stabile: 'p0' è sempre l'host, gli ospiti
-   ricevono 'p1'…'p9' nell'ordine in cui entrano. L'id resta valido per tutta
+   ricevono 'p1'…'p10' nell'ordine in cui entrano. L'id resta valido per tutta
    la partita e non cambia se qualcuno se ne va.
 */
 
