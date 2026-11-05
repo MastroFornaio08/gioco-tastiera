@@ -14,7 +14,7 @@ Un gioco narrativo browser-based per **10 sospettati e un narratore**. Il narrat
 
 ## Partita dal vivo
 
-Inserisci i dieci nomi e un PIN narratore di 4–6 cifre. Il narratore vede la schermata con soluzione, ruoli e messaggi; il PIN serve a proteggere l’accesso quando il telefono passa di mano. Le schede si leggono una alla volta. Accordi e conversazioni possono avvenire a voce.
+Inserisci i dieci nomi e un PIN narratore di 4–6 cifre. Il narratore vede la schermata con soluzione, ruoli e messaggi; il PIN serve a proteggere l’accesso quando il telefono passa di mano. Le schede si leggono una alla volta. Il gioco assegna a ogni persona un PIN casuale e univoco da salvare; per riaprire la propria scheda servono nome e PIN. Accordi e conversazioni possono avvenire a voce.
 
 ## Bot per le prove
 
