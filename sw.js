@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zaltergames-v17";
+const CACHE_VERSION = "zaltergames-v18";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json",
   "./css/style.css", "./css/design-system.css", "./css/delitto.css",
